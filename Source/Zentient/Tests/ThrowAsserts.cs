@@ -248,10 +248,11 @@ public static partial class Assert
         throw new FailedTestException($"Failed test: Expected exception to be thrown, but it wasn't.");
     }
 
-    private static object GetTypeName<T>() where T : Exception
+    private static string GetTypeName<T>() where T : Exception
     {
         T? instance = CreateInstance<T>();
-        throw new NotImplementedException();
+
+        return (instance is null ? typeof(T) : instance.GetType()).Name;
     }
 
     private static T? CreateInstance<T>() where T : Exception
