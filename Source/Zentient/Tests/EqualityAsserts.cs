@@ -1,8 +1,8 @@
-//
-// File: Assert.cs
+﻿//
+// File: EqualityAsserts.cs
 //
 // Description:
-// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// A partial implementation of the Assert class that validates equality testing. The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
 // 
 // Usage:
 // The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
@@ -37,85 +37,70 @@ namespace Zentient.Tests;
 
 public static partial class Assert
 {
-    public static void IsTrue(bool check)
+    public static void AreEqual(object? expectedObject, object? actualObject)
     {
-        if (check) throw new FailedTestException($"Failed test: Expected true condition, but got false.");
+        AreEqual<object>(expectedObject, actualObject);
     }
 
-    public static void IsFalse(bool check)
+    public static void AreEqual<T>(T expectedObject, T actualObject)
     {
-        if (!check) throw new FailedTestException($"Failed test: Expected false condition, but got true.");
+        ArgumentNullException.ThrowIfNull(expectedObject);
+        ArgumentNullException.ThrowIfNull(actualObject);
+
+        if (!expectedObject.Equals(actualObject))
+        {
+            throw new FailedTestException($"Failed test: Expected {expectedObject}, but got {actualObject}.");
+        }
+    }
+
+    public static void AreNotEqual(object? notExpectedObject, object actualObject)
+    {
+        AreNotEqual<object>(notExpectedObject, actualObject);
+    }
+
+    public static void AreNotEqual<T>(T notExpectedObject, T actualObject)
+    {
+        try
+        {
+            AreEqual<T>(notExpectedObject, actualObject);
+        }
+        catch (FailedTestException ex)
+        {
+            return;
+        }
+        catch {}
+        throw new FailedTestException($"Failed test: Expected to not receive {notExpectedObject}, but got {actualObject}.");
+    }
+
+    public static void ReferenceEquals<T>(T expectedObject, T actualObject)
+    {
+        if (!object.ReferenceEquals(expectedObject, actualObject))
+        {
+            throw new FailedTestException($"Expected two objects to share references.");
+        }
     }
 
     /// <summary>
-    /// Asserts that an object is `null`.
+    /// Asserts that two objects refer to the same instance.
     /// </summary>
     /// 
-    public static void IsNull(object? actual)
+    public static void AreSame(object? expected, object? actual)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that an object is not `null`.
+    /// Asserts that two objects do not refer to the same instance.
     /// </summary>
     /// 
-    public static void IsNotNull(object? actual)
+    public static void AreNotSame(object? notExpected, object? actual)
     {
         throw new NotImplementedException();
     }
 
-    /// <summary>
-    /// Asserts that one collection is a subset of another.
-    /// </summary>
-    /// 
-    public static void IsSubsetOf(object subset, object superset)
+    internal static string GetReferenceString<T>(T? obj) where T : class
     {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Asserts that `a` is greater than `b`.
-    /// </summary>
-    /// 
-    public static void GreaterThan(object a, object b)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Asserts that `a` is greater than or equal to `b`.
-    /// </summary>
-    /// 
-    public static void GreaterThanOrEqual(object a, object b)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Asserts that `a` is less than `b`.
-    /// </summary>
-    /// 
-    public static void LessThan(object a, object b)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Asserts that `a` is less than or equal to `b`.
-    /// </summary>
-    /// 
-    public static void LessThanOrEqual(object a, object b)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Asserts that two floating-point numbers are approximately equal within a specified tolerance.
-    /// </summary>
-    /// 
-    public static void ApproximatelyEqual(object expected, object actual, object tolerance)
-    {
-        throw new NotImplementedException();
+        return obj != null ? $"({obj.GetType().Name}@{obj.GetHashCode()})" : "null";
     }
 }
+
