@@ -1,7 +1,14 @@
 //
 // File: TestInfo.cs
 //
-// Description: Struct for storing an instance, setup and test methods.
+// Description:
+// The TestInfo struct represents information about tests, including the test instance, setup method, and test methods associated with a test class. It encapsulates these details into a single structure for convenient storage and retrieval during test execution.
+//
+// Usage:
+// Developers typically use the TestInfo struct within test management systems or frameworks to organize and manage tests. It allows them to store information about tests, such as the test instance and associated methods, in a structured format, facilitating the execution and reporting of test results.
+//
+// Purpose:
+// The purpose of the TestInfo struct is to provide a lightweight and efficient way to represent and store information about tests within a test suite or framework. By encapsulating test details into a single structure, developers can simplify test management tasks and improve the organization and execution of tests within their applications.
 //
 // MIT License
 //
@@ -26,21 +33,44 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests
+using System.Reflection;
+
+namespace Zentient.Tests;
 
 /// <summary>
-/// Struct for storing an instance, setup and test methods.
+/// Represents information about tests including the test instance, setup method, and test methods.
 /// </summary>
-internal struct TestInfo(
-    object instance,
-    MethodInfo? setup,
-    IEnumerable<MethodInfo> tests)
+internal struct TestInfo
 {
-    private readonly object _instance = instance;
-    private readonly MethodInfo? _setup = setup;
-    private readonly IEnumerable<MethodInfo> _tests = tests;
-    
+    private readonly object _instance;
+    private readonly MethodInfo? _setup;
+    private readonly IEnumerable<MethodInfo> _tests;
+
+    /// <summary>
+    /// Initializes a new instance of the TestInfo struct.
+    /// </summary>
+    /// <param name="instance">The instance of the test class.</param>
+    /// <param name="setup">The setup method of the test class.</param>
+    /// <param name="tests">The collection of test methods.</param>
+    internal TestInfo(object instance, MethodInfo? setup, IEnumerable<MethodInfo> tests)
+    {
+        _instance = instance;
+        _setup = setup;
+        _tests = tests;
+    }
+
+    /// <summary>
+    /// Gets the instance of the test class.
+    /// </summary>
     internal object Instance { get => _instance; }
+
+    /// <summary>
+    /// Gets the setup method of the test class.
+    /// </summary>
     internal MethodInfo? Setup { get => _setup; }
-    internal IEnumerable<MethodInfo> Tests {get => _tests; }
+
+    /// <summary>
+    /// Gets the collection of test methods.
+    /// </summary>
+    internal IEnumerable<MethodInfo> Tests { get => _tests; }
 }

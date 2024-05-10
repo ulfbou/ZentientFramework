@@ -1,8 +1,15 @@
 //
 // File: Assert.cs
 //
-// Description: Assert Methods.
-//
+// Description:
+// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// 
+// Usage:
+// The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
+// 
+// Purpose:
+// The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, developers can ensure that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
+// 
 // MIT License
 //
 // Copyright (c) 2024 Ulf Bourelius
@@ -332,5 +339,10 @@ public static class Assert
     public static void ApproximatelyEqual(object expected, object actual, object tolerance)
     {
         throw new NotImplementedException();
+    }
+    
+    internal static string GetReferenceString<T>(T? obj) where T : class
+    {
+        return obj != null ? $"({obj.GetType().Name}@{obj.GetHashCode()})" : "null";
     }
 }

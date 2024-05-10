@@ -1,7 +1,13 @@
-//
 // File: FailedTestException.cs
 //
-// Description: Exception thrown when the Assert in a test method fails.
+// Description:
+// The FailedTestException is thrown when an assertion in a test method fails. This exception indicates that the expected outcome of a test case did not match the actual result, signaling a failure in the test scenario.
+//
+// Usage:
+// This exception is commonly used within testing frameworks and test suites to signal test failures. When thrown, it provides information about the reason for the failure, enabling developers to diagnose and address issues in their test cases.
+//
+// Purpose:
+// The FailedTestException class serves as a specialized exception type for handling test failures. By throwing this exception when an assertion fails, developers can gracefully handle test failures and capture relevant information about the failure, aiding in debugging and resolution of issues in test scenarios.
 //
 // MIT License
 //
@@ -53,4 +59,3 @@ public class FailedTestException : Exception
     public FailedTestException(string? message, Exception ex)
 	: base(message, ex) {}
 }
-

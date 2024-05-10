@@ -1,7 +1,13 @@
 //
 // File: TestAttributes.cs
+// Description:
+// This file contains custom attribute classes used for defining and organizing tests within test classes. These attributes are designed to mark classes and methods as test-related entities, allowing for the identification and execution of test cases in the test management system.
 //
-// Description: Attributes to annote test classes and methods.
+// Usage:
+// These attributes are used to annotate classes and methods within a test suite, enabling developers to structure and organize their test cases effectively. Test management frameworks and tools can leverage these attributes to discover, execute, and report on test cases during automated testing processes.
+//
+// Purpose:
+// The purpose of these attributes is to provide a standardized and declarative way to define test-related entities within the codebase. By annotating classes and methods with these attributes, developers can clearly indicate which components are intended for testing, facilitating automated test discovery and execution.
 //
 // MIT License
 //
@@ -29,19 +35,19 @@
 namespace Zentient.Tests;
 
 /// <summary>
-/// Attributes to annote test classes and methods.
+/// Specifies that a class contains test methods.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class TestClassAttribute : Attribute {}
+public class TestClassAttribute : Attribute { }
 
 /// <summary>
-/// Attribute to annote Test methods.
+/// Specifies that a method is a test method.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public class TestMethodAttribute : Attribute {}
+public class TestMethodAttribute : Attribute { }
 
 /// <summary>
-/// Attribute to annote setup methods for test classes.
+/// Specifies that a method is a setup method for tests within a test class.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class TestSetupAttribute : Attribute {}
+public class TestSetupAttribute : Attribute { }

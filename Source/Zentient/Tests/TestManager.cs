@@ -1,21 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
+﻿//
+// File: TestManager.cs
+//
+// Description:
+// The TestManager class is responsible for managing and executing tests defined within the executing assembly. It provides functionality to load tests, run tests, and handle test setup and execution.
+// 
+// Usage:
+// The TestManager class serves as the entry point for running tests within an application or test suite. Developers typically instantiate this class and invoke the Run method to execute all tests defined within the assembly. Additionally, the class provides internal methods for loading tests, retrieving test types, and executing individual test methods asynchronously or synchronously.
+// 
+// Purpose:
+// The purpose of the TestManager class is to provide a centralized component for managing and executing tests within an application or test suite. By encapsulating test execution logic within this class, developers can easily organize, execute, and report on tests, facilitating the process of test-driven development (TDD) and ensuring the reliability and correctness of their codebase.
+// 
+// MIT License
+//
+// Copyright (c) 2024 Ulf Bourelius
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Zentient.Extensions;
+//using Zentient.Extensions;
 
 namespace Zentient.Tests;
 
+/// <summary>
+/// Manages and runs tests defined in the executing assembly.
+/// </summary>
 public class TestManager
 {
-    //private Dictionary<Type, MethodInfo>  _testMethods = new Dictionary<Type, MethodInfo>();
-    //private Dictionary<Type, MethodInfo> _testSetup = new Dictionary<Type, MethodInfo>();
     private Dictionary<Type, TestInfo> _testInfo = new Dictionary<Type, TestInfo>();
 
+    /// <summary>
+    /// Runs all tests asynchronously.
+    /// </summary>
     public async Task Run()
     {
         if (_testInfo is null || _testInfo.Count() == 0) await LoadTests();
@@ -39,11 +71,11 @@ public class TestManager
                 {
                     if (IsAsyncMethod(test))
                     {
-                        await TesterAsync(kvp.Key, testInfo.Instance, test);
+                        await TestAsync(kvp.Key, testInfo.Instance, test);
                     }
                     else
                     {
-                        Tester(kvp.Key, testInfo.Instance, test);
+                        Test(kvp.Key, testInfo.Instance, test);
                     }
                 }
                 catch(FailedTestException ex)
@@ -58,6 +90,9 @@ public class TestManager
         }
     }
 
+    /// <summary>
+    /// Loads tests from all types in the executing assembly.
+    /// </summary>
     private async Task LoadTests()
     {
         await Console.Out.WriteLineAsync("Initializing tests.");
@@ -110,6 +145,10 @@ public class TestManager
         }
     }
 
+    /// <summary>
+    /// Retrieves all types marked with the TestClassAttribute from the executing assembly asynchronously.
+    /// </summary>
+    /// <returns>An asynchronous enumerable collection of types marked with the TestClassAttribute.</returns>
     private async IAsyncEnumerable<Type> GetTestTypes()
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -123,7 +162,14 @@ public class TestManager
         }
     }
 
-    internal static async Task TesterAsync(Type type, object instance, MethodInfo method)
+    /// <summary>
+    /// Executes an asynchronous test method of a specified type and handles exceptions.
+    /// </summary>
+    /// <param name="type">The type of the test class containing the method.</param>
+    /// <param name="instance">An instance of the test class.</param>
+    /// <param name="method">The MethodInfo representing the test method.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    internal static async Task TestAsync(Type type, object instance, MethodInfo method)
     {
         try
         {
@@ -141,7 +187,13 @@ public class TestManager
         }
     }
 
-    internal static void Tester(Type type, object instance, MethodInfo method)
+    /// <summary>
+    /// Executes a synchronous test method of a specified type and handles exceptions.
+    /// </summary>
+    /// <param name="type">The type of the test class containing the method.</param>
+    /// <param name="instance">An instance of the test class.</param>
+    /// <param name="method">The MethodInfo representing the test method.</param>
+    internal static void Test(Type type, object instance, MethodInfo method)
     {
         try
         {
@@ -158,8 +210,12 @@ public class TestManager
             throw;
         }
     }
-    
-    // Method to check if a MethodInfo represents an async method
+
+    /// <summary>
+    /// Checks if a MethodInfo represents an asynchronous method.
+    /// </summary>
+    /// <param name="method">The MethodInfo to check.</param>
+    /// <returns>True if the method is asynchronous; otherwise, false.</returns>
     private static bool IsAsyncMethod(MethodInfo method)
     {
         return typeof(Task).IsAssignableFrom(method.ReturnType);

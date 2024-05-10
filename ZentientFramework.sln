@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{B66B0FA5-9031-4E84-BE7E-A9CE71B6A4A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Zentient", "Zentient", "{EED7EE6C-D82C-4547-90B2-4EDECC0BD6D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Tests", "Source\Zentient\Tests\Zentient.Tests.csproj", "{E10A3788-4ADD-4D3F-8ADF-B132FB7D14DB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E10A3788-4ADD-4D3F-8ADF-B132FB7D14DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E10A3788-4ADD-4D3F-8ADF-B132FB7D14DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E10A3788-4ADD-4D3F-8ADF-B132FB7D14DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E10A3788-4ADD-4D3F-8ADF-B132FB7D14DB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EED7EE6C-D82C-4547-90B2-4EDECC0BD6D1} = {B66B0FA5-9031-4E84-BE7E-A9CE71B6A4A1}
+		{E10A3788-4ADD-4D3F-8ADF-B132FB7D14DB} = {EED7EE6C-D82C-4547-90B2-4EDECC0BD6D1}
+	EndGlobalSection
+EndGlobal
