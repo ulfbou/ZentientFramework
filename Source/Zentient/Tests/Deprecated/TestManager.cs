@@ -36,7 +36,7 @@
 using System.Reflection;
 //using Zentient.Extensions;
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
 /// <summary>
 /// Manages and runs tests defined in the executing assembly.
@@ -78,11 +78,11 @@ public class TestManager
                         Test(kvp.Key, testInfo.Instance, test);
                     }
                 }
-                catch(FailedTestException ex)
+                catch (FailedTestException ex)
                 {
                     await Console.Out.WriteLineAsync($"Testing {kvp.Key}: Failed! Reason: {ex.Message}.");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     await Console.Out.WriteLineAsync($"Testing {kvp.Key}: Failed! Reason: {ex.Message}.");
                 }
@@ -111,14 +111,14 @@ public class TestManager
             foreach (var method in methods)
             {
                 // Check if the method has SetupMethodAttribute
-                if (method.GetCustomAttribute<TestSetupAttribute>() != null)
+                if (method.GetCustomAttribute<ZTTestSetupAttribute>() != null)
                 {
                     if (setup != null)
                         throw new BadSetupException($"{type.FullName}: Multiple Methods annotated by TestSetupAttribute.");
                     setup = method;
                 }
                 // Check if the method has TestMethodAttribute
-                else if (method.GetCustomAttribute<TestMethodAttribute>() != null)
+                else if (method.GetCustomAttribute<ZTTestMethodAttribute>() != null)
                 {
                     tests.Add(method);
                 }
@@ -153,7 +153,7 @@ public class TestManager
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
         var assemblyTasks = assemblies
-            .Select(assembly => Task.Run(() => assembly.GetTypes().Where(type => type.GetCustomAttribute<TestClassAttribute>() != null)));
+            .Select(assembly => Task.Run(() => assembly.GetTypes().Where(type => type.GetCustomAttribute<ZTTestClassAttribute>() != null)));
         var typesLists = await Task.WhenAll(assemblyTasks);
         var types = typesLists.SelectMany(t => t);
         foreach (Type type in types)

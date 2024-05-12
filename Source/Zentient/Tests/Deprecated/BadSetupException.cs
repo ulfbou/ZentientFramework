@@ -33,7 +33,7 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
 /// <summary>
 /// Exception thrown when there is an error in the setup method.

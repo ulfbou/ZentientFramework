@@ -1,8 +1,8 @@
 ﻿//
-// File: StringAsserts.cs
+// File: CollectionAsserts.cs
 //
 // Description:
-// A partial implementation of the Assert class that validates string testing. The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// A partial implementation of the Assert class that validates collection testing. The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
 // 
 // Usage:
 // The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
@@ -33,44 +33,43 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
-public static partial class Assert
+public static partial class ZTAssert
 {
     /// <summary>
-    /// Asserts that two strings are equal ignoring case.
+    /// Asserts that a collection contains a specific item.
     /// </summary>
     /// 
-    public static void AreEqualIgnoringCase(string expected, string actual)
+    public static void Contains(object? item, ICollection<object> collection)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that a string starts with a specified prefix.
+    /// Asserts that a collection does not contain a specific item.
     /// </summary>
     /// 
-    public static void StartsWith(string prefix, string actual)
+    public static void DoesNotContain(object? item, ICollection<object> collection)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that a string ends with a specified suffix.
+    /// Asserts that a collection is empty.
     /// </summary>
     /// 
-    public static void EndsWith(string suffix, string actual)
+    public static void IsEmpty(ICollection<object> collection)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that a string contains a specified substring.
+    /// Asserts that a collection is not empty.
     /// </summary>
     /// 
-    public static void ContainsSubstring(object substring, object actual)
+    public static void IsNotEmpty(ICollection<object> collection)
     {
         throw new NotImplementedException();
     }
-
 }

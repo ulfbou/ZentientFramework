@@ -32,7 +32,7 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
 /// <summary>
 /// Exception thrown when the Assert in a test method fails.
@@ -42,7 +42,7 @@ public class FailedTestException : Exception
     /// <summary>
     /// Initializes a new instance of the <see cref="FailedTestException"/> class.
     /// </summary>
-    public FailedTestException() {}
+    public FailedTestException() { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FailedTestException"/> class with a specified error message.
@@ -57,5 +57,5 @@ public class FailedTestException : Exception
     /// <param name="message">The error message that explains the reason for the exception.</param>
     /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
     public FailedTestException(string? message, Exception ex)
-	: base(message, ex) {}
+    : base(message, ex) { }
 }

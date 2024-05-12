@@ -32,22 +32,22 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
 /// <summary>
 /// Specifies that a class contains test methods.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class TestClassAttribute : Attribute { }
+public class ZTTestClassAttribute : Attribute { }
 
 /// <summary>
 /// Specifies that a method is a test method.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public class TestMethodAttribute : Attribute { }
+public class ZTTestMethodAttribute : Attribute { }
 
 /// <summary>
 /// Specifies that a method is a setup method for tests within a test class.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class TestSetupAttribute : Attribute { }
+public class ZTTestSetupAttribute : Attribute { }

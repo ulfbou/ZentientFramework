@@ -33,9 +33,11 @@
 // SOFTWARE.
 //
 
+using Zentient.Tests.Deprecated;
+
 namespace Zentient.Tests;
 
-public static partial class Assert
+public static partial class ZTAssert
 {
     public static void AreEqual(object? expectedObject, object? actualObject)
     {

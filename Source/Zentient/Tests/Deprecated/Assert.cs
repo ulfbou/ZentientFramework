@@ -1,8 +1,8 @@
-﻿//
-// File: CollectionAsserts.cs
+//
+// File: Assert.cs
 //
 // Description:
-// A partial implementation of the Assert class that validates collection testing. The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
 // 
 // Usage:
 // The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
@@ -33,42 +33,87 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests;
-
-public static partial class Assert
+namespace Zentient.Tests.Deprecated;
+public static partial class ZTAssert
 {
+    public static void IsTrue(bool check)
+    {
+        //if (check) throw new FailedTestException($"Failed test: Expected true condition, but got false.");
+    }
+
+    public static void IsFalse(bool check)
+    {
+        //if (!check) throw new FailedTestException($"Failed test: Expected false condition, but got true.");
+    }
+
     /// <summary>
-    /// Asserts that a collection contains a specific item.
+    /// Asserts that an object is `null`.
     /// </summary>
     /// 
-    public static void Contains(object? item, ICollection<object> collection)
+    public static void IsNull(object? actual)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that a collection does not contain a specific item.
+    /// Asserts that an object is not `null`.
     /// </summary>
     /// 
-    public static void DoesNotContain(object? item, ICollection<object> collection)
+    public static void IsNotNull(object? actual)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that a collection is empty.
+    /// Asserts that one collection is a subset of another.
     /// </summary>
     /// 
-    public static void IsEmpty(ICollection<object> collection)
+    public static void IsSubsetOf(object subset, object superset)
     {
         throw new NotImplementedException();
     }
 
     /// <summary>
-    /// Asserts that a collection is not empty.
+    /// Asserts that `a` is greater than `b`.
     /// </summary>
     /// 
-    public static void IsNotEmpty(ICollection<object> collection)
+    public static void GreaterThan(object a, object b)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asserts that `a` is greater than or equal to `b`.
+    /// </summary>
+    /// 
+    public static void GreaterThanOrEqual(object a, object b)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asserts that `a` is less than `b`.
+    /// </summary>
+    /// 
+    public static void LessThan(object a, object b)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asserts that `a` is less than or equal to `b`.
+    /// </summary>
+    /// 
+    public static void LessThanOrEqual(object a, object b)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asserts that two floating-point numbers are approximately equal within a specified tolerance.
+    /// </summary>
+    /// 
+    public static void ApproximatelyEqual(object expected, object actual, object tolerance)
     {
         throw new NotImplementedException();
     }

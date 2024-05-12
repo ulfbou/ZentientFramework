@@ -35,7 +35,7 @@
 
 using System.Reflection;
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
 /// <summary>
 /// Represents information about tests including the test instance, setup method, and test methods.

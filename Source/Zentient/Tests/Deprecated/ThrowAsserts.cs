@@ -35,9 +35,9 @@
 
 using System.Dynamic;
 
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
-public static partial class Assert 
+public static partial class ZTAssert 
 {
     /// <summary>
     /// Asserts that the specified delegate throws exception <see cref="T">exception</see>.
@@ -64,7 +64,6 @@ public static partial class Assert
         throw new FailedTestException($"Failed test: Expected `{GetTypeName<T>()}` to be thrown, but no exception was thrown.");
     }
 
-   // Asserts that the specified asynchronous operation throws an exception of the specified type.
     /// <summary>
     /// Asserts that a delegate throws exception <see cref="T"/>.
     /// </summary>
@@ -194,6 +193,7 @@ public static partial class Assert
 
         throw new FailedTestException($"Failed test: Expected an exception to be thrown, but no exception was thrown.");
     }
+
     /// <summary>
     /// Asserts that a delegate does not throw an exception.
     /// </summary>
@@ -264,7 +264,7 @@ public static partial class Assert
             instance = Activator.CreateInstance(typeof(T)) as T;
         }
         catch
-        {}
+        { }
 
         return instance;
     }
