@@ -1,5 +1,5 @@
-//
-// File: Assert.cs
+﻿// TODO
+// File: IAssertionBuilder.cs
 //
 // Description:
 // The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
@@ -35,17 +35,18 @@
 
 namespace Zentient.Tests;
 
-public static class Assert
+public interface IAssertionBuilder<T> where T : class
 {
-    public static IAssertionBuilder<T> That<T>(T subject) where T : class
-        => new AssertionBuilder<T>(subject);
+    IAssertionBuilder<T> IsEqualTo(T expectedValue);
+    IAssertionBuilder<T> IsNotEqualTo(T expectedValue);
+    IAssertionBuilder<T> IsNull();
+    IAssertionBuilder<T> IsNotNull();
+}
 
-    public static IExceptionAssertionBuilder That(Action action)
-        => new ExceptionAssertionBuilder(action, null, action.Method?.Name);
-
-    public static IExceptionAssertionBuilder That(Action action, string name)
-        => new ExceptionAssertionBuilder(action, null, name);
-
-    public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action> builder, string name)
-        => new ExceptionAssertionBuilder(action, builder, name);
+public interface IAssertionBuilder
+{
+    IAssertionBuilder IsEqualTo(object expectedValue);
+    IAssertionBuilder IsNotEqualTo(object expectedValue);
+    IAssertionBuilder IsNull();
+    IAssertionBuilder IsNotNull();
 }

@@ -1,4 +1,4 @@
-//
+﻿//
 // File: Assert.cs
 //
 // Description:
@@ -35,17 +35,19 @@
 
 namespace Zentient.Tests;
 
-public static class Assert
+public interface IExceptionAssertionBuilder
 {
-    public static IAssertionBuilder<T> That<T>(T subject) where T : class
-        => new AssertionBuilder<T>(subject);
+    IAssertionBuilder<Action> Builder { get; }
 
-    public static IExceptionAssertionBuilder That(Action action)
-        => new ExceptionAssertionBuilder(action, null, action.Method?.Name);
-
-    public static IExceptionAssertionBuilder That(Action action, string name)
-        => new ExceptionAssertionBuilder(action, null, name);
-
-    public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action> builder, string name)
-        => new ExceptionAssertionBuilder(action, builder, name);
+    IExceptionAssertionBuilder DoesNotThrow();
+    IExceptionAssertionBuilder DoesNotThrow<TException>() where TException : Exception;
+    IExceptionAssertionBuilder DoesNotThrowAny();
+    IExceptionAssertionBuilder DoesNotThrowDerived<TException>() where TException : Exception;
+    IExceptionAssertionBuilder DoesNotThrowExactly<TException>() where TException : Exception;
+    IExceptionAssertionBuilder Throws<TException>() where TException : Exception;
+    IExceptionAssertionBuilder ThrowsAny();
+    IExceptionAssertionBuilder ThrowsDerived<TException>() where TException : Exception;
+    IExceptionAssertionBuilder ThrowsExactly<TException>() where TException : Exception;
+    IExceptionAssertionBuilder WithMessage(string expectedMessage);
+    IExceptionAssertionBuilder WithMessageContaining(string expectedMessage);
 }

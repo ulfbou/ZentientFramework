@@ -1,5 +1,5 @@
-//
-// File: Assert.cs
+﻿// TODO
+// File: AssertionFailureException.cs
 //
 // Description:
 // The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
@@ -33,19 +33,18 @@
 // SOFTWARE.
 //
 
+using System.Runtime.Serialization;
+
 namespace Zentient.Tests;
 
-public static class Assert
+[Serializable]
+public class AssertionFailureException : Exception
 {
-    public static IAssertionBuilder<T> That<T>(T subject) where T : class
-        => new AssertionBuilder<T>(subject);
+    public AssertionFailureException() {}
 
-    public static IExceptionAssertionBuilder That(Action action)
-        => new ExceptionAssertionBuilder(action, null, action.Method?.Name);
+    public AssertionFailureException(string? message) : base(message) {}
 
-    public static IExceptionAssertionBuilder That(Action action, string name)
-        => new ExceptionAssertionBuilder(action, null, name);
+    public AssertionFailureException(string? message, Exception? innerException) : base(message, innerException) {}
 
-    public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action> builder, string name)
-        => new ExceptionAssertionBuilder(action, builder, name);
+    protected AssertionFailureException(SerializationInfo info, StreamingContext context) : base(info, context) {}
 }
