@@ -102,9 +102,25 @@ public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
     /// <param name="expected">The expected object.</param>
     /// <param name="message">Optional custom error message.</param>
     /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsSameAs(object expected, string message = "")
+    public IAssertionBuilder<T> IsSameAs(T expected, string message = "")
     {
         if (!ReferenceEquals(expected, _subject))
+        {
+            throw new AssertFailedException(message);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Asserts that the subject is not the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsNotSameAs(T expected, string message = "")
+    {
+        if (ReferenceEquals(expected, _subject))
         {
             throw new AssertFailedException(message);
         }
@@ -193,6 +209,22 @@ public class AssertionBuilder(object subject) : IAssertionBuilder
     public IAssertionBuilder IsSameAs(object expected, string message = "")
     {
         if (!ReferenceEquals(expected, _subject))
+        {
+            throw new AssertFailedException(message);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Asserts that the subject is not the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsNotSameAs(object expected, string message = "")
+    {
+        if (ReferenceEquals(expected, _subject))
         {
             throw new AssertFailedException(message);
         }

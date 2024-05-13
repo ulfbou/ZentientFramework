@@ -65,6 +65,14 @@ public interface IAssertionBuilder<T> where T : class
     public IAssertionBuilder<T> IsSameAs(T expected, string message = "");
 
     /// <summary>
+    /// Asserts that the subject is the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsNotSameAs(T expected, string message = "");
+
+    /// <summary>
     /// Asserts that the subject is null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
@@ -102,6 +110,14 @@ public interface IAssertionBuilder
     /// <param name="message">Optional custom error message.</param>
     /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder IsSameAs(object expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is not the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    IAssertionBuilder IsNotSameAs(object expected, string message = "");
 
     /// <summary>
     /// Asserts that the subject is null.

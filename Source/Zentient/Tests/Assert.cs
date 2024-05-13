@@ -51,6 +51,15 @@ public static class Assert
     /// allowing combined assertions with another assertion builder.
     /// </summary>
     /// <param name="action">The action that may throw an exception.</param>
+    /// <returns>An instance of <see cref="IExceptionAssertionBuilder"/>.</returns>
+    public static IExceptionAssertionBuilder That(Action action)
+        => new ExceptionAssertionBuilder(action, new AssertionBuilder<Action>(action));
+
+    /// <summary>
+    /// Creates an exception assertion builder for the specified action with a custom name, 
+    /// allowing combined assertions with another assertion builder.
+    /// </summary>
+    /// <param name="action">The action that may throw an exception.</param>
     /// <param name="builder">The assertion builder for additional assertions.</param>
     /// <returns>An instance of <see cref="IExceptionAssertionBuilder"/>.</returns>
     public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action>? builder = null)
