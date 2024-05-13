@@ -1,29 +1,29 @@
-﻿// TODO
-// File: AssertionBuilder.cs
-//
+﻿//
+// Class: AssertBuilder
+// 
 // Description:
-// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// Defines a set of fluent assertion methods for evaluating equality, type compatibility, and other logical conditions. These methods empower developers to confirm the expected behavior and results of the code under test. The IAssertBuilder interface promotes a more intuitive and sustainable testing practice by supporting a chainable method syntax.
 // 
 // Usage:
-// The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
+// The AssertBuilder class facilitates unit testing assertions on object states. Upon instantiation with the target test object, it offers a sequence of chainable methods designed to throw exceptions upon assertion failure, thereby indicating test failures.
 // 
 // Purpose:
-// The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, developers can ensure that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
+// The AssertBuilder class aims to provide a straightforward and articulate means for crafting test assertions. Leveraging a fluent interface pattern, it simplifies test code structure and enhances the clarity of test assertions, aiding developers in grasping the test's purpose and the standards for its success.
 // 
 // MIT License
-//
+// 
 // Copyright (c) 2024 Ulf Bourelius
-//
+// 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-//
+// 
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-//
+// 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,36 +33,89 @@
 // SOFTWARE.
 //
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Zentient.Tests;
 
-public class AssertionBuilder<T>(T subject) : IAssertionBuilder<T>, IAssertionBuilder where T : class
+/// <summary>
+/// Provides fluent assertion methods for comparing equality and other conditions.
+/// </summary>
+/// <typeparam name="T">The type of the subject being asserted.</typeparam>
+public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
 {
-    private readonly T _subject = subject;
+    private readonly T _subject;
 
-    public IAssertionBuilder<T> IsEqualTo(T expectedValue)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AssertionBuilder{T}"/> class.
+    /// </summary>
+    /// <param name="subject">The subject to be asserted.</param>
+    public AssertionBuilder(T subject)
     {
-        if (expectedValue is null) throw new ArgumentNullException(nameof(expectedValue));
+        _subject = subject;
+    }
 
-        if (!_subject.Equals(expectedValue))
+    /// <summary>
+    /// Asserts that the subject is equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsEqualTo(T expected, string message = "")
+    {
+        if (expected is null)
         {
-            throw new AssertionFailureException();
+            throw new ArgumentNullException(nameof(expected));
+        }
+
+        if (!_subject.Equals(expected))
+        {
+            throw new AssertionFailureException(message);
         }
 
         return this;
     }
 
-    public IAssertionBuilder<T> IsNotEqualTo(T expectedValue)
+    /// <summary>
+    /// Asserts that the subject is not equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsNotEqualTo(T expected, string message = "")
     {
-        if (expectedValue is null) throw new ArgumentNullException(nameof(expectedValue));
-
-        if (_subject.Equals(expectedValue))
+        if (expected is null)
         {
-            throw new AssertionFailureException();
+            throw new ArgumentNullException(nameof(expected));
+        }
+
+        if (_subject.Equals(expected))
+        {
+            throw new AssertionFailureException(message);
         }
 
         return this;
     }
 
+    /// <summary>
+    /// Asserts that the subject is the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsSameAs(object expected, string message = "")
+    {
+        if (!ReferenceEquals(expected, _subject))
+        {
+            throw new AssertFailedException(message);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Asserts that the subject is null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder<T> IsNull()
     {
         if (_subject != null)
@@ -73,6 +126,10 @@ public class AssertionBuilder<T>(T subject) : IAssertionBuilder<T>, IAssertionBu
         return this;
     }
 
+    /// <summary>
+    /// Asserts that the subject is not null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder<T> IsNotNull()
     {
         if (_subject is null)
@@ -82,12 +139,26 @@ public class AssertionBuilder<T>(T subject) : IAssertionBuilder<T>, IAssertionBu
 
         return this;
     }
+}
 
-    public IAssertionBuilder IsEqualTo(object expectedValue)
+/// <summary>
+/// Provides fluent assertion methods for comparing equality and other conditions.
+/// </summary>
+public class AssertionBuilder(object subject) : IAssertionBuilder
+{
+    private readonly object _subject = subject;
+
+    /// <summary>
+    /// Asserts that the subject is equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsEqualTo(object expected, string message = "")
     {
-        if (expectedValue is null) throw new ArgumentNullException(nameof(expectedValue));
+        if (expected is null) throw new ArgumentNullException(nameof(expected));
 
-        if (!_subject.Equals(expectedValue))
+        if (!_subject.Equals(expected))
         {
             throw new AssertionFailureException();
         }
@@ -95,11 +166,17 @@ public class AssertionBuilder<T>(T subject) : IAssertionBuilder<T>, IAssertionBu
         return this;
     }
 
-    public IAssertionBuilder IsNotEqualTo(object expectedValue)
+    /// <summary>
+    /// Asserts that the subject is not equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsNotEqualTo(object expected, string message = "")
     {
-        if (expectedValue is null) throw new ArgumentNullException(nameof(expectedValue));
+        if (expected is null) throw new ArgumentNullException(nameof(expected));
 
-        if (_subject.Equals(expectedValue))
+        if (_subject.Equals(expected))
         {
             throw new AssertionFailureException();
         }
@@ -107,6 +184,26 @@ public class AssertionBuilder<T>(T subject) : IAssertionBuilder<T>, IAssertionBu
         return this;
     }
 
+    /// <summary>
+    /// Asserts that the subject is the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsSameAs(object expected, string message = "")
+    {
+        if (!ReferenceEquals(expected, _subject))
+        {
+            throw new AssertFailedException(message);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Asserts that the subject is null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     IAssertionBuilder IAssertionBuilder.IsNull()
     {
         if (_subject != null)
@@ -117,6 +214,10 @@ public class AssertionBuilder<T>(T subject) : IAssertionBuilder<T>, IAssertionBu
         return this;
     }
 
+    /// <summary>
+    /// Asserts that the subject is not null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     IAssertionBuilder IAssertionBuilder.IsNotNull()
     {
         if (_subject is null)

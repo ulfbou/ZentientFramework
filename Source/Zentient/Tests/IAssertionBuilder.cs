@@ -1,14 +1,14 @@
-﻿// TODO
-// File: IAssertionBuilder.cs
+﻿//
+// Interface: IAssertBuilder
 //
 // Description:
-// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
-// 
+// Defines a set of fluent assertion methods for evaluating equality, type compatibility, and other logical conditions. These methods empower developers to confirm the expected behavior and results of the code under test. The IAssertBuilder interface promotes a more intuitive and sustainable testing practice by supporting a chainable method syntax.
+//
 // Usage:
-// The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
-// 
+// The IAssertBuilder interface is implemented to facilitate unit testing assertions on object states. Upon instantiation with the target test object, it offers a sequence of chainable methods designed to throw exceptions upon assertion failure, thereby indicating test failures.
+//
 // Purpose:
-// The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, developers can ensure that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
+// The IAssertBuilder interface aims to provide a straightforward and articulate means for crafting test assertions. Leveraging a fluent interface pattern, it simplifies test code structure and enhances the clarity of test assertions, aiding developers in grasping the test's purpose and the standards for its success.
 // 
 // MIT License
 //
@@ -33,20 +33,85 @@
 // SOFTWARE.
 //
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Runtime.InteropServices.JavaScript;
+
 namespace Zentient.Tests;
 
 public interface IAssertionBuilder<T> where T : class
 {
-    IAssertionBuilder<T> IsEqualTo(T expectedValue);
-    IAssertionBuilder<T> IsNotEqualTo(T expectedValue);
-    IAssertionBuilder<T> IsNull();
-    IAssertionBuilder<T> IsNotNull();
+    /// <summary>
+    /// Asserts that the subject is equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsEqualTo(T expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is not equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsNotEqualTo(T expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsSameAs(T expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsNull();
+
+    /// <summary>
+    /// Asserts that the subject is not null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsNotNull();
 }
 
 public interface IAssertionBuilder
 {
-    IAssertionBuilder IsEqualTo(object expectedValue);
-    IAssertionBuilder IsNotEqualTo(object expectedValue);
-    IAssertionBuilder IsNull();
-    IAssertionBuilder IsNotNull();
+    /// <summary>
+    /// Asserts that the subject is equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    IAssertionBuilder IsEqualTo(object expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is not equal to the expected value.
+    /// </summary>
+    /// <param name="expected">The expected value.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    IAssertionBuilder IsNotEqualTo(object expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is the same instance as the expected object.
+    /// </summary>
+    /// <param name="expected">The expected object.</param>
+    /// <param name="message">Optional custom error message.</param>
+    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsSameAs(object expected, string message = "");
+
+    /// <summary>
+    /// Asserts that the subject is null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsNull();
+
+    /// <summary>
+    /// Asserts that the subject is not null.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsNotNull();
 }
