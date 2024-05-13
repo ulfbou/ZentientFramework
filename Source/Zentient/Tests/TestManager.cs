@@ -34,9 +34,10 @@
 //
 
 using System.Reflection;
+using Zentient.Tests.Deprecated;
 //using Zentient.Extensions;
 
-namespace Zentient.Tests.Deprecated;
+namespace Zentient.Tests;
 
 /// <summary>
 /// Manages and runs tests defined in the executing assembly.

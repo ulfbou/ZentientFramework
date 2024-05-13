@@ -32,7 +32,7 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests.Deprecated;
+namespace Zentient.Tests;
 
 /// <summary>
 /// Specifies that a class contains test methods.
