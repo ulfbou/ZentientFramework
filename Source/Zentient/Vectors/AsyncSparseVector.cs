@@ -1,7 +1,16 @@
 ﻿//
-// File: AsyncSparseVector.cs
+// Class: AsyncSparseVector
 //
-// Description: Represents a sparse vector with asynchronous dot product computation.
+// Description:
+// Represents a sparse vector with asynchronous dot product computation. This class provides functionality to handle sparse vectors efficiently and compute dot products asynchronously, making it suitable for scenarios where sparse vectors are prevalent, such as numerical computations and machine learning algorithms.
+//
+// Usage:
+// To use the AsyncSparseVector class, follow these steps:
+// 1. Create an instance of the class by providing the data representing the sparse vector.
+// 2. Call the DotProductAsync method to compute the dot product with another sparse vector asynchronously.
+//
+// Purpose:
+// The purpose of the AsyncSparseVector class is to provide a data structure for efficiently representing sparse vectors and performing asynchronous dot product computations. By supporting asynchronous operations, the class enables efficient utilization of system resources and improved responsiveness in asynchronous programming scenarios.
 //
 // MIT License
 //
@@ -50,6 +59,30 @@ public class AsyncSparseVector<T> where T : struct, IAdditionOperators<T, T, T>,
     }
 
     /// <summary>
+    /// Asynchronously adds another sparse vector with this sparse vector.
+    /// </summary>
+    /// <param name="other">The other sparse vector to add.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A new AsyncSparseVector representing the result of the addition.</returns>
+    public async Task<AsyncSparseVector<T>> AddAsync(AsyncSparseVector<T> other, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        var resultDataBuilder = ImmutableDictionary.CreateBuilder<int, T>();
+
+        var producer1 = ProduceValuesAsync(_data, cancellationToken);
+        var producer2 = ProduceValuesAsync(other._data, cancellationToken);
+
+        await foreach (var (index, value) in AdditionProducers(producer1, producer2, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            resultDataBuilder[index] = value;
+        }
+
+        return new AsyncSparseVector<T>(resultDataBuilder.ToImmutable());
+    }
+
+    /// <summary>
     /// Asynchronously computes the dot product of this sparse vector with another sparse vector.
     /// </summary>
     /// <param name="other">The other sparse vector.</param>
@@ -61,7 +94,7 @@ public class AsyncSparseVector<T> where T : struct, IAdditionOperators<T, T, T>,
         var producer1 = ProduceValuesAsync(_data, cancellationToken);
         var producer2 = ProduceValuesAsync(other._data, cancellationToken);
 
-        return await ConsumeAndComputeDotProductAsync(producer1, producer1);
+        return await DotProductProducer(producer1, producer1);
     }
 
     // Async method will run asynchronously since it returns IAsyncEnumerable<(int, T)>
@@ -78,8 +111,60 @@ public class AsyncSparseVector<T> where T : struct, IAdditionOperators<T, T, T>,
         }
     }
 
-    private async Task<T> ConsumeAndComputeDotProductAsync(
-        IAsyncEnumerable<(int, T)> producer11, 
+    private async IAsyncEnumerable<(int, T)> AdditionProducers(
+        IAsyncEnumerable<(int, T)> producer1,
+        IAsyncEnumerable<(int, T)> producer2,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await using var enumerator1 = producer1.GetAsyncEnumerator(cancellationToken);
+        await using var enumerator2 = producer2.GetAsyncEnumerator(cancellationToken);
+
+        var more1 = await enumerator1.MoveNextAsync();
+        var more2 = await enumerator2.MoveNextAsync();
+
+        while (more1 || more2)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (more1 && more2)
+            {
+                var (index1, value1) = enumerator1.Current;
+                var (index2, value2) = enumerator2.Current;
+
+                if (index1 == index2)
+                {
+                    yield return (index1, value1 + value2);
+                    more1 = await enumerator1.MoveNextAsync();
+                    more2 = await enumerator2.MoveNextAsync();
+                }
+                else if (index1 < index2)
+                {
+                    yield return (index1, value1);
+                    more1 = await enumerator1.MoveNextAsync();
+                }
+                else
+                {
+                    yield return (index2, value2);
+                    more2 = await enumerator2.MoveNextAsync();
+                }
+            }
+            else if (more1)
+            {
+                var (index1, value1) = enumerator1.Current;
+                yield return (index1, value1);
+                more1 = await enumerator1.MoveNextAsync();
+            }
+            else if (more2)
+            {
+                var (index2, value2) = enumerator2.Current;
+                yield return (index2, value2);
+                more2 = await enumerator2.MoveNextAsync();
+            }
+        }
+    }
+
+    private async Task<T> DotProductProducer(
+        IAsyncEnumerable<(int, T)> producer11,
         IAsyncEnumerable<(int, T)> producer12,
         CancellationToken cancellationToken = default)
     {
@@ -87,8 +172,8 @@ public class AsyncSparseVector<T> where T : struct, IAdditionOperators<T, T, T>,
 
         try
         {
-            var enumerator1 = producer11.GetAsyncEnumerator(cancellationToken);
-            var enumerator2 = producer12.GetAsyncEnumerator(cancellationToken);
+            await using var enumerator1 = producer11.GetAsyncEnumerator(cancellationToken);
+            await using var enumerator2 = producer12.GetAsyncEnumerator(cancellationToken);
             var more1 = await enumerator1.MoveNextAsync();
             var more2 = await enumerator2.MoveNextAsync();
 
@@ -107,7 +192,7 @@ public class AsyncSparseVector<T> where T : struct, IAdditionOperators<T, T, T>,
                 else if (index1 < index2)
                 {
                     more1 = await enumerator1.MoveNextAsync();
-                                    }
+                }
                 else
                 {
                     more2 = await enumerator2.MoveNextAsync();
@@ -116,7 +201,7 @@ public class AsyncSparseVector<T> where T : struct, IAdditionOperators<T, T, T>,
         }
         catch (OperationCanceledException)
         {
-            // Handle cancellation
+            throw;
         }
         catch (Exception ex)
         {
