@@ -1,14 +1,14 @@
 ﻿//
-// File: Assert.cs
+// Class: ExceptionAssertionBuilder
 //
 // Description:
-// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// Provides fluent assertion methods for validating thrown exceptions and other conditions. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria. The AssertionBuilder class facilitates a more readable and maintainable approach to writing tests by enabling a chainable method syntax.
 // 
 // Usage:
-// The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
+// The ExceptionAssertionBuilder class facilitates unit testing assertions on object states. Upon instantiation with the target test object, it offers a sequence of chainable methods designed to throw exceptions upon assertion failure, thereby indicating test failures.
 // 
 // Purpose:
-// The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, developers can ensure that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
+// The ExceptionAssertionBuilder class aims to provide a straightforward and articulate means for crafting test assertions. Leveraging a fluent interface pattern, it simplifies test code structure and enhances the clarity of test assertions, aiding developers in grasping the test's purpose and the standards for its success.
 // 
 // MIT License
 //
@@ -33,24 +33,25 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json.Linq;
-using Zentient.Tests.Deprecated;
-
 namespace Zentient.Tests;
 
-public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>? builder = null, string? name = null)
+/// <summary>
+/// Provides fluent assertion methods for validating thrown exceptions and other conditions.
+/// </summary>
+public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>? builder = null)
     : IExceptionAssertionBuilder
 {
-    private readonly Action _action = action;//?? throw new ArgumentNullException(nameof(action));
+    private readonly Action _action = action;
     private readonly IAssertionBuilder<Action> _builder = builder ?? new AssertionBuilder<Action>(action);
-    private string? _message = null;
-    private string? _name = name;
+    private string? _thrownMessage = null;
 
+    /// <summary>
+    /// Gets the underlying assertion builder associated with this exception assertion.
+    /// </summary>
     public IAssertionBuilder<Action> Builder { get { return _builder; } }
 
     /// <summary>
-    /// Asserts that the specified delegate throws exception <see cref="TException"/> or its derived types.
+    /// Asserts that the specified delegate throws an exception of type <typeparamref name="TException"/> or its derived types.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected to be thrown.</typeparam>
     public IExceptionAssertionBuilder Throws<TException>() where TException : Exception
@@ -61,15 +62,15 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (TException ex)
         {
-            _message = ex.Message;
+            _thrownMessage = ex.Message;
             return this;
         }
         catch (Exception ex)
         {
-            throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
         }
 
-        throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -88,14 +89,14 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
 
             if (type == typeof(TException))
             {
-                _message = ex.Message;
+                _thrownMessage = ex.Message;
                 return this;
             }
 
-            throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
         }
 
-        throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -114,14 +115,14 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
 
             if (type != typeof(TException) && type.IsSubclassOf(typeof(TException)))
             {
-                _message = ex.Message;
+                _thrownMessage = ex.Message;
                 return this;
             }
 
-            throw new AssertionFailureException($"{_name}: Expected an exception inherited from `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected an exception inherited from `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
         }
 
-        throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -136,11 +137,11 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            _message = ex.Message;
+            _thrownMessage = ex.Message;
             return this;
         }
 
-        throw new AssertionFailureException($"{_name}: Expected an exception to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected an exception to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -152,16 +153,16 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         try
         {
             _action();
-            _message = string.Empty;
+            _thrownMessage = string.Empty;
             return this;
         }
         catch (TException ex)
         {
-            throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
         }
         catch (Exception ex)
         {
-            _message = ex.Message;
+            _thrownMessage = ex.Message;
             return this;
         }
     }
@@ -182,14 +183,14 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
 
             if (type != typeof(TException))
             {
-                _message = ex.Message;
+                _thrownMessage = ex.Message;
                 return this;
             }
 
-            throw new AssertionFailureException($"{_name}: Expected `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
         }
 
-        _message = string.Empty;
+        _thrownMessage = string.Empty;
         return this;
     }
 
@@ -209,14 +210,14 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
 
             if (type == typeof(TException) || !type.IsSubclassOf(typeof(TException)))
             {
-                _message = ex.Message;
+                _thrownMessage = ex.Message;
                 return this;
             }
 
-            throw new AssertionFailureException($"{_name}: Expected an exception not inherited from `{GetTypeName<TException>()}` to be thrown, but {type.Name} was actually thrown.");
+            throw new AssertionFailureException($"Expected an exception not inherited from `{GetTypeName<TException>()}` to be thrown, but {type.Name} was actually thrown.");
         }
 
-        _message = string.Empty;
+        _thrownMessage = string.Empty;
         return this;
     }
 
@@ -232,10 +233,10 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new AssertionFailureException($"{_name}: Expected no exceptions to be thrown, but `{ex.GetType().Name}` was actually thrown.");
+            throw new AssertionFailureException($"Expected no exceptions to be thrown, but `{ex.GetType().Name}` was actually thrown.");
         }
 
-        _message = string.Empty;
+        _thrownMessage = string.Empty;
         return this;
     }
 
@@ -251,27 +252,27 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new AssertionFailureException($"{_name}: Throws {ex.GetType().Name} when expecting no exception to be thrown.", ex);
+            throw new AssertionFailureException($"Throws {ex.GetType().Name} when expecting no exception to be thrown.", ex);
         }
 
-        _message = string.Empty;
+        _thrownMessage = string.Empty;
         return this;
     }
 
     public IExceptionAssertionBuilder WithMessage(string expectedMessage)
     {
-        if (_message is null) throw new InvalidOperationException($"Expected exception message `{expectedMessage}`, but no exception was thrown.");
+        if (_thrownMessage is null) throw new InvalidOperationException($"Expected exception message `{expectedMessage}`, but no exception was thrown.");
 
-        if (_message != expectedMessage) throw new AssertionFailureException();
+        if (_thrownMessage != expectedMessage) throw new AssertionFailureException();
 
         return this;
     }
 
     public IExceptionAssertionBuilder WithMessageContaining(string expectedMessage)
     {
-        if (_message is null) throw new InvalidOperationException($"Expected exception message `{expectedMessage}`, but no exception was thrown.");
+        if (_thrownMessage is null) throw new InvalidOperationException($"Expected exception message `{expectedMessage}`, but no exception was thrown.");
 
-        if (!_message.Contains(expectedMessage)) throw new AssertionFailureException();
+        if (!_thrownMessage.Contains(expectedMessage)) throw new AssertionFailureException();
 
         return this;
     }
@@ -295,10 +296,10 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new FailedTestException($"Failed test: Expected `{GetTypeName<T>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected `{GetTypeName<T>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
         }
 
-        throw new FailedTestException($"Failed test: Expected `{GetTypeName<T>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected `{GetTypeName<T>()}` to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -320,10 +321,10 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new FailedTestException($"Failed test: Expected `{GetTypeName<T>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected `{GetTypeName<T>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
         }
 
-        throw new FailedTestException($"Failed test: Expected `{GetTypeName<T>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected `{GetTypeName<T>()}` to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -341,7 +342,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (T ex)
         {
-            throw new FailedTestException($"Failed test: Threw {ex.GetType().Name} when it is expected to not be thrown.", ex);
+            throw new AssertionFailureException($"Threw {ex.GetType().Name} when it is expected to not be thrown.", ex);
         }
         catch (Exception) { }
     }
@@ -363,7 +364,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
             return;
         }
 
-        throw new FailedTestException($"Failed test: Expected an exception to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"Expected an exception to be thrown, but no exception was thrown.");
     }
 
     /// <summary>
@@ -379,7 +380,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new FailedTestException($"Failed test: Throws {ex.GetType().Name} when expecting no exception to be thrown.", ex);
+            throw new AssertionFailureException($"Throws {ex.GetType().Name} when expecting no exception to be thrown.", ex);
         }
     }
 
@@ -396,35 +397,15 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new FailedTestException($"Failed test: Expected {nameof(T)} to be thrown, but {ex.GetType().Name} was thrown instead.");
+            throw new AssertionFailureException($"Expected {nameof(T)} to be thrown, but {ex.GetType().Name} was thrown instead.");
         }
 
         // If control reaches here, it means the expected exception T was not thrown
-        throw new FailedTestException($"Failed test: Expected exception to be thrown, but it wasn't.");
+        throw new AssertionFailureException($"Failed test: Expected exception to be thrown, but it wasn't.");
     }
 
 #endif
     #endregion
 
-    private static string GetTypeName<T>() where T : Exception
-    {
-        T? instance = CreateInstance<T>();
-
-        return (instance is null ? typeof(T) : instance.GetType()).Name;
-    }
-
-    private static T? CreateInstance<T>() where T : Exception
-    {
-        T? instance = null;
-
-        try
-        {
-            instance = Activator.CreateInstance(typeof(T)) as T;
-        }
-        catch
-        { }
-
-        return instance;
-    }
+    private static string GetTypeName<T>() => typeof(T).Name;
 }
-
