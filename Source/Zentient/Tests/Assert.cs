@@ -1,14 +1,14 @@
 //
-// File: Assert.cs
+// Class: Assert
 //
 // Description:
-// The Assert class provides a set of static methods for making assertions in unit tests.These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
+// The Assert class provides a fluent API with a set of static methods for making assertions in unit tests. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
 // 
 // Usage:
-// The Assert class is commonly used within unit testing frameworks such as NUnit and MSTest to verify the behavior of code under test. Developers use these assertion methods to validate various aspects of the code's output, behavior, and state during testing.
+// The Assert class is commonly used within unit testing frameworks to verify the behavior of code under test. Developers use these assertion methods, part of a fluent API, to validate various aspects of the code's output, behavior, and state during testing.
 // 
 // Purpose:
-// The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, developers can ensure that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
+// The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, which are part of a fluent API, developers can chain together multiple assertions in a readable and concise manner, ensuring that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
 // 
 // MIT License
 //
@@ -37,15 +37,22 @@ namespace Zentient.Tests;
 
 public static class Assert
 {
+    /// <summary>
+    /// Creates an assertion builder for the specified subject.
+    /// </summary>
+    /// <typeparam name="T">The type of the subject.</typeparam>
+    /// <param name="subject">The subject to be asserted.</param>
+    /// <returns>An instance of <see cref="IAssertionBuilder{T}"/>.</returns>
     public static IAssertionBuilder<T> That<T>(T subject) where T : class
         => new AssertionBuilder<T>(subject);
 
-    public static IExceptionAssertionBuilder That(Action action)
-        => new ExceptionAssertionBuilder(action, null, action.Method?.Name);
-
-    public static IExceptionAssertionBuilder That(Action action, string name)
-        => new ExceptionAssertionBuilder(action, null, name);
-
-    public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action> builder, string name)
-        => new ExceptionAssertionBuilder(action, builder, name);
+    /// <summary>
+    /// Creates an exception assertion builder for the specified action with a custom name, 
+    /// allowing combined assertions with another assertion builder.
+    /// </summary>
+    /// <param name="action">The action that may throw an exception.</param>
+    /// <param name="builder">The assertion builder for additional assertions.</param>
+    /// <returns>An instance of <see cref="IExceptionAssertionBuilder"/>.</returns>
+    public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action>? builder = null)
+        => new ExceptionAssertionBuilder(action, builder ?? new AssertionBuilder<Action>(action));
 }
