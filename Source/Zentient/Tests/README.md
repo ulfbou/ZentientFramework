@@ -31,7 +31,7 @@ To get started with Zentient.Tests, follow these steps:
        var subject = new MyClass();
 
        // Act & Assert
-       Zentient.Tests.Assert.That(subject).IsNotNull();
+       Assert.That(subject).IsNotNull();
    }
    ```
 
