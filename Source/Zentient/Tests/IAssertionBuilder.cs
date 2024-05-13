@@ -33,9 +33,6 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Runtime.InteropServices.JavaScript;
-
 namespace Zentient.Tests;
 
 public interface IAssertionBuilder<T> where T : class

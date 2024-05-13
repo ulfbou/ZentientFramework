@@ -33,10 +33,15 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests
+namespace Zentient.Tests.Deprecated
 {
     internal class ThrowsAssertion<T>(Action action) : IAssertion<T>
     {
         private readonly Action _action = action;
+
+        public IAssertion<T> Assert(T subject)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

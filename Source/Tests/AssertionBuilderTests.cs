@@ -1,6 +1,5 @@
 ﻿using Zentient.Tests;
 
-
 namespace Tests;
 
 [TestClass]

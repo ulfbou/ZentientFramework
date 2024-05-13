@@ -38,16 +38,16 @@ namespace Zentient.Tests;
 /// Specifies that a class contains test methods.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class ZTTestClassAttribute : Attribute { }
+public class TestClassAttribute : Attribute { }
 
 /// <summary>
 /// Specifies that a method is a test method.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public class ZTTestMethodAttribute : Attribute { }
+public class TestMethodAttribute : Attribute { }
 
 /// <summary>
 /// Specifies that a method is a setup method for tests within a test class.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class ZTTestSetupAttribute : Attribute { }
+public class TestSetupAttribute : Attribute { }

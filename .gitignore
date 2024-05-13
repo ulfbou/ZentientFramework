@@ -401,3 +401,4 @@ Docs/*.txt
 .gitignore
 newsource/
 *.txt
+*.txt#

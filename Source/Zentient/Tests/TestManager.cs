@@ -1,11 +1,11 @@
 ﻿//
-// File: TestManager.cs
+// Class: TestManager
 //
 // Description:
 // The TestManager class is responsible for managing and executing tests defined within the executing assembly. It provides functionality to load tests, run tests, and handle test setup and execution.
 // 
 // Usage:
-// The TestManager class serves as the entry point for running tests within an application or test suite. Developers typically instantiate this class and invoke the Run method to execute all tests defined within the assembly. Additionally, the class provides internal methods for loading tests, retrieving test types, and executing individual test methods asynchronously or synchronously.
+// The TestManager class serves as the entry point for running tests within an application or test suite. Developers typically instantiate an instance of this class and invoke the Run method to execute all tests defined within the assembly. Additionally, the class provides internal methods for loading tests, retrieving test types, and executing individual test methods asynchronously or synchronously.
 // 
 // Purpose:
 // The purpose of the TestManager class is to provide a centralized component for managing and executing tests within an application or test suite. By encapsulating test execution logic within this class, developers can easily organize, execute, and report on tests, facilitating the process of test-driven development (TDD) and ensuring the reliability and correctness of their codebase.
@@ -35,12 +35,11 @@
 
 using System.Reflection;
 using Zentient.Tests.Deprecated;
-//using Zentient.Extensions;
 
 namespace Zentient.Tests;
 
 /// <summary>
-/// Manages and runs tests defined in the executing assembly.
+/// Manages the execution of asynchronous and synchronous tests defined within test classes.
 /// </summary>
 public class TestManager
 {
@@ -49,100 +48,141 @@ public class TestManager
     /// <summary>
     /// Runs all tests asynchronously.
     /// </summary>
+    /// <remarks>
+    /// This method loads all tests, invokes setup methods if available, and executes each test method.
+    /// </remarks>
     public async Task Run()
     {
-        if (_testInfo is null || _testInfo.Count() == 0) await LoadTests();
-
-        foreach (var kvp in _testInfo!)
+        if (_testInfo is null || _testInfo.Count() == 0)
         {
-            TestInfo testInfo = kvp.Value;
+            await LoadTests();
+        }
+
+        // Execute tests concurrently
+        if (_testInfo != null) 
+        {
+            await Task.WhenAll(_testInfo.Select(kvp => RunTestsAsync(kvp.Key, kvp.Value)));
+        }
+    }
+
+    private async Task RunTestsAsync(Type testType, TestInfo testInfo)
+    {
+        try
+        {
+            testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync($"Failure when setting up: {ex.Message}");
+            return;
+        }
+
+        foreach (var test in testInfo.Tests)
+        {
             try
             {
-                testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
+                if (IsAsyncMethod(test))
+                {
+                    await TestAsync(testType, testInfo.Instance, test);
+                }
+                else
+                {
+                    Test(testType, testInfo.Instance, test);
+                }
+            }
+            catch (AssertionFailureException ex)
+            {
+                await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
             }
             catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync($"Failure when setting up: {ex.Message}");
-                continue;
-            }
-
-            foreach (var test in testInfo.Tests)
-            {
-                try
-                {
-                    if (IsAsyncMethod(test))
-                    {
-                        await TestAsync(kvp.Key, testInfo.Instance, test);
-                    }
-                    else
-                    {
-                        Test(kvp.Key, testInfo.Instance, test);
-                    }
-                }
-                catch (FailedTestException ex)
-                {
-                    await Console.Out.WriteLineAsync($"Testing {kvp.Key}: Failed! Reason: {ex.Message}.");
-                }
-                catch (Exception ex)
-                {
-                    await Console.Out.WriteLineAsync($"Testing {kvp.Key}: Failed! Reason: {ex.Message}.");
-                }
+                await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
             }
         }
     }
 
     /// <summary>
-    /// Loads tests from all types in the executing assembly.
+    /// Loads all test classes and their methods.
     /// </summary>
+    /// <exception cref="BadSetupException">Thrown when there are issues with the setup of test classes.</exception>
+    /// <remarks>
+    /// This method searches for test classes in the executing assembly and collects their setup methods and test methods.
+    /// </remarks>
     private async Task LoadTests()
     {
         await Console.Out.WriteLineAsync("Initializing tests.");
 
-        // Get all types in the executing assembly.
+        // Retrieve test types asynchronously
         IAsyncEnumerable<Type> types = GetTestTypes();
 
-        // Iterate over all types in executing assembly.
+        // Load tests concurrently
         await foreach (var type in types)
         {
-            var methods = type.GetMethods();
-
-            MethodInfo? setup = null;
-            List<MethodInfo> tests = new List<MethodInfo>();
-
-            foreach (var method in methods)
+            await Task.Run(async () =>
             {
-                // Check if the method has SetupMethodAttribute
-                if (method.GetCustomAttribute<ZTTestSetupAttribute>() != null)
+                // Load and process each test type
+                await LoadAndProcessTestType(type);
+            });
+        }
+    }
+
+    private async Task LoadAndProcessTestType(Type type)
+    {
+        await Console.Out.WriteLineAsync($"Loading {type.FullName}");
+        // Load and process tests for the given type
+        // Add appropriate error handling here
+        var methods = type.GetMethods();
+
+        MethodInfo? setup = null;
+        List<MethodInfo> tests = new List<MethodInfo>();
+
+        foreach (var method in methods)
+        {
+            // Check if the method has SetupMethodAttribute
+            if (method.GetCustomAttribute<TestSetupAttribute>() != null)
+            {
+                if (setup != null)
                 {
-                    if (setup != null)
-                        throw new BadSetupException($"{type.FullName}: Multiple Methods annotated by TestSetupAttribute.");
-                    setup = method;
+                    throw new BadSetupException($"{type.FullName}: Multiple Methods annotated by TestSetupAttribute.");
                 }
-                // Check if the method has TestMethodAttribute
-                else if (method.GetCustomAttribute<ZTTestMethodAttribute>() != null)
-                {
-                    tests.Add(method);
-                }
+
+                setup = method;
             }
-
-            if (setup is null && tests.Count == 0)
-                continue;
-
-            object? instance;
-            try
+            // Check if the method has TestMethodAttribute
+            else if (method.GetCustomAttribute<TestMethodAttribute>() != null)
             {
-                instance = Activator.CreateInstance(type);
-
-                if (instance is null)
-                    throw new BadSetupException($"Could not create an instance of {type.FullName}.");
+                tests.Add(method);
             }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync($"Error {type.FullName}: {ex.Message}");
-                throw;
-            }
+        }
 
+        if (setup is null && tests.Count == 0)
+            return;
+
+        object? instance;
+        try
+        {
+            instance = Activator.CreateInstance(type);
+
+            if (instance is null)
+                throw new BadSetupException($"Could not create an instance of {type.FullName}.");
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync($"Error {type.FullName}: {ex.Message}");
+            throw;
+        }
+
+        await Console.Out.WriteLineAsync($"Adding {type.FullName}");
+        
+        TestInfo value;
+        
+        if (!_testInfo.TryGetValue(type, out value))
+        {
             _testInfo.Add(type, new TestInfo(instance!, setup, tests));
+        }
+        else
+        {
+
         }
     }
 
@@ -154,7 +194,7 @@ public class TestManager
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
         var assemblyTasks = assemblies
-            .Select(assembly => Task.Run(() => assembly.GetTypes().Where(type => type.GetCustomAttribute<ZTTestClassAttribute>() != null)));
+            .Select(assembly => Task.Run(() => assembly.GetTypes().Where(type => type.GetCustomAttribute<TestClassAttribute>() != null)));
         var typesLists = await Task.WhenAll(assemblyTasks);
         var types = typesLists.SelectMany(t => t);
         foreach (Type type in types)
@@ -172,18 +212,19 @@ public class TestManager
     /// <returns>A task representing the asynchronous operation.</returns>
     internal static async Task TestAsync(Type type, object instance, MethodInfo method)
     {
+        string name = $"{type.FullName}.{method.Name}";
         try
         {
             await (Task)method.Invoke(instance, new object[] { })!;
-            await Console.Out.WriteLineAsync($"Successfully tested {type.Name}.{method.Name}");
+            await Console.Out.WriteLineAsync($"Successfully tested {name}");
         }
-        catch (FailedTestException ex)
+        catch (AssertionFailureException ex)
         {
-            await Console.Out.WriteLineAsync($"Testing {type.Name}.{method.Name}: Failed. Reason: {ex.Message}");
+            await Console.Out.WriteLineAsync($"Testing {name}: Failed. Reason: {ex.Message}");
         }
         catch (Exception ex)
         {
-            await Console.Out.WriteLineAsync($"Bad test in {type.Name}.{method.Name}: {ex.Message}");
+            await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
             throw;
         }
     }
@@ -196,18 +237,19 @@ public class TestManager
     /// <param name="method">The MethodInfo representing the test method.</param>
     internal static void Test(Type type, object instance, MethodInfo method)
     {
+        string name = $"{type.FullName}.{method.Name}";
         try
         {
             method.Invoke(instance, new object[] { });
-            Console.Out.WriteLine($"Successfully tested {type.FullName}.");
+            Console.Out.WriteLine($"Successfully tested {name}.");
         }
-        catch (FailedTestException ex)
+        catch (AssertionFailureException ex)
         {
-            Console.Out.WriteLine($"Testing {type.Name}.{method.Name}: Failed. Reason: {ex.Message}");
+            Console.Out.WriteLine($"Testing {name}: Failed. Reason: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.Out.WriteLine($"Bad test in {type.Name}.{method.Name}: {ex.Message}");
+            Console.Out.WriteLine($"Bad test in {name}: {ex.Message}");
             throw;
         }
     }

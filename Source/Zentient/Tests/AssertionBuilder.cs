@@ -33,8 +33,6 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Zentient.Tests;
 
 /// <summary>
@@ -106,7 +104,7 @@ public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
     {
         if (!ReferenceEquals(expected, _subject))
         {
-            throw new AssertFailedException(message);
+            throw new AssertionFailureException(message);
         }
 
         return this;
@@ -122,7 +120,7 @@ public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
     {
         if (ReferenceEquals(expected, _subject))
         {
-            throw new AssertFailedException(message);
+            throw new AssertionFailureException(message);
         }
 
         return this;
@@ -210,7 +208,7 @@ public class AssertionBuilder(object subject) : IAssertionBuilder
     {
         if (!ReferenceEquals(expected, _subject))
         {
-            throw new AssertFailedException(message);
+            throw new AssertionFailureException(message);
         }
 
         return this;
@@ -226,7 +224,7 @@ public class AssertionBuilder(object subject) : IAssertionBuilder
     {
         if (ReferenceEquals(expected, _subject))
         {
-            throw new AssertFailedException(message);
+            throw new AssertionFailureException(message);
         }
 
         return this;

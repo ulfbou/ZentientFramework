@@ -1,5 +1,5 @@
 //
-// File: BadSetupException.cs
+// Class: BadSetupException
 //
 // Description:
 // The BadSetupException is thrown when an error occurs in the setup method of a test class. This exception indicates that there was a problem during the setup phase of a test, preventing the test from being properly initialized and executed.
@@ -33,7 +33,7 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Tests.Deprecated;
+namespace Zentient.Tests;
 
 /// <summary>
 /// Exception thrown when there is an error in the setup method.
