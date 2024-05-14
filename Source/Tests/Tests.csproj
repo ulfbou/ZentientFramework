@@ -11,6 +11,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zentient\Tests\Zentient.Tests.csproj" />
+    <ProjectReference Include="..\Zentient\Vectors\Zentient.Vectors.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Zentient.Vectors">
+      <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

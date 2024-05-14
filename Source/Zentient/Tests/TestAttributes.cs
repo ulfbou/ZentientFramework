@@ -37,7 +37,7 @@ namespace Zentient.Tests;
 /// <summary>
 /// Specifies that a class contains test methods.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class TestClassAttribute : Attribute { }
 
 /// <summary>

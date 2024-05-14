@@ -67,6 +67,7 @@ public class TestManager
 
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
+        await Console.Out.WriteLineAsync(testType.FullName);
         try
         {
             testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
