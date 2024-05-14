@@ -402,5 +402,6 @@ Docs/*.txt
 newsource/
 *.txt
 *.txt#
+*.txt
 /ConsoleTesting
-/.gitignore
+/newsource
