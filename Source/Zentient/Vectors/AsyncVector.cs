@@ -47,25 +47,31 @@ namespace Zentient.Vectors;
 /// <typeparam name="T">The type of elements in the vector.</typeparam>
 public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMultiplyOperators<T, T, T>
 {
-    private readonly ImmutableArray<T> _data;
+    private readonly ImmutableArray<T> _vector;
+
+    public ImmutableArray<T> Vector { get => _vector; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncSparseVector{T}"/> class with the specified source.
     /// </summary>
     /// <param name="source">The source representing the vector as <see cref="{T}[]">.</param>
-    public AsyncVector(T[] data)
+    public AsyncVector(T[] vector)
     {
-        if (data is null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(nameof(vector));
 
-        _data = [.. data];
+        _vector = [.. vector];
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncSparseVector{T}"/> class with the specified source.
     /// </summary>
     /// <param name="source">The source representing the vector as <see cref="ImmutableArray{T}">.</param>
-    public AsyncVector(ImmutableArray<T> data) => _data = data;
+    public AsyncVector(ImmutableArray<T> vector)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(vector));
 
+        _vector = vector;
+    }
     /// <summary>
     /// Asynchronously adds another sparse vector with this sparse vector.
     /// </summary>
@@ -78,8 +84,8 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     {
         ArgumentNullException.ThrowIfNull(nameof(other));
 
-        var producer1 = ProduceValuesAsync(_data, cancellationToken);
-        var producer2 = ProduceValuesAsync(other._data, cancellationToken);
+        var producer1 = ProduceValuesAsync(_vector, cancellationToken);
+        var producer2 = ProduceValuesAsync(other._vector, cancellationToken);
 
         return await AdditionProducer(producer1, producer2, cancellationToken).ConfigureAwait(false);
     }
@@ -95,8 +101,8 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     {
         ArgumentNullException.ThrowIfNull(nameof(other));
 
-        var producer1 = ProduceValuesAsync(_data, cancellationToken);
-        var producer2 = ProduceValuesAsync(other._data, cancellationToken);
+        var producer1 = ProduceValuesAsync(_vector, cancellationToken);
+        var producer2 = ProduceValuesAsync(other._vector, cancellationToken);
 
         return await DotProductProducer(producer1, producer2, cancellationToken).ConfigureAwait(false);
     }
@@ -116,8 +122,8 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     }
 
     private async Task<AsyncVector<T>> AdditionProducer(
-        IAsyncEnumerable<T> producer1, 
-        IAsyncEnumerable<T> producer2, 
+        IAsyncEnumerable<T> producer1,
+        IAsyncEnumerable<T> producer2,
         CancellationToken cancellationToken = default)
     {
         var resultDataBuilder = ImmutableArray.CreateBuilder<T>();
