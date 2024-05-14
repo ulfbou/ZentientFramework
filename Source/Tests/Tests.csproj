@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -19,9 +20,8 @@
       <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-  </ItemGroup>
+	<!--<ItemGroup>
+		<Using Remove="microsoft.visualstudio.testtools.unittesting"/>
+	</ItemGroup>-->
 
 </Project>

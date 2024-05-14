@@ -48,12 +48,13 @@ internal class Validate
         try
         {
             action();
-            throw new Exception("Failed");
         }
         catch
         {
             // Exception was thrown, considered as expected behavior
+            return;
         }
+        throw new Exception("Failed");
     }
 
     /// <summary>
