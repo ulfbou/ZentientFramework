@@ -2,7 +2,6 @@
 
 namespace Tests;
 
-[TestClass]
 public class AssertionBuilderTests
 {
     [TestMethod]

@@ -33,13 +33,15 @@
 // SOFTWARE.
 //
 
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+
 namespace Zentient.Tests;
 
 /// <summary>
 /// Provides fluent assertion methods for comparing equality and other conditions.
 /// </summary>
 /// <typeparam name="T">The type of the subject being asserted.</typeparam>
-public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
+public class AssertionBuilder<T> : IAssertionBuilder<T>
 {
     private readonly T _subject;
 
@@ -58,7 +60,7 @@ public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
     /// <param name="expected">The expected value.</param>
     /// <param name="message">Optional custom error message.</param>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsEqualTo(T expected, string message = "")
+    public IAssertionBuilder<T> IsEqualTo(T expected, string message = "Failed test")
     {
         if (expected is null)
         {
@@ -130,11 +132,11 @@ public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
     /// Asserts that the subject is null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNull()
+    public IAssertionBuilder<T> IsNull(string message = "")
     {
         if (_subject != null)
         {
-            throw new AssertionFailureException();
+            throw new AssertionFailureException(message);
         }
 
         return this;
@@ -144,17 +146,48 @@ public class AssertionBuilder<T> : IAssertionBuilder<T> where T : class
     /// Asserts that the subject is not null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNotNull()
+    public IAssertionBuilder<T> IsNotNull(string message = "")
     {
         if (_subject is null)
         {
-            throw new AssertionFailureException();
+            throw new AssertionFailureException(message);
         }
 
         return this;
     }
+
+    /// <summary>
+    /// Asserts that the subject is true.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsTrue(string message = "")
+    {
+        if (_subject is bool isTrue)
+        {
+            if (isTrue) return this;
+        }
+
+        throw new AssertionFailureException(message);
+    }
+
+    /// <summary>
+    /// Asserts that the subject is false.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder<T> IsFalse(string message = "")
+    {
+        if (_subject is bool isTrue)
+        {
+            if (!isTrue) return this;
+        }
+
+        throw new AssertionFailureException(message);
+    }
 }
 
+/// <summary>
+/// Provides fluent assertion methods for comparing equality and other conditions.
+/// </summary>
 /// <summary>
 /// Provides fluent assertion methods for comparing equality and other conditions.
 /// </summary>
@@ -234,11 +267,11 @@ public class AssertionBuilder(object subject) : IAssertionBuilder
     /// Asserts that the subject is null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    IAssertionBuilder IAssertionBuilder.IsNull()
+    public IAssertionBuilder IsNull(string message = "")
     {
         if (_subject != null)
         {
-            throw new AssertionFailureException();
+            throw new AssertionFailureException(message);
         }
 
         return this;
@@ -248,13 +281,41 @@ public class AssertionBuilder(object subject) : IAssertionBuilder
     /// Asserts that the subject is not null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    IAssertionBuilder IAssertionBuilder.IsNotNull()
+    public IAssertionBuilder IsNotNull(string message = "")
     {
         if (_subject is null)
         {
-            throw new AssertionFailureException();
+            throw new AssertionFailureException(message);
         }
 
         return this;
+    }
+
+    /// <summary>
+    /// Asserts that the subject is true.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsTrue(string message = "")
+    {
+        if (_subject is bool isTrue)
+        {
+            if (isTrue) return this;
+        }
+
+        throw new AssertionFailureException(message);
+    }
+
+    /// <summary>
+    /// Asserts that the subject is false.
+    /// </summary>
+    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
+    public IAssertionBuilder IsFalse(string message = "")
+    {
+        if (_subject is bool isTrue)
+        {
+            if (!isTrue) return this;
+        }
+
+        throw new AssertionFailureException(message);
     }
 }

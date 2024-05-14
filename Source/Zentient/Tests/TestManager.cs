@@ -225,7 +225,10 @@ public class TestManager
         }
         catch (Exception ex)
         {
-            await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
+            //if (ex.InnerException?.GetType() != typeof(T))
+            //{
+                await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
+            //}
             throw;
         }
     }

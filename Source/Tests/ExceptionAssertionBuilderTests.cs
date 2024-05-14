@@ -37,7 +37,6 @@ using Zentient.Tests;
 
 namespace Tests;
 
-[TestClass]
 public class ExceptionAssertionBuilderTests
 {
     public static readonly string BaseMessage = "Base exception";
