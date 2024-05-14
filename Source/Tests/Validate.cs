@@ -34,8 +34,6 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Tests;
 
 internal class Validate
@@ -50,12 +48,13 @@ internal class Validate
         try
         {
             action();
-            Assert.Fail("Failed");
         }
         catch
         {
             // Exception was thrown, considered as expected behavior
+            return;
         }
+        throw new Exception("Failed");
     }
 
     /// <summary>
@@ -71,7 +70,7 @@ internal class Validate
         }
         catch (Exception ex)
         {
-            Assert.Fail($"Failed: {ex.Message}");
+            throw new Exception($"Failed: {ex.Message}");
         }
     }
 }
