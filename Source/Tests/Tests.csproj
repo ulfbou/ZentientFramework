@@ -13,6 +13,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Zentient\Tests\Zentient.Tests.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Zentient.Vectors">
+      <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 	<!--<ItemGroup>
 		<Using Remove="microsoft.visualstudio.testtools.unittesting"/>
 	</ItemGroup>-->
