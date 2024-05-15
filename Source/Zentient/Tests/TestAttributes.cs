@@ -51,3 +51,11 @@ public class TestMethodAttribute : Attribute { }
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class TestSetupAttribute : Attribute { }
+
+/// <summary>
+/// Specifies that a method is a test method expects that an Exception is thrown..
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class ExpectedExceptionAttribute : Attribute
+{
+}
