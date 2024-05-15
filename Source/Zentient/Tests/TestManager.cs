@@ -34,7 +34,6 @@
 //
 
 using System.Reflection;
-using Zentient.Tests.Deprecated;
 
 namespace Zentient.Tests;
 
@@ -59,7 +58,7 @@ public class TestManager
         }
 
         // Execute tests concurrently
-        if (_testInfo != null) 
+        if (_testInfo != null)
         {
             await Task.WhenAll(_testInfo.Select(kvp => RunTestsAsync(kvp.Key, kvp.Value)));
         }
@@ -174,9 +173,9 @@ public class TestManager
         }
 
         await Console.Out.WriteLineAsync($"Adding {type.FullName}");
-        
+
         TestInfo value;
-        
+
         if (!_testInfo.TryGetValue(type, out value))
         {
             _testInfo.Add(type, new TestInfo(instance!, setup, tests));
@@ -227,7 +226,7 @@ public class TestManager
         {
             //if (ex.InnerException?.GetType() != typeof(T))
             //{
-                await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
+            await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
             //}
             throw;
         }
