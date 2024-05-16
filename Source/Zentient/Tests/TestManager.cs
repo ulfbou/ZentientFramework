@@ -69,6 +69,8 @@ public class TestManager
 
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
+        int count = 0;
+
         try
         {
             testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
@@ -83,6 +85,7 @@ public class TestManager
         {
             try
             {
+                count++;
                 if (IsAsyncMethod(test))
                 {
                     await TestAsync(testType, testInfo.Instance, test);
@@ -101,6 +104,8 @@ public class TestManager
                 await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
             }
         }
+
+        await Console.Out.WriteLineAsync($"Ran {count} tests.");
     }
 
     /// <summary>

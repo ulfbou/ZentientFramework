@@ -1,6 +1,5 @@
-﻿using System.Collections.Immutable;
-using Zentient.Tests;
-//using Zentient.Extensions;
+﻿using Zentient.Tests;
+using Zentient.Extensions;
 
 namespace Tests;
 
@@ -25,17 +24,17 @@ public class ArrayExtensionsTests
 
     // Tests if the constructor throws ArgumentNullException when provided with null data.
     [TestMethod]
-    public void TestShuffle_()
+    public void TestShuffle()
     {
         // Arrange
-        var actual = _ordered;
+        var actual = _ordered.ToArray();
+        var expected = _ordered.ToArray();
 
         // Act
-        //actual.Shuffle
+        actual.Shuffle();
 
-        //// Act & Assert
-        //Validate.Pass(() => Assert
-        //    .That(() => new AsyncVector<double>(null!))
-        //    .Throws<ArgumentNullException>("Should throw ArgumentNullException"));
+        // Act & Assert
+        Assert.Pass(() =>
+            Assert.That(actual).SequenceEquals(expected));
     }
 }
