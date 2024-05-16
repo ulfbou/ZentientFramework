@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="Zentient.Vectors">
+      <HintPath>bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

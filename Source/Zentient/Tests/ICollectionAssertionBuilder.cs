@@ -35,7 +35,7 @@
 
 
 namespace Zentient.Tests;
-public interface ICollectionAssertionBuilder<T>
+public interface ICollectionAssertionBuilder<T> : IAssertionBuilder<ICollection<T>>
 {
     /// <summary>
     /// Validates if the count of the collection matches the expected count.

@@ -34,15 +34,34 @@
 // SOFTWARE.
 //
 
+using Zentient.Tests;
+
 namespace Tests;
 
 internal class Validate
 {
     /// <summary>
+    /// Validates that the provided function executes successfully without throwing any exceptions.
+    /// </summary>
+    /// <param name="action">The function to be validated.</param>
+    internal static void Pass(Func<object> action, string message = "")
+    {
+        // Act & Assert
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            throw new AssertionFailureException(message, ex);
+        }
+    }
+
+    /// <summary>
     /// Validates that the provided action fails by throwing an exception.
     /// </summary>
     /// <param name="action">The action to be validated.</param>
-    internal static void Fail(Action action)
+    internal static void Fail(Action action, string message = "")
     {
         // Act & Assert
         try
@@ -54,23 +73,7 @@ internal class Validate
             // Exception was thrown, considered as expected behavior
             return;
         }
-        throw new Exception("Failed");
-    }
-
-    /// <summary>
-    /// Validates that the provided function executes successfully without throwing any exceptions.
-    /// </summary>
-    /// <param name="action">The function to be validated.</param>
-    internal static void Success(Func<object> action)
-    {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed: {ex.Message}");
-        }
+        
+        throw new AssertionFailureException(message);
     }
 }

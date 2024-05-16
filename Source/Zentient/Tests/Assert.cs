@@ -37,7 +37,7 @@ using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace Zentient.Tests;
 
-public sealed class Assert 
+public sealed class Assert
 {
     public static Assert Instance = new Assert();
 
@@ -49,7 +49,7 @@ public sealed class Assert
     /// <param name="test">The test.</param>
     public static void Pass(bool test, string message = "")
     {
-        if (!test) throw new ArgumentNullException(message);
+        if (!test) throw new AssertionFailureException(message);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class Assert
     /// <param name="action">The action to be validated.</param>
     public static void Fail(bool test, string message = "")
     {
-        if (test) throw new ArgumentNullException(message);
+        if (test) throw new AssertionFailureException(message);
     }
 
     /// <summary>

@@ -38,26 +38,16 @@ using System.Linq;
 namespace Zentient.Tests;
 
 public class StringAssertionBuilder 
-    : IStringAssertionBuilder
+    : AssertionBuilder<string>, IStringAssertionBuilder
 {
-    public Assert Assert { get => Assert.Instance; }
-
-    private readonly string _actual;
-    private readonly IComparer<string> _comparer;
-    private readonly IEqualityComparer<string> _equality;
-    private readonly string _message;
     private readonly bool _isComparerIgnoringCase;
     private readonly bool _isEqualityComparerIgnoringCase;
 
     public StringAssertionBuilder(string actual, IComparer<string> comparer, IEqualityComparer<string> equality, string message) 
-        
+        : base(actual, comparer, equality, message)
     {
-        _actual = actual;
-        _comparer = comparer;
-        _equality = equality;
-        _message = message;
-        _isComparerIgnoringCase = IsComparerIgnoringCase();
-        _isEqualityComparerIgnoringCase = IsEqualityComparerIgnoringCase();
+        _isComparerIgnoringCase = DefaultComparers<string>.Comparer != comparer && IsComparerIgnoringCase();
+        _isEqualityComparerIgnoringCase = DefaultComparers<string>.EqualityComparer != equality && IsEqualityComparerIgnoringCase();
     }
 
     public StringAssertionBuilder(string actual, IComparer<string> comparer, string message = "") :
@@ -169,5 +159,4 @@ public class StringAssertionBuilder
         return _equality.Equals(_actual, lowerActual) &&
                !_equality.Equals(_actual, upperActual);
     }
-
 }

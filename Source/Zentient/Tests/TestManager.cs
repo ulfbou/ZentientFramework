@@ -43,6 +43,7 @@ namespace Zentient.Tests;
 public class TestManager
 {
     private Dictionary<Type, TestInfo> _testInfo = new Dictionary<Type, TestInfo>();
+    private bool _supress;
 
     /// <summary>
     /// Runs all tests asynchronously.
@@ -50,8 +51,10 @@ public class TestManager
     /// <remarks>
     /// This method loads all tests, invokes setup methods if available, and executes each test method.
     /// </remarks>
-    public async Task Run()
+    public async Task Run(bool supress = false)
     {
+        _supress = supress;
+
         if (_testInfo is null || _testInfo.Count() == 0)
         {
             await LoadTests();
@@ -238,13 +241,16 @@ public class TestManager
     /// <param name="type">The type of the test class containing the method.</param>
     /// <param name="instance">An instance of the test class.</param>
     /// <param name="method">The MethodInfo representing the test method.</param>
-    internal static void Test(Type type, object instance, MethodInfo method)
+    internal void Test(Type type, object instance, MethodInfo method)
     {
         string name = $"{type.FullName}.{method.Name}";
         try
         {
             method.Invoke(instance, new object[] { });
-            Console.Out.WriteLine($"Successfully tested {name}.");
+            if (!_supress)
+            {
+                Console.Out.WriteLine($"Successfully tested {name}.");
+            }
         }
         catch (AssertionFailureException ex)
         {

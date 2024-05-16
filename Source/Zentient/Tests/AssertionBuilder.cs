@@ -39,14 +39,17 @@ namespace Zentient.Tests;
 /// Provides fluent assertion methods for comparing equality and other conditions.
 /// </summary>
 /// <typeparam name="T">The type of the subject being asserted.</typeparam>
-public partial class AssertionBuilder<T>(T subject, IComparer<T> comparer, IEqualityComparer<T> equality, string message)
-    : IAssertionBuilder<T>
+public class AssertionBuilder<T> : AssertionBuilderBase<T>, IAssertionBuilder<T>
 {
-    private readonly T _subject = subject;
-    private readonly IComparer<T> _comparer = comparer;
-    private readonly IEqualityComparer<T> _equality = equality;
-    private readonly string _message = message;
+    protected readonly IComparer<T> _comparer;
+    protected readonly IEqualityComparer<T> _equality;
 
+    public AssertionBuilder(T actual, IComparer<T> comparer, IEqualityComparer<T> equality, string message) : base(actual, message)
+    {
+        _comparer = comparer;
+        _equality = equality;
+    }
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertionBuilder{T}"/> class.
     /// </summary>
@@ -68,21 +71,18 @@ public partial class AssertionBuilder<T>(T subject, IComparer<T> comparer, IEqua
     public AssertionBuilder(T subject, IEqualityComparer<T> equality, string message = "")
         : this(subject, DefaultComparers<T>.Comparer, equality, message) { }
 
-    public IComparer<T> Comparer => _comparer;
-    public IEqualityComparer<T> EqualityComparer => _equality;
-
-    public override bool Equals(object? obj) => _equality.Equals(_subject, (T?)obj);
-    public override int GetHashCode() => base.GetHashCode();
-    public int Compare(object? obj) => Comparer.Compare(_subject, (T?)obj);
-
     #region AssertionBuilder 
+    public override int Compare(T? actual, T? expected) => _comparer.Compare(_actual, expected);
+    public override bool Equals(T? actual, T? expected) => _equality.Equals(actual, expected);
+    public override bool Equals(object? expected) => _equality.Equals(_actual, (T?)expected);
+
     /// <summary>
     /// Asserts that the subject is equal to the expected value.
     /// </summary>
     /// <param name="expected">The expected value.</param>
     /// <param name="message">Optional custom error message.</param>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsEqualTo(T expected, string message = "Failed test")
+    public override IAssertionBuilder<T> IsEqualTo(T expected, string message = "Failed test")
     {
         ArgumentNullException.ThrowIfNull(expected);
         Assert.Pass(Equals(expected), message);
@@ -90,99 +90,11 @@ public partial class AssertionBuilder<T>(T subject, IComparer<T> comparer, IEqua
         return this;
     }
 
-    /// <summary>
-    /// Asserts that the subject is not equal to the expected value.
-    /// </summary>
-    /// <param name="expected">The expected value.</param>
-    /// <param name="message">Optional custom error message.</param>
-    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNotEqualTo(T expected, string message = "")
+    public IAssertionBuilder<T> IsGreaterThan(T value)
     {
-        ArgumentNullException.ThrowIfNull(expected);
-        Assert.Fail(Equals(expected), message);
-
+        ArgumentNullException.ThrowIfNull(value);
+        Assert.Pass(Compare(_actual, value) > 0);
         return this;
-    }
-
-    /// <summary>
-    /// Asserts that the subject is the same instance as the expected object.
-    /// </summary>
-    /// <param name="expected">The expected object.</param>
-    /// <param name="message">Optional custom error message.</param>
-    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsSameAs(T expected, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(expected);
-        Assert.Pass(ReferenceEquals(_subject, expected), message);
-
-        return this;
-    }
-
-    /// <summary>
-    /// Asserts that the subject is not the same instance as the expected object.
-    /// </summary>
-    /// <param name="expected">The expected object.</param>
-    /// <param name="message">Optional custom error message.</param>
-    /// <exception cref="AssertFailedException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNotSameAs(T expected, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(expected);
-        Assert.Fail(ReferenceEquals(_subject, expected), message);
-
-        return this;
-    }
-
-    /// <summary>
-    /// Asserts that the subject is null.
-    /// </summary>
-    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNull(string message = "")
-    {
-        Assert.Pass(_subject is null, message);
-        return this;
-    }
-
-    /// <summary>
-    /// Asserts that the subject is not null.
-    /// </summary>
-    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNotNull(string message = "")
-    {
-        Assert.Fail(_subject is null, message);
-        return this;
-    }
-
-    /// <summary>
-    /// Asserts that the subject is true.
-    /// </summary>
-    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsTrue(string message = "")
-    {
-        if (_subject is bool isTrue)
-        {
-            if (isTrue) return this;
-        }
-
-        throw new AssertionFailureException(message);
-    }
-
-    /// <summary>
-    /// Asserts that the subject is false.
-    /// </summary>
-    /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsFalse(string message = "")
-    {
-        if (_subject is bool isTrue)
-        {
-            if (!isTrue) return this;
-        }
-
-        throw new AssertionFailureException(message);
-    }
-
-    public void IsGreaterThan(int v)
-    {
-        throw new NotImplementedException();
     }
     #endregion
 
@@ -193,10 +105,10 @@ public partial class AssertionBuilder<T>(T subject, IComparer<T> comparer, IEqua
 /// </summary>
 public class AssertionBuilder : IAssertionBuilder
 {
-    private readonly object _subject;
-    private readonly IComparer<object> _comparer;
-    private readonly IEqualityComparer<object> _equality;
-    private readonly string _message;
+    protected readonly object _actual;
+    protected readonly IComparer<object> _comparer;
+    protected readonly IEqualityComparer<object> _equality;
+    protected readonly string _message;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertionBuilder{T}"/> class.
@@ -226,7 +138,7 @@ public class AssertionBuilder : IAssertionBuilder
     /// <param name="message">The message to provide should the assertion fail.</param>
     public AssertionBuilder(object subject, IComparer<object> comparer, IEqualityComparer<object> equality, string message)
     {
-        _subject = subject;
+        _actual = subject;
         _comparer = comparer;
         _equality = equality;
         _message = message;
@@ -235,9 +147,9 @@ public class AssertionBuilder : IAssertionBuilder
     public IComparer<object> Comparer { get; }
     public IEqualityComparer<object> EqualityComparer { get; }
 
-    public override bool Equals(object? obj) => EqualityComparer.Equals(_subject, obj);
+    public override bool Equals(object? obj) => EqualityComparer.Equals(_actual, obj);
     public override int GetHashCode() => base.GetHashCode();
-    public int Compare(object? obj) => Comparer.Compare(_subject, obj);
+    public int Compare(object? obj) => Comparer.Compare(_actual, obj);
 
     /// <summary>
     /// Asserts that the subject is equal to the expected value.
@@ -276,7 +188,7 @@ public class AssertionBuilder : IAssertionBuilder
     public IAssertionBuilder IsSameAs(object expected, string message = "")
     {
         ArgumentNullException.ThrowIfNull(expected);
-        Assert.Pass(ReferenceEquals(_subject, expected), message);
+        Assert.Pass(ReferenceEquals(_actual, expected), message);
 
         return this;
     }
@@ -290,7 +202,7 @@ public class AssertionBuilder : IAssertionBuilder
     public IAssertionBuilder IsNotSameAs(object expected, string message = "")
     {
         ArgumentNullException.ThrowIfNull(expected);
-        Assert.Fail(ReferenceEquals(_subject, expected), message);
+        Assert.Fail(ReferenceEquals(_actual, expected), message);
 
         return this;
     }
@@ -301,7 +213,7 @@ public class AssertionBuilder : IAssertionBuilder
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder IsNull(string message = "")
     {
-        Assert.Pass(_subject is null, message);
+        Assert.Pass(_actual is null, message);
         return this;
     }
 
@@ -311,7 +223,7 @@ public class AssertionBuilder : IAssertionBuilder
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder IsNotNull(string message = "")
     {
-        Assert.Fail(_subject is null, message);
+        Assert.Fail(_actual is null, message);
         return this;
     }
 
@@ -321,7 +233,7 @@ public class AssertionBuilder : IAssertionBuilder
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder IsTrue(string message = "")
     {
-        if (_subject is bool isTrue)
+        if (_actual is bool isTrue)
         {
             if (isTrue) return this;
         }
@@ -335,7 +247,7 @@ public class AssertionBuilder : IAssertionBuilder
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder IsFalse(string message = "")
     {
-        if (_subject is bool isTrue)
+        if (_actual is bool isTrue)
         {
             if (!isTrue) return this;
         }

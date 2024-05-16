@@ -35,8 +35,9 @@
 
 namespace Zentient.Tests
 {
-    public interface IStringAssertionBuilder
+    public interface IStringAssertionBuilder : IAssertionBuilder<string>
     {
+        IStringAssertionBuilder AreEqualsIgnoringCase(string expected);
         IStringAssertionBuilder AreNotEqualIgnoringCase(string expected);
         IStringAssertionBuilder Contains(string substring);
         IStringAssertionBuilder EndsWith(string suffix);

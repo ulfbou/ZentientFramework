@@ -138,13 +138,22 @@ public static class AssertExtensions
     public static IExceptionAssertionBuilder That(this Assert assert, Action action)
         => new ExceptionAssertionBuilder(action);
 
-    public static ICollectionAssertionBuilder<ICollection<T>> That<T>(this Assert assert, ICollection<T> collection)
-        => new CollectionAssertionBuilder<ICollection<T>>(collection);
+    public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, T[] array)
+            => new CollectionAssertionBuilder<T>(array);
 
-    public static ICollectionAssertionBuilder<T[]> That<T>(this Assert assert, T[] array)
-            => new CollectionAssertionBuilder<T[]>(array);
-    public static ICollectionAssertionBuilder<IEnumerable<T>> That<T>(this Assert assert, IEnumerable<T> array)
-            => new CollectionAssertionBuilder<IEnumerable<T>>(array);
+    // var duplicateCollection = new List<int> { 1, 2, 2, 3 };
+    // Assert.That<int>(duplicateCollection);
+    public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, ICollection<T> collection)
+        => new CollectionAssertionBuilder<T>(collection);
+
+
+    // var duplicateCollection = new List<int> { 1, 2, 2, 3 };
+    // Assert.That((IEnumerable<int>) duplicateCollection)
+    // var expected = collection1.Zip(collection2, (x, y) => new Pair(x, x));
+    // Assert.That<Pair>(actual);
+    public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, IEnumerable<T> enumeration)
+        => new CollectionAssertionBuilder<T>(enumeration.ToList());
+
     public static IAssertionBuilder<T> That<T>(this Assert assert, T subject)
         => new AssertionBuilder<T>(subject);
 

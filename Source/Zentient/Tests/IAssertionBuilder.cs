@@ -82,7 +82,6 @@ public interface IAssertionBuilder<T>
     public IAssertionBuilder<T> IsNotNull(string message = "");
     
     public IAssertionBuilder<T> IsTrue(string message = "");
-    void IsGreaterThan(int v);
 }
 
 public interface IAssertionBuilder

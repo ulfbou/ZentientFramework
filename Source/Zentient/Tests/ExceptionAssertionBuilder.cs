@@ -1,6 +1,5 @@
 ﻿//
-// Class:
-// 
+// Class:ExceptionAssertionBuilder
 //
 // Description:
 // Provides fluent assertion methods for validating thrown exceptions and other conditions. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria. The AssertionBuilder class facilitates a more readable and maintainable approach to writing tests by enabling a chainable method syntax.
@@ -33,8 +32,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-
-using System.Linq;
 
 namespace Zentient.Tests;
 

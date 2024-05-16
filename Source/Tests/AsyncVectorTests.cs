@@ -1,15 +1,14 @@
 ﻿using System.Collections.Immutable;
-using System.Numerics;
-using System.Runtime.CompilerServices;
 using Zentient.Tests;
 using Zentient.Vectors;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Tests;
 
 [TestClass]
 public class AsyncVectorTests
 {
+    public Assert Assert {  get => Assert.Instance; }
+
     // Tests if the constructor throws ArgumentNullException when provided with null data.
     [TestMethod]
     public void TestConstructor_NullData_ThrowsArgumentNullException()
@@ -17,10 +16,12 @@ public class AsyncVectorTests
         // Arrange
         var asyncVectorWithNullArgument = () => new AsyncVector<double>(null!);
 
+        var builder = Assert.That(() => new AsyncVector<double>(null!));
+
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(() => new AsyncVector<double>(null!))
-            .Throws<ArgumentNullException>());
+            .Throws<ArgumentNullException>("Should throw ArgumentNullException"));
     }
 
     // Tests if the constructor returns an empty vector when provided with an empty data dictionary.
@@ -29,12 +30,13 @@ public class AsyncVectorTests
     {
         // Arrange
         double[] data = [];
+        ICollection<double> emptyCollection = data.ToArray();
         var asyncVectorWithEmptyVector = new AsyncVector<double>(data);
+        var assert = Assert.That<double>(asyncVectorWithEmptyVector.Vector);
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
-            .That<object>(asyncVectorWithEmptyVector.Vector.Length)
-            .IsEqualTo(0));
+        Validate.Pass(() => 
+            Assert.That<double>(asyncVectorWithEmptyVector.Vector).SequenceEquals(emptyCollection));
     }
 
     // Tests if the dot product of a vector with itself returns the square of its magnitude.
@@ -50,7 +52,7 @@ public class AsyncVectorTests
         double expectedResult = 0 * 0 + 2 * 2;
 
         // Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<double>(result)
             .IsEqualTo(expectedResult));
     }
@@ -70,7 +72,7 @@ public class AsyncVectorTests
         double expectedResult = 0 * 2 + 2 * 0;
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<double>(result)
             .IsEqualTo(expectedResult));
     }
@@ -90,7 +92,7 @@ public class AsyncVectorTests
         double expectedResult = 0 * 2 + 2 * 0;
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<double>(result)
             .IsEqualTo(expectedResult));
     }
@@ -110,7 +112,7 @@ public class AsyncVectorTests
         ImmutableArray<double> expectedResult = [];
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(result.Vector.SequenceEqual(expectedResult))
             .IsTrue("The vectors should be equal"));;
     }
@@ -130,7 +132,7 @@ public class AsyncVectorTests
         ImmutableArray<double> expectedResult = data1.ToImmutableArray();
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(result.Vector.SequenceEqual(expectedResult))
             .IsTrue("The vectors should be equal"));
     }
@@ -149,7 +151,7 @@ public class AsyncVectorTests
         AsyncVector<double> result = await vector.AddAsync(vector);
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<AsyncVector<double>>(result)
             .IsEqualTo(expectedResult));
     }
