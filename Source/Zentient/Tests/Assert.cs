@@ -33,73 +33,35 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
 namespace Zentient.Tests;
 
-public sealed class Assert
+public static class Assert
 {
-    public static Assert Instance = new Assert();
-
-    private Assert() { }
+    /// <summary>
+    /// Creates an assertion builder for the specified subject.
+    /// </summary>
+    /// <typeparam name="T">The type of the subject.</typeparam>
+    /// <param name="subject">The subject to be asserted.</param>
+    /// <returns>An instance of <see cref="IAssertionBuilder{T}"/>.</returns>
+    public static IAssertionBuilder<T> That<T>(T subject) where T : class
+        => new AssertionBuilder<T>(subject);
 
     /// <summary>
-    /// Validates that the test is true.
+    /// Creates an exception assertion builder for the specified action with a custom name, 
+    /// allowing combined assertions with another assertion builder.
     /// </summary>
-    /// <param name="test">The test.</param>
-    public static void Pass(bool test, string message = "")
-    {
-        if (!test) throw new AssertionFailureException(message);
-    }
+    /// <param name="action">The action that may throw an exception.</param>
+    /// <returns>An instance of <see cref="IExceptionAssertionBuilder"/>.</returns>
+    public static IExceptionAssertionBuilder That(Action action)
+        => new ExceptionAssertionBuilder(action, new AssertionBuilder<Action>(action));
 
     /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
+    /// Creates an exception assertion builder for the specified action with a custom name, 
+    /// allowing combined assertions with another assertion builder.
     /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(bool test, string message = "")
-    {
-        if (test) throw new AssertionFailureException(message);
-    }
-
-    /// <summary>
-    /// Validates that the provided function executes successfully without throwing any exceptions.
-    /// </summary>
-    /// <param name="action">The function to be validated.</param>
-    public static void Pass(Func<object> action, string message = "")
-    {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(Action action, string message = "")
-    {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch
-        {
-            // Exception was thrown, considered as expected behavior
-            return;
-        }
-
-        throw new AssertionFailureException(message);
-    }
-
-    public static void Fail(string message = "")
-    {
-        throw new AssertionFailureException(message);
-    }
+    /// <param name="action">The action that may throw an exception.</param>
+    /// <param name="builder">The assertion builder for additional assertions.</param>
+    /// <returns>An instance of <see cref="IExceptionAssertionBuilder"/>.</returns>
+    public static IExceptionAssertionBuilder That(Action action, IAssertionBuilder<Action>? builder = null)
+        => new ExceptionAssertionBuilder(action, builder ?? new AssertionBuilder<Action>(action));
 }

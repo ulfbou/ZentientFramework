@@ -35,7 +35,7 @@
 
 namespace Zentient.Tests;
 
-public interface IAssertionBuilder<T>
+public interface IAssertionBuilder<T> where T : class
 {
     /// <summary>
     /// Asserts that the subject is equal to the expected value.
@@ -73,15 +73,13 @@ public interface IAssertionBuilder<T>
     /// Asserts that the subject is null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNull(string message = "");
+    public IAssertionBuilder<T> IsNull();
 
     /// <summary>
     /// Asserts that the subject is not null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder<T> IsNotNull(string message = "");
-    
-    public IAssertionBuilder<T> IsTrue(string message = "");
+    public IAssertionBuilder<T> IsNotNull();
 }
 
 public interface IAssertionBuilder
@@ -122,11 +120,11 @@ public interface IAssertionBuilder
     /// Asserts that the subject is null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder IsNull(string message = "");
+    public IAssertionBuilder IsNull();
 
     /// <summary>
     /// Asserts that the subject is not null.
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
-    public IAssertionBuilder IsNotNull(string message = "");
+    public IAssertionBuilder IsNotNull();
 }

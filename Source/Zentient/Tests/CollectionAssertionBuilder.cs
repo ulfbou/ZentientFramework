@@ -33,64 +33,17 @@
 // SOFTWARE.
 //
 
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics.Metrics;
-using System.Globalization;
-using System.Linq;
-using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.ComponentModel;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Zentient.Tests;
 
-public partial class CollectionAssertionBuilder<T> :
-    AssertionBuilderBase<ICollection<T>>, ICollectionAssertionBuilder<T> where T : notnull
+public class CollectionAssertionBuilder<T>(ICollection<T> collection) : ICollectionAssertionBuilder<T>
 {
-    private readonly IComparer<T> _comparer;
-    private readonly IEqualityComparer<T> _equality;
-
-    public CollectionAssertionBuilder(
-        ICollection<T> actual,
-        IComparer<T> comparer,
-        IEqualityComparer<T> equality,
-        string message)
-        : base(actual, message)
-    {
-        _comparer = comparer;
-        _equality = equality;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CollectionAssertionBuilder{T}"/> class.
-    /// </summary>
-    /// <param name="subject">The subject to be asserted.</param>
-    public CollectionAssertionBuilder(ICollection<T> subject, string message = "")
-        : this(subject,
-              DefaultComparers<T>.Comparer,
-              DefaultComparers<T>.EqualityComparer,
-              message)
-    { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CollectionAssertionBuilder{T}"/> class.
-    /// </summary>
-    /// <param name="subject">The subject to be asserted.</param>
-    public CollectionAssertionBuilder(
-        ICollection<T> subject, IComparer<T> comparer, string message = "")
-        : this(subject, comparer, DefaultComparers<T>.EqualityComparer, message)
-    { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CollectionAssertionBuilder{T}"/> class.
-    /// </summary>
-    /// <param name="subject">The subject to be asserted.</param>
-    public CollectionAssertionBuilder(
-        ICollection<T> subject, IEqualityComparer<T> equality, string message = "")
-        : this(subject, DefaultComparers<T>.Comparer, equality, message)
-    { }
-
-    #region CollectionAssertions
-    public int Compare(T? actual, T? expected) => _comparer.Compare(actual, expected);
-    public bool Equals(T? actual, T? expected) => _equality.Equals(actual, expected);
+    private readonly ICollection<T> _collection = collection;
 
     /// <summary>
     /// Validates if the count of the collection matches the expected count.
@@ -100,7 +53,7 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> CountEquals(int expectedCount, string message = "")
     {
-        Assert.Pass(_actual.Count() == expectedCount);
+        if (_collection.Count() > expectedCount) throw new AssertionFailureException(message);
         return this;
     }
 
@@ -111,7 +64,7 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> IsEmpty(string message = "")
     {
-        Assert.Pass(_actual.Count() == 0);
+        if (_collection.Count() > 0) throw new AssertionFailureException(message);
         return this;
     }
 
@@ -122,7 +75,7 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> IsNotEmpty(string message = "")
     {
-        Assert.Pass(_actual.Count() > 0);
+        if (_collection.Count() == 0) throw new AssertionFailureException(message);
         return this;
     }
 
@@ -134,7 +87,7 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> Contains(T item, string message = "")
     {
-        if (!_actual.Contains(item, _equality)) throw new AssertionFailureException($"{_message}{message}");
+        if (!_collection.Contains(item)) throw new AssertionFailureException(message);
         return this;
     }
 
@@ -146,38 +99,37 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> DoesNotContain(T item, string message = "")
     {
-        Assert.Fail(_actual.Contains(item, _equality));
+        if (_collection.Contains(item)) throw new AssertionFailureException(message);
         return this;
     }
 
     /// <summary>
     /// Validates if the collection contains the same elements in the same order as another collection.
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> SequenceEquals(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> SequenceEquals(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
 
-        Assert.Pass(_actual.SequenceEqual(otherCollection, _equality));
+        if (!_collection.SequenceEqual(collection)) throw new AssertionFailureException(message);
         return this;
-
     }
 
     /// <summary>
     /// Validates if the collection is a subset of another collection. 
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> IsSubsetOf(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> IsSubsetOf(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
 
-        foreach (var item in _actual)
+        foreach(var item in _collection)
         {
-            Assert.Pass(otherCollection.Contains(item, _equality));
+            if (!collection.Contains(item)) throw new AssertionFailureException(string.Format(message, item));
         }
 
         return this;
@@ -186,33 +138,37 @@ public partial class CollectionAssertionBuilder<T> :
     /// <summary>
     /// Validates if the collection is a superset of another collection.
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> IsSupersetOf(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> IsSupersetOf(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
 
-        foreach (var item in otherCollection)
+        foreach (var item in collection)
         {
-            Assert.Pass(_actual.Contains(item, _equality));
+            if (!_collection.Contains(item)) throw new AssertionFailureException(string.Format(message, item));
         }
 
         return this;
     }
 
     /// <summary>
-    /// Validates if this collection has any common elements with another collection.
+    /// Validates if the collection has any common elements with another collection.
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> IntersectsWith(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> IntersectsWith(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
 
-        if (_actual.Any(item => otherCollection.Contains(item, _equality))) return this;
-        throw new AssertionFailureException($"{_message}{message}");
+        foreach (var item in _collection)
+        {
+            if (!collection.Contains(item)) return this;
+        }
+
+        throw new AssertionFailureException(message);
     }
 
     /// <summary>
@@ -223,7 +179,7 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> HasUniqueItems(string message = "")
     {
-        Assert.Pass(_actual.Distinct().Count() == _actual.Count());
+        if (HasDuplicates(_collection)) throw new AssertionFailureException(message);
         return this;
     }
 
@@ -235,8 +191,20 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> HasDuplicates(string message = "")
     {
-        Assert.Pass(_actual.Distinct().Count() < _actual.Count());
+        if (!HasDuplicates(_collection)) throw new AssertionFailureException(message);
         return this;
+    }
+
+    private bool HasDuplicates(ICollection<T> collection)
+    {
+        HashSet<T> set = new(_collection.Count());
+
+        foreach (var item in _collection)
+        {
+            if (set.Contains(item)) return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -247,137 +215,77 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> HasItemAt(int index, string message = "")
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(index);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<int>(index, _actual.Count());
-        Assert.Fail(_actual.ElementAt<T>(index) is null);
+        ArgumentOutOfRangeException.ThrowIfNegative(index, message);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual<int>(index, _collection.Count(), message);
+
+        if (_collection.ElementAt<T>(index) is null) throw new AssertionFailureException(message);
         return this;
-    }
+}
 
     /// <summary>
     /// Validates if two collections contain the same elements, ignoring the order of elements.
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
+        if (_collection.Count() != collection.Count()) throw new AssertionFailureException(message);
 
-        var actualOrdered = _actual.OrderBy(item => item, _comparer);
-        var expectedOrdered = otherCollection.OrderBy(item => item, _comparer);
+        var collection1 = _collection.OrderBy(item => item).Distinct();
+        var collection2 = collection.OrderBy(item => item).Distinct();
 
-        Assert.Pass(actualOrdered.SequenceEqual(expectedOrdered), message);
-        return this;
-    }
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrdera(ICollection<T> otherCollection, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
-
-        var actual = _actual.OrderBy(item => item, _comparer);
-        var expected = otherCollection.OrderBy(item => item, _comparer);
-
-        Assert.Pass(actual.SequenceEqual(expected));
-        return this;
-    }
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder2(ICollection<T> otherCollection, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
-
-        //Sort both collections using OrderBy and then use the Zip method to merge the sorted collections into pairs. Check each pair for equality, and if any pair is not equal, the collections are not equal.
-        var actual = _actual.OrderBy(item => item, _comparer);
-        var expected = otherCollection.OrderBy(item => item, _comparer);
-        var zipped = actual.Zip(expected);
-        var res = (zipped.Where((x, y) => Equals(x, y)));
-
-        Assert.Pass(zipped.Count() == res.Count());
-        return this;
-    }
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder3(ICollection<T> otherCollection, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
-
-        // Sort both collections using OrderBy and then compare the count of each collection. If the counts are different, the collections are not equal. Otherwise, loop through each collection and ensure each item in one collection is found in the other collection.
-
-        return this;
-    }
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder4(ICollection<T> otherCollection, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
-
-        var actual = _actual.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        var expected = otherCollection.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-
-        Assert.Pass(!(actual.Except(expected).Any() || expected.Except(actual).Any()));
-
-        return this;
-    }
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder5(ICollection<T> otherCollection, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
-
-        // Use GroupBy and Count to create a collection of IGrouping<T, int> containing each unique item and its count in each collection.
-        // Convert each grouped collection into a Dictionary<T, int> containing items as keys and their counts as values.
-        // Create HashSet<KeyValuePair<T, int>> from the Dictionary<T, int> in each collection.
-        // Compare the two HashSet<KeyValuePair< T, int>> for equality using the SetEquals method.
-
-        return this;
-    }
-    public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder6(ICollection<T> otherCollection, string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count == otherCollection.Count, message);
-
-        // Create dictionaries to store element counts
-        var actualCounts = _actual.GroupBy(item => item, _equality)
-                                  .ToDictionary(g => g.Key, g => g.Count(), _equality);
-        var otherCounts = otherCollection.GroupBy(item => item, _equality)
-                                         .ToDictionary(g => g.Key, g => g.Count(), _equality);
-
-        // Check if the dictionaries have the same counts for each element
-        Assert.Pass(actualCounts.Count == otherCounts.Count &&
-                    actualCounts.All(kv => otherCounts.TryGetValue(kv.Key, out int count) && count == kv.Value), message);
-
+        if (!collection1.SequenceEqual(collection2)) throw new AssertionFailureException(message);
         return this;
     }
 
     /// <summary>
     /// Validates if two collections have the same elements, regardless of their order and duplicates.
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> AreEquivalent(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> AreEquivalent(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        Assert.Pass(_actual.Count() == otherCollection.Count());
+        ArgumentNullException.ThrowIfNull(nameof(collection));
+        if (_collection.Count() != collection.Count()) throw new AssertionFailureException(message);
 
-        var collection1 = _actual.OrderBy(item => item).Distinct();
-        var collection2 = otherCollection.OrderBy(item => item).Distinct();
+        var collection1 = _collection.OrderBy(item => item).Distinct();
+        var collection2 = collection.OrderBy(item => item).Distinct();
 
-        Assert.Pass(collection1.SequenceEqual(collection2));
+        if (!collection1.SequenceEqual(collection2)) throw new AssertionFailureException(message);
         return this;
     }
 
     /// <summary>
     /// Validates if two collections have no common elements.
     /// </summary>
-    /// <param name="otherCollection">The collection to compare with.</param>
+    /// <param name="collection">The collection to compare with.</param>
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> AreDisjoint(ICollection<T> otherCollection, string message = "")
+    public ICollectionAssertionBuilder<T> AreDisjoint(ICollection<T> collection, string message = "")
     {
-        ArgumentNullException.ThrowIfNull(otherCollection);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
 
-        int count = _actual.Count() + otherCollection.Count();
+        int count = _collection.Count() + collection.Count();
 
-        Assert.Pass(count != _actual.Concat(otherCollection).Count());
+        if (count != Merge(_collection, collection).Count()) throw new AssertionFailureException(message);
+
         return this;
+    }
+
+    private IEnumerable<T> Merge(IEnumerable<T> collection1, IEnumerable<T> collection2)
+    {
+        foreach(var item in  collection1)
+        {
+            yield return item;
+        }
+
+        foreach (var item in collection2)
+        {
+            yield return item;
+        }
     }
 
     /// <summary>
@@ -388,7 +296,8 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> HasMinLength(int length, string message = "")
     {
-        Assert.Pass(_actual.Count() >= length);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
+        if (_collection.Count() < length) throw new AssertionFailureException(message);
         return this;
     }
 
@@ -400,9 +309,10 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> HasMaxLength(int length, string message = "")
     {
-        Assert.Pass(_actual.Count() <= length);
+        ArgumentNullException.ThrowIfNull(nameof(collection));
+        if (_collection.Count() > length) throw new AssertionFailureException(message);
         return this;
-    }
+}
 
     /// <summary>
     /// Validates if at least one item in the collection satisfies a specific condition.
@@ -412,9 +322,10 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> HasItemSatisfying(Func<T, bool> predicate, string message = "")
     {
-        Assert.Pass(_actual.Any(predicate));
+        ArgumentNullException.ThrowIfNull(nameof(collection));
+        if (!_collection.Any(predicate)) throw new AssertionFailureException(message);
         return this;
-    }
+}
 
     /// <summary>
     /// Validates if all items in the collection satisfy a specific condition.
@@ -424,9 +335,11 @@ public partial class CollectionAssertionBuilder<T> :
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> AllItemsSatisfy(Func<T, bool> predicate, string message = "")
     {
-        Assert.Pass(_actual.All(predicate));
+        ArgumentNullException.ThrowIfNull(nameof(collection));
+
+        if (!_collection.SequenceEqual(collection)) throw new AssertionFailureException(message);
         return this;
-    }
+}
 
     /// <summary>
     /// Validates if two collections are equal based on a specific property of the items.
@@ -444,34 +357,14 @@ public partial class CollectionAssertionBuilder<T> :
         ArgumentNullException.ThrowIfNull(otherCollection);
         ArgumentNullException.ThrowIfNull(selector);
 
-        var thisPropertyValues = _actual.Select(selector);
+        var thisPropertyValues = _collection.Select(selector);
         var otherPropertyValues = otherCollection.Select(selector);
 
-        Assert.Pass(thisPropertyValues.SequenceEqual(otherPropertyValues));
+        if (!thisPropertyValues.SequenceEqual(otherPropertyValues))
+        {
+            throw new AssertionFailureException(message);
+        }
+
         return this;
     }
-
-    /// <summary>throw
-    /// Validates if two collections are equal based on a specific property of the items.
-    /// </summary>
-    /// <typeparam name="TProperty">The type of the property used for comparison.</typeparam>
-    /// <param name="otherCollection">The other collection to compare with.</param>
-    /// <param name="selector">A function to extract the property value from each item in the collections.</param>
-    /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
-    /// <returns>The instance of the collection assertion builder for method chaining.</returns>
-    public ICollectionAssertionBuilder<T> AreNotEqualByProperty<TProperty>(
-        ICollection<T> otherCollection,
-        Func<T, TProperty> selector,
-        string message = "")
-    {
-        ArgumentNullException.ThrowIfNull(otherCollection);
-        ArgumentNullException.ThrowIfNull(selector);
-
-        var thisPropertyValues = _actual.Select(selector);
-        var otherPropertyValues = otherCollection.Select(selector);
-
-        Assert.Pass(thisPropertyValues.SequenceEqual(otherPropertyValues));
-        return this;
-    }
-    #endregion
 }
