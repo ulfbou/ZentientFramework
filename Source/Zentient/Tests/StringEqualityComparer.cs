@@ -1,5 +1,5 @@
-//
-// Class: Assert
+﻿//
+// Class: StringAssertionBuilder
 //
 // Description:
 // The Assert class provides a fluent API with a set of static methods for making assertions in unit tests. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
@@ -33,73 +33,26 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
 namespace Zentient.Tests;
 
-public sealed class Assert
+public class StringEqualityComparer : IEqualityComparer<string>
 {
-    public static Assert Instance = new Assert();
+    public static StringEqualityComparer OrdinalIgnoreCase { get; } = new StringEqualityComparer(StringComparer.OrdinalIgnoreCase);
 
-    private Assert() { }
+    private readonly StringComparer _comparer;
 
-    /// <summary>
-    /// Validates that the test is true.
-    /// </summary>
-    /// <param name="test">The test.</param>
-    public static void Pass(bool test, string message = "")
+    private StringEqualityComparer(StringComparer comparer)
     {
-        if (!test) throw new AssertionFailureException(message);
+        _comparer = comparer;
     }
 
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(bool test, string message = "")
+    public bool Equals(string x, string y)
     {
-        if (test) throw new AssertionFailureException(message);
+        return _comparer.Equals(x, y);
     }
 
-    /// <summary>
-    /// Validates that the provided function executes successfully without throwing any exceptions.
-    /// </summary>
-    /// <param name="action">The function to be validated.</param>
-    public static void Pass(Func<object> action, string message = "")
+    public int GetHashCode(string obj)
     {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(Action action, string message = "")
-    {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch
-        {
-            // Exception was thrown, considered as expected behavior
-            return;
-        }
-
-        throw new AssertionFailureException(message);
-    }
-
-    public static void Fail(string message = "")
-    {
-        throw new AssertionFailureException(message);
+        return _comparer.GetHashCode(obj);
     }
 }

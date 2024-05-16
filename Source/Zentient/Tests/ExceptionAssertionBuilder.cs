@@ -1,5 +1,5 @@
 ﻿//
-// Class: ExceptionAssertionBuilder
+// Class:ExceptionAssertionBuilder
 //
 // Description:
 // Provides fluent assertion methods for validating thrown exceptions and other conditions. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria. The AssertionBuilder class facilitates a more readable and maintainable approach to writing tests by enabling a chainable method syntax.
@@ -38,23 +38,27 @@ namespace Zentient.Tests;
 /// <summary>
 /// Provides fluent assertion methods for validating thrown exceptions and other conditions.
 /// </summary>
-public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>? builder = null)
+public partial class ExceptionAssertionBuilder(Action action, string message, IAssertionBuilder<Action> builder)
     : IExceptionAssertionBuilder
 {
     private readonly Action _action = action;
-    private readonly IAssertionBuilder<Action> _builder = builder ?? new AssertionBuilder<Action>(action);
+    private readonly string _message = message;
+    private readonly IAssertionBuilder<Action> _builder = builder;
     private string? _thrownMessage = null;
 
     /// <summary>
-    /// Gets the underlying assertion builder associated with this exception assertion.
+    /// Initializes a new instance of the <see cref="AssertionBuilder{T}"/> class.
     /// </summary>
-    public IAssertionBuilder<Action> Builder { get { return _builder; } }
+    /// <param name="subject">The subject to be asserted.</param>
+    public ExceptionAssertionBuilder(Action action) : this(action, string.Empty, new AssertionBuilder<Action>(action)) { }
+
+    public IAssertionBuilder<Action> Builder => _builder;
 
     /// <summary>
     /// Asserts that the specified delegate throws an exception of type <typeparamref name="TException"/> or its derived types.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected to be thrown.</typeparam>
-    public IExceptionAssertionBuilder Throws<TException>() where TException : Exception
+    public IExceptionAssertionBuilder Throws<TException>(string message = "") where TException : Exception
     {
         try
         {
@@ -67,17 +71,18 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
+            _thrownMessage = ex.ToString();
+            throw new AssertionFailureException($"{_message}{message}");
         }
 
-        throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"{_message}{message}");
     }
 
     /// <summary>
     /// Asserts that the specified delegate throws exception <see cref="TException"/>.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected to be thrown.</typeparam>
-    public IExceptionAssertionBuilder ThrowsExactly<TException>() where TException : Exception
+    public IExceptionAssertionBuilder ThrowsExactly<TException>(string message = "") where TException : Exception
     {
         try
         {
@@ -85,15 +90,13 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
+            _thrownMessage = ex.Message;
             var type = ex.GetType();
 
             if (type == typeof(TException))
             {
-                _thrownMessage = ex.Message;
                 return this;
             }
-
-            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
         }
 
         throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
@@ -103,7 +106,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
     /// Asserts that the specified delegate throws an exception that inherits from <see cref="TException"/>.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected to be thrown.</typeparam>
-    public IExceptionAssertionBuilder ThrowsDerived<TException>() where TException : Exception
+    public IExceptionAssertionBuilder ThrowsDerived<TException>(string message = "") where TException : Exception
     {
         try
         {
@@ -111,25 +114,23 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
+            _thrownMessage = ex.Message;
             var type = ex.GetType();
 
             if (type != typeof(TException) && type.IsSubclassOf(typeof(TException)))
             {
-                _thrownMessage = ex.Message;
                 return this;
             }
-
-            throw new AssertionFailureException($"Expected an exception inherited from `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
         }
 
-        throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"{_message}{message}");
     }
 
     /// <summary>
     /// Asserts that the specified delegate does throw any exception. 
     /// </summary>
     /// <param name="value">The operation to be executed.</param>
-    public IExceptionAssertionBuilder ThrowsAny()
+    public IExceptionAssertionBuilder ThrowsAny(string message = "")
     {
         try
         {
@@ -141,24 +142,26 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
             return this;
         }
 
-        throw new AssertionFailureException($"Expected an exception to be thrown, but no exception was thrown.");
+        throw new AssertionFailureException($"{_message}{message}");
     }
 
     /// <summary>
     /// Asserts that the specified delegate neither throws exception <see cref="TException"/> nor its derived types.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected to be thrown.</typeparam>
-    public IExceptionAssertionBuilder DoesNotThrow<TException>() where TException : Exception
+    public IExceptionAssertionBuilder DoesNotThrow<TException>(string message = "") where TException : Exception
     {
         try
         {
             _action();
+
             _thrownMessage = string.Empty;
             return this;
         }
         catch (TException ex)
         {
-            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {ex.GetType().Name} was thrown instead.");
+            _thrownMessage = ex.Message;
+            throw new AssertionFailureException($"{_message}{message}");
         }
         catch (Exception ex)
         {
@@ -171,7 +174,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
     /// Asserts that the specified delegate does not throw exception <see cref="TException"/>.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected not to be thrown.</typeparam>
-    public IExceptionAssertionBuilder DoesNotThrowExactly<TException>() where TException : Exception
+    public IExceptionAssertionBuilder DoesNotThrowExactly<TException>(string message = "") where TException : Exception
     {
         try
         {
@@ -179,15 +182,15 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
+            _thrownMessage = ex.Message;
             var type = ex.GetType();
 
             if (type != typeof(TException))
             {
-                _thrownMessage = ex.Message;
                 return this;
             }
 
-            throw new AssertionFailureException($"Expected `{GetTypeName<TException>()}` to be thrown, but {type.Name} was thrown instead.");
+            throw new AssertionFailureException($"{_message}{message}");
         }
 
         _thrownMessage = string.Empty;
@@ -198,7 +201,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
     /// Asserts that the specified delegate does not throw an exception that inherits from <see cref="TException"/>.
     /// </summary>
     /// <typeparam name="TException">The type of exception expected to be thrown.</typeparam>
-    public IExceptionAssertionBuilder DoesNotThrowDerived<TException>() where TException : Exception
+    public IExceptionAssertionBuilder DoesNotThrowDerived<TException>(string message = "") where TException : Exception
     {
         try
         {
@@ -206,15 +209,15 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
+            _thrownMessage = ex.Message;
             var type = ex.GetType();
 
             if (type == typeof(TException) || !type.IsSubclassOf(typeof(TException)))
             {
-                _thrownMessage = ex.Message;
                 return this;
             }
 
-            throw new AssertionFailureException($"Expected an exception not inherited from `{GetTypeName<TException>()}` to be thrown, but {type.Name} was actually thrown.");
+            throw new AssertionFailureException($"{_message}{message}");
         }
 
         _thrownMessage = string.Empty;
@@ -225,7 +228,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
     /// Asserts that the specified delegate does not throw any exception. 
     /// </summary>
     /// <param name="value">The operation to be executed.</param>
-    public IExceptionAssertionBuilder DoesNotThrowAny()
+    public IExceptionAssertionBuilder DoesNotThrowAny(string message = "")
     {
         try
         {
@@ -233,7 +236,8 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new AssertionFailureException($"Expected no exceptions to be thrown, but `{ex.GetType().Name}` was actually thrown.");
+            _thrownMessage = ex.Message;
+            throw new AssertionFailureException($"{_message}{message}");
         }
 
         _thrownMessage = string.Empty;
@@ -244,7 +248,7 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
     /// Asserts that a delegate does not throw an exception.
     /// </summary>
     /// 
-    public IExceptionAssertionBuilder DoesNotThrow()
+    public IExceptionAssertionBuilder DoesNotThrow(string message = "")
     {
         try
         {
@@ -252,28 +256,26 @@ public class ExceptionAssertionBuilder(Action action, IAssertionBuilder<Action>?
         }
         catch (Exception ex)
         {
-            throw new AssertionFailureException($"Throws {ex.GetType().Name} when expecting no exception to be thrown.", ex);
+            _thrownMessage = ex.Message;
+            throw new AssertionFailureException($"{_message}{message}");
         }
 
         _thrownMessage = string.Empty;
         return this;
     }
 
-    public IExceptionAssertionBuilder WithMessage(string expectedMessage)
+    public IExceptionAssertionBuilder WithMessage(string expectedMessage, string message = "")
     {
-        if (_thrownMessage is null) throw new InvalidOperationException($"Expected exception message `{expectedMessage}`, but no exception was thrown.");
-
-        if (_thrownMessage != expectedMessage) throw new AssertionFailureException();
+        Assert.Fail(_thrownMessage is null);
+        Assert.Pass(_thrownMessage == expectedMessage || EqualityComparer<string>.Default.Equals(_thrownMessage, message));
 
         return this;
     }
 
-    public IExceptionAssertionBuilder WithMessageContaining(string expectedMessage)
+    public IExceptionAssertionBuilder WithMessageContaining(string expectedMessage, string message = "")
     {
-        if (_thrownMessage is null) throw new InvalidOperationException($"Expected exception message `{expectedMessage}`, but no exception was thrown.");
-
-        if (!_thrownMessage.Contains(expectedMessage)) throw new AssertionFailureException();
-
+        Assert.Fail(_thrownMessage is null);
+        Assert.Pass(_thrownMessage!.Contains(expectedMessage));
         return this;
     }
 

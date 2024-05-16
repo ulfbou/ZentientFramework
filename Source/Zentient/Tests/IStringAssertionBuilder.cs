@@ -1,4 +1,4 @@
-//
+﻿//
 // Class: Assert
 //
 // Description:
@@ -33,73 +33,14 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
-namespace Zentient.Tests;
-
-public sealed class Assert
+namespace Zentient.Tests
 {
-    public static Assert Instance = new Assert();
-
-    private Assert() { }
-
-    /// <summary>
-    /// Validates that the test is true.
-    /// </summary>
-    /// <param name="test">The test.</param>
-    public static void Pass(bool test, string message = "")
+    public interface IStringAssertionBuilder : IAssertionBuilder<string>
     {
-        if (!test) throw new AssertionFailureException(message);
-    }
-
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(bool test, string message = "")
-    {
-        if (test) throw new AssertionFailureException(message);
-    }
-
-    /// <summary>
-    /// Validates that the provided function executes successfully without throwing any exceptions.
-    /// </summary>
-    /// <param name="action">The function to be validated.</param>
-    public static void Pass(Func<object> action, string message = "")
-    {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(Action action, string message = "")
-    {
-        // Act & Assert
-        try
-        {
-            action();
-        }
-        catch
-        {
-            // Exception was thrown, considered as expected behavior
-            return;
-        }
-
-        throw new AssertionFailureException(message);
-    }
-
-    public static void Fail(string message = "")
-    {
-        throw new AssertionFailureException(message);
+        IStringAssertionBuilder AreEqualsIgnoringCase(string expected);
+        IStringAssertionBuilder AreNotEqualIgnoringCase(string expected);
+        IStringAssertionBuilder Contains(string substring);
+        IStringAssertionBuilder EndsWith(string suffix);
+        IStringAssertionBuilder StartsWith(string prefix);
     }
 }

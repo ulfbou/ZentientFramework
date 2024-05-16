@@ -1,5 +1,5 @@
-//
-// Class: Assert
+﻿//
+// Class: StringExtensions
 //
 // Description:
 // The Assert class provides a fluent API with a set of static methods for making assertions in unit tests. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
@@ -33,73 +33,68 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
 namespace Zentient.Tests;
 
-public sealed class Assert
+public static class StringExtensions
 {
-    public static Assert Instance = new Assert();
-
-    private Assert() { }
-
-    /// <summary>
-    /// Validates that the test is true.
-    /// </summary>
-    /// <param name="test">The test.</param>
-    public static void Pass(bool test, string message = "")
+    public static bool EqualsIgnoreCase(this string strA, string strB, StringComparer comparer)
     {
-        if (!test) throw new AssertionFailureException(message);
+        return comparer.Equals(strA, strB);
     }
 
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(bool test, string message = "")
+    public static bool EqualsIgnoreCase(this string strA, string strB, IEqualityComparer<string> comparer)
     {
-        if (test) throw new AssertionFailureException(message);
+        return comparer.Equals(strA, strB);
     }
 
-    /// <summary>
-    /// Validates that the provided function executes successfully without throwing any exceptions.
-    /// </summary>
-    /// <param name="action">The function to be validated.</param>
-    public static void Pass(Func<object> action, string message = "")
+    public static bool StartsWith(this string str, string prefix, IComparer<string> comparer)
     {
-        // Act & Assert
-        try
+        ArgumentNullException.ThrowIfNull(str, nameof(comparer));
+
+        if (string.IsNullOrEmpty(str) || string.IsNullOrEmpty(prefix))
         {
-            action();
+            return false;
         }
-        catch (Exception ex)
+
+        if (prefix.Length > str.Length)
         {
-            throw new Exception($"Failed: {ex.Message}");
+            return false;
         }
+
+        string substring = str.Substring(0, prefix.Length);
+        return comparer.Compare(substring, prefix) == 0;
     }
 
-    /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(Action action, string message = "")
+    public static bool EndsWith(this string str, string suffix, IComparer<string> comparer)
     {
-        // Act & Assert
-        try
+        ArgumentNullException.ThrowIfNull(str, nameof(comparer));
+
+        if (string.IsNullOrEmpty(str) || string.IsNullOrEmpty(suffix))
         {
-            action();
-        }
-        catch
-        {
-            // Exception was thrown, considered as expected behavior
-            return;
+            return false;
         }
 
-        throw new AssertionFailureException(message);
+        if (suffix.Length > str.Length)
+        {
+            return false;
+        }
+
+        string substring = str.Substring(str.Length - suffix.Length);
+        return comparer.Compare(substring, suffix) == 0;
     }
 
-    public static void Fail(string message = "")
+    public static bool Contains(this string str, string substring, IComparer<string> comparer)
     {
-        throw new AssertionFailureException(message);
+        ArgumentNullException.ThrowIfNull(str, nameof(str));
+        ArgumentNullException.ThrowIfNull(substring, nameof(substring));
+        ArgumentNullException.ThrowIfNull(comparer, nameof(comparer));
+
+        if (string.IsNullOrEmpty(str) || string.IsNullOrEmpty(substring))
+        {
+            return false;
+        }
+
+        return Enumerable.Range(0, str.Length - substring.Length + 1)
+            .Any(i => comparer.Compare(str.Substring(i, substring.Length), substring) == 0);
     }
 }
