@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Docs\Backup\**" />
+    <EmbeddedResource Remove="Docs\Backup\**" />
+    <None Remove="Docs\Backup\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zentient\Tests\Zentient.Tests.csproj" />
+    <ProjectReference Include="..\Zentient\Vectors\Zentient.Vectors.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Zentient.Tests">
+      <HintPath>..\Zentient\Tests\bin\Debug\net8.0\Zentient.Tests.dll</HintPath>
+    </Reference>
+    <Reference Include="Zentient.Vectors">
+      <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Zentient.Vectors">
+      <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+	<!--<ItemGroup>
+		<Using Remove="microsoft.visualstudio.testtools.unittesting"/>
+	</ItemGroup>-->
+
+</Project>
