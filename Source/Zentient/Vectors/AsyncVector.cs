@@ -57,7 +57,7 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     /// <param name="source">The source representing the vector as <see cref="{T}[]">.</param>
     public AsyncVector(T[] vector)
     {
-        ArgumentNullException.ThrowIfNull(nameof(vector));
+        ArgumentNullException.ThrowIfNull(vector, nameof(vector));
 
         _vector = [.. vector];
     }
@@ -68,10 +68,10 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     /// <param name="source">The source representing the vector as <see cref="ImmutableArray{T}">.</param>
     public AsyncVector(ImmutableArray<T> vector)
     {
-        ArgumentNullException.ThrowIfNull(nameof(vector));
-
+        ArgumentNullException.ThrowIfNull(vector, nameof(vector));
         _vector = vector;
     }
+
     /// <summary>
     /// Asynchronously adds another sparse vector with this sparse vector.
     /// </summary>
@@ -84,8 +84,21 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     {
         ArgumentNullException.ThrowIfNull(nameof(other));
 
-        var producer1 = ProduceValuesAsync(_vector, cancellationToken);
-        var producer2 = ProduceValuesAsync(other._vector, cancellationToken);
+        if (Vector.Length == 0)
+        {
+            return new AsyncVector<T>(other.Vector);
+        }
+        else if (other.Vector.Length == 0)
+        {
+            return new AsyncVector<T>(Vector);
+        }
+        else if (Vector.Length != other.Vector.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(other));
+        }
+
+        var producer1 = ProduceValuesAsync(Vector, cancellationToken);
+        var producer2 = ProduceValuesAsync(other.Vector, cancellationToken);
 
         return await AdditionProducer(producer1, producer2, cancellationToken).ConfigureAwait(false);
     }
@@ -95,16 +108,39 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     /// </summary>
     /// <param name="other">The other vector.</param>
     /// <returns>The dot product of the two vectors.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the dimension of other does not match this vector.</exception>
     public async Task<T> DotProductAsync(
-    AsyncVector<T> other,
-    CancellationToken cancellationToken = default)
+        AsyncVector<T> other,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(nameof(other));
+
+        if (Vector.Length > 0 && other.Vector.Length > 0 && Vector.Length != other.Vector.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(other));
+        }
 
         var producer1 = ProduceValuesAsync(_vector, cancellationToken);
         var producer2 = ProduceValuesAsync(other._vector, cancellationToken);
 
         return await DotProductProducer(producer1, producer2, cancellationToken).ConfigureAwait(false);
+    }
+
+    public override bool Equals(object? other)
+    {
+        if (other is null) return false;
+        if (!(other is AsyncVector<T> otherVector)) return false;
+
+        var vector1 = Vector;
+        var vector2 = otherVector.Vector;
+
+        if (vector1.Length != vector2.Length) return false;
+
+        var producer1 = ProduceValuesAsync(vector1);
+        var producer2 = ProduceValuesAsync(vector2);
+
+        // Run the asynchronous method and wait for the result synchronously
+        return Task.Run(async () => await EqualsAsync(producer1, producer2)).GetAwaiter().GetResult();
     }
 
     // Async method will run asynchronously since it returns IAsyncEnumerable<(int, T)>
@@ -197,5 +233,24 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
         }
 
         return result;
+    }
+
+    private static async Task<bool> EqualsAsync(IAsyncEnumerable<T> producer1, IAsyncEnumerable<T> producer2)
+    {
+        await using var enumerator1 = producer1.GetAsyncEnumerator();
+        await using var enumerator2 = producer2.GetAsyncEnumerator();
+
+        var more1 = await enumerator1.MoveNextAsync();
+        var more2 = await enumerator2.MoveNextAsync();
+
+        while (more1 && more2)
+        {
+            if (!enumerator1.Current.Equals(enumerator2.Current)) return false;
+
+            more1 = await enumerator1.MoveNextAsync();
+            more2 = await enumerator2.MoveNextAsync();
+        }
+
+        return !(more1 || more2);
     }
 }
