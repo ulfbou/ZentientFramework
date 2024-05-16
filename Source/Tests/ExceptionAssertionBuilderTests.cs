@@ -40,6 +40,8 @@ namespace Tests;
 [TestClass]
 public class ExceptionAssertionBuilderTests
 {
+    public Assert Assert { get => Assert.Instance; }
+
     public static readonly string BaseMessage = "Base exception";
     public static readonly string DerivedMessage = "Derived exception";
     public static readonly string OtherDerivedMessage = "Other Derived exception";
@@ -55,15 +57,15 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsValidatedBy_ThrowsBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
-        .That(ThrowsBase)
-        .Throws<Exceptions>());
+        Validate.Pass(() => Assert
+            .That(ThrowsBase)
+            .Throws<Exceptions>());
     }
 
     [TestMethod]
     public void AssertThatThrowsDerived_IsValidatedBy_ThrowsBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsDerived)
         .Throws<Exceptions>());
     }
@@ -71,7 +73,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsOtherDerived_IsValidatedBy_ThrowsBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsOtherDerived)
         .Throws<Exceptions>());
     }
@@ -79,7 +81,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsNotDerived_IsInvalidatedBy_ThrowsBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsNotDerived)
         .Throws<Exceptions>());
     }
@@ -87,7 +89,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatDoesNotThrowAny_IsInvalidatedBy_ThrowsBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(DoesNotThrowAny)
         .Throws<Exceptions>());
     }
@@ -96,7 +98,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsValidatedBy_ThrowsExactlyBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsBase)
         .ThrowsExactly<Exceptions>());
     }
@@ -104,7 +106,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsDerived_IsInvalidatedBy_ThrowsExactlyBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsDerived)
         .ThrowsExactly<Exceptions>());
     }
@@ -112,7 +114,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsInvalidatedBy_ThrowsExactlyDerivedException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .ThrowsExactly<DerivedException>());
     }
@@ -120,7 +122,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsNotDerived_IsInvalidatedBy_ThrowsExactlyBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsNotDerived)
         .ThrowsExactly<Exceptions>());
     }
@@ -129,7 +131,7 @@ public class ExceptionAssertionBuilderTests
     public void AssertThatThrowsBase_IsInvalidatedBy_ThrowsDerivedBaseException()
     {
         // Validates ThrowsDerived<T>
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .ThrowsDerived<Exceptions>());
     }
@@ -137,7 +139,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsDerived_IsValidatedBy_ThrowsDerivedBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsDerived)
         .ThrowsDerived<Exceptions>());
     }
@@ -145,7 +147,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsOtherDerived_IsValidatedBy_ThrowsDerivedBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsOtherDerived)
         .ThrowsDerived<Exceptions>());
     }
@@ -153,7 +155,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsInvalidatedBy_ThrowsDerivedDerivedException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .ThrowsDerived<DerivedException>());
     }
@@ -161,7 +163,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsNotDerived_IsInvalidatedBy_ThrowsDerivedBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsNotDerived)
         .ThrowsDerived<Exceptions>());
     }
@@ -170,15 +172,15 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsValidatedBy_ThrowsAny()
     {
-        Validate.Success(() => Zentient.Tests.Assert
-        .That(ThrowsBase)
-        .ThrowsAny());
+        Validate.Pass(() => Assert
+            .That(ThrowsBase)
+            .ThrowsAny());
     }
 
     [TestMethod]
     public void AssertThatDoesNotThrowAny_IsInvalidatedBy_ThrowsAny()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(DoesNotThrowAny)
         .ThrowsAny());
     }
@@ -187,7 +189,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsInvalidatedBy_DoesNotThrowBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .DoesNotThrow<Exceptions>());
     }
@@ -195,7 +197,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsDerived_IsInvalidatedBy_DoesNotThrowBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsDerived)
         .DoesNotThrow<Exceptions>());
     }
@@ -203,7 +205,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsOtherDerived_IsInvalidatedBy_DoesNotThrowBaseException()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsOtherDerived)
         .DoesNotThrow<Exceptions>());
     }
@@ -211,7 +213,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsNotDerived_IsValidatedBy_DoesNotThrowBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsNotDerived)
         .DoesNotThrow<Exceptions>());
     }
@@ -219,7 +221,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatDoesNotThrowAny_IsValidatedBy_DoesNotThrowBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(DoesNotThrowAny)
         .DoesNotThrow<Exceptions>());
     }
@@ -228,7 +230,7 @@ public class ExceptionAssertionBuilderTests
     public void AssertThatThrowsBase_IsInvalidatedBy_DoesNotThrowExactlyBaseException()
     {
         // Validate DoesNotThrowExactly<T>
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .DoesNotThrowExactly<Exceptions>());
     }
@@ -236,7 +238,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsDerived_IsValidatedBy_DoesNotThrowExactlyBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsDerived)
         .DoesNotThrowExactly<Exceptions>());
     }
@@ -244,7 +246,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsValidatedBy_DoesNotThrowExactlyDerivedException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsBase)
         .DoesNotThrowExactly<DerivedException>());
     }
@@ -252,7 +254,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsNotDerived_IsValidatedBy_DoesNotThrowExactlyBaseException()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsNotDerived)
         .DoesNotThrowExactly<Exceptions>());
     }
@@ -261,7 +263,7 @@ public class ExceptionAssertionBuilderTests
     public void AssertThatThrowsBase_IsInvalidatedBy_DoesNotThrow()
     {
         // ThrowsAny
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .DoesNotThrow());
     }
@@ -269,7 +271,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsInvalidatedBy_DoesNotThrowAny()
     {
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
         .That(ThrowsBase)
         .DoesNotThrowAny());
     }
@@ -277,7 +279,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatDoesNotThrowAny_IsValidatedBy_DoesNotThrow()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(DoesNotThrowAny)
         .DoesNotThrow());
     }
@@ -285,7 +287,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatDoesNotThrowAny_IsValidatedBy_DoesNotThrowAny()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(DoesNotThrowAny)
         .DoesNotThrowAny());
     }
@@ -294,7 +296,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsBase_IsValidatedBy_ThrowsBaseException_WithMessageBaseMessage()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsBase)
         .Throws<Exceptions>()
         .WithMessage(BaseMessage));
@@ -303,7 +305,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsDerived_IsValidatedBy_ThrowsBaseException_WithMessageContaining_Substring()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsDerived)
         .Throws<Exceptions>()
         .WithMessageContaining(DerivedMessage.Substring(0, 1)));
@@ -312,7 +314,7 @@ public class ExceptionAssertionBuilderTests
     [TestMethod]
     public void AssertThatThrowsOtherDerived_IsValidatedBy_ThrowsBaseException_WithMessageOtherDerivedMessage()
     {
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
         .That(ThrowsOtherDerived)
         .Throws<Exceptions>()
         .WithMessage(OtherDerivedMessage));

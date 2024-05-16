@@ -5,17 +5,18 @@ namespace Tests;
 [TestClass]
 public class AssertionBuilderTests
 {
+    public Assert Assert { get => Assert.Instance; }
+
     [TestMethod]
     public void AssertThatString_IsEqualTo_ShouldPass_WhenObjectsAreEqual()
     {
         // Arrange
-        var subject = new String("Same");
-        var expected = new String("Same");
+        string subject = "Same".ToString();
+        string expected = new String("Same");
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
-            .That<string>(subject)
-            .IsEqualTo(expected));
+        Validate.Pass(() => Assert
+            .That<string>(subject).IsEqualTo(expected));
     }
 
     [TestMethod]
@@ -26,7 +27,7 @@ public class AssertionBuilderTests
         var expected = new String("Different");
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That<string>(subject)
             .IsEqualTo(expected));
     }
@@ -39,7 +40,7 @@ public class AssertionBuilderTests
         var different = new MyClass();
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<MyClass>(subject)
             .IsNotEqualTo(different));
     }
@@ -52,7 +53,7 @@ public class AssertionBuilderTests
         var same = subject;
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That<MyClass>(subject)
             .IsNotEqualTo(same));
     }
@@ -65,7 +66,7 @@ public class AssertionBuilderTests
         var expected = subject;
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<MyClass>(subject)
             .IsSameAs(expected));
     }
@@ -77,8 +78,9 @@ public class AssertionBuilderTests
         var subject = new MyClass();
         var expected = new MyClass();
 
+        Assert.That<ICollection<int>>(new List<int>());
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That<object>(subject)
             .IsSameAs(expected));
     }
@@ -90,7 +92,7 @@ public class AssertionBuilderTests
         MyClass subject = null!;
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<MyClass>(subject!)
             .IsNull());
     }
@@ -102,7 +104,7 @@ public class AssertionBuilderTests
         var subject = new MyClass();
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That<MyClass>(subject)
             .IsNull());
     }
@@ -114,7 +116,7 @@ public class AssertionBuilderTests
         var subject = new MyClass();
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That<MyClass>(subject)
             .IsNotNull());
     }
@@ -126,7 +128,7 @@ public class AssertionBuilderTests
         MyClass subject = null!;
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That<MyClass>(subject!)
             .IsNotNull());
     }
@@ -139,8 +141,8 @@ public class AssertionBuilderTests
         var expected = new String("Same");
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
-            .That(subject)
+        Validate.Pass(() => Assert
+            .That<string>(subject)
             .IsEqualTo(expected));
     }
 
@@ -152,8 +154,8 @@ public class AssertionBuilderTests
         var expected = new String("Different");
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
-            .That(subject)
+        Validate.Fail(() => Assert
+            .That<string>(subject)
             .IsEqualTo(expected));
     }
 
@@ -165,7 +167,7 @@ public class AssertionBuilderTests
         var different = new MyClass();
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(subject)
             .IsNotEqualTo(different));
     }
@@ -178,7 +180,7 @@ public class AssertionBuilderTests
         var same = subject;
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That(subject)
             .IsNotEqualTo(same));
     }
@@ -191,7 +193,7 @@ public class AssertionBuilderTests
         var expected = subject;
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(subject)
             .IsSameAs(expected));
     }
@@ -204,7 +206,7 @@ public class AssertionBuilderTests
         var expected = new MyClass();
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That(subject)
             .IsSameAs(expected));
     }
@@ -216,7 +218,7 @@ public class AssertionBuilderTests
         MyClass subject = null!;
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(subject!)
             .IsNull());
     }
@@ -228,7 +230,7 @@ public class AssertionBuilderTests
         var subject = new MyClass();
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That(subject)
             .IsNull());
     }
@@ -240,7 +242,7 @@ public class AssertionBuilderTests
         var subject = new MyClass();
 
         // Act & Assert
-        Validate.Success(() => Zentient.Tests.Assert
+        Validate.Pass(() => Assert
             .That(subject)
             .IsNotNull());
     }
@@ -252,7 +254,7 @@ public class AssertionBuilderTests
         MyClass subject = null!;
 
         // Act & Assert
-        Validate.Fail(() => Zentient.Tests.Assert
+        Validate.Fail(() => Assert
             .That(subject!)
             .IsNotNull());
     }
