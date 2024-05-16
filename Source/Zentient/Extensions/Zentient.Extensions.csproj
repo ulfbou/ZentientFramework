@@ -6,4 +6,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tests\Tests.csproj" />
+    <ProjectReference Include="..\Tests\Zentient.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Zentient.Tests">
+      <HintPath>..\Tests\bin\Debug\net8.0\Zentient.Tests.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
