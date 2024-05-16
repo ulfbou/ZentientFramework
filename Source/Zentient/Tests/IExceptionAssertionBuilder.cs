@@ -39,15 +39,15 @@ public interface IExceptionAssertionBuilder
 {
     IAssertionBuilder<Action> Builder { get; }
 
-    IExceptionAssertionBuilder DoesNotThrow(string message = "");
-    IExceptionAssertionBuilder DoesNotThrow<TException>(string message = "") where TException : Exception;
-    IExceptionAssertionBuilder DoesNotThrowAny(string message = "");
-    IExceptionAssertionBuilder DoesNotThrowDerived<TException>(string message = "") where TException : Exception;
-    IExceptionAssertionBuilder DoesNotThrowExactly<TException>(string message = "") where TException : Exception;
-    IExceptionAssertionBuilder Throws<TException>(string message = "") where TException : Exception;
-    IExceptionAssertionBuilder ThrowsAny(string message = "");
-    IExceptionAssertionBuilder ThrowsDerived<TException>(string message = "") where TException : Exception;
-    IExceptionAssertionBuilder ThrowsExactly<TException>(string message = "") where TException : Exception;
-    IExceptionAssertionBuilder WithMessage(string expectedMessage, string message = "");
-    IExceptionAssertionBuilder WithMessageContaining(string expectedMessage, string message = "");
+    IExceptionAssertionBuilder DoesNotThrow();
+    IExceptionAssertionBuilder DoesNotThrow<TException>() where TException : Exception;
+    IExceptionAssertionBuilder DoesNotThrowAny();
+    IExceptionAssertionBuilder DoesNotThrowDerived<TException>() where TException : Exception;
+    IExceptionAssertionBuilder DoesNotThrowExactly<TException>() where TException : Exception;
+    IExceptionAssertionBuilder Throws<TException>() where TException : Exception;
+    IExceptionAssertionBuilder ThrowsAny();
+    IExceptionAssertionBuilder ThrowsDerived<TException>() where TException : Exception;
+    IExceptionAssertionBuilder ThrowsExactly<TException>() where TException : Exception;
+    IExceptionAssertionBuilder WithMessage(string expectedMessage);
+    IExceptionAssertionBuilder WithMessageContaining(string expectedMessage);
 }

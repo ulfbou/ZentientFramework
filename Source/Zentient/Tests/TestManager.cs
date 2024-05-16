@@ -34,6 +34,7 @@
 //
 
 using System.Reflection;
+using Zentient.Tests.Deprecated;
 
 namespace Zentient.Tests;
 
@@ -43,7 +44,6 @@ namespace Zentient.Tests;
 public class TestManager
 {
     private Dictionary<Type, TestInfo> _testInfo = new Dictionary<Type, TestInfo>();
-    private bool _supress;
 
     /// <summary>
     /// Runs all tests asynchronously.
@@ -51,17 +51,15 @@ public class TestManager
     /// <remarks>
     /// This method loads all tests, invokes setup methods if available, and executes each test method.
     /// </remarks>
-    public async Task Run(bool supress = false)
+    public async Task Run()
     {
-        _supress = supress;
-
         if (_testInfo is null || _testInfo.Count() == 0)
         {
             await LoadTests();
         }
 
         // Execute tests concurrently
-        if (_testInfo != null)
+        if (_testInfo != null) 
         {
             await Task.WhenAll(_testInfo.Select(kvp => RunTestsAsync(kvp.Key, kvp.Value)));
         }
@@ -69,7 +67,6 @@ public class TestManager
 
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
-        await Console.Out.WriteLineAsync(testType.FullName);
         try
         {
             testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
@@ -176,9 +173,9 @@ public class TestManager
         }
 
         await Console.Out.WriteLineAsync($"Adding {type.FullName}");
-
+        
         TestInfo value;
-
+        
         if (!_testInfo.TryGetValue(type, out value))
         {
             _testInfo.Add(type, new TestInfo(instance!, setup, tests));
@@ -227,10 +224,7 @@ public class TestManager
         }
         catch (Exception ex)
         {
-            //if (ex.InnerException?.GetType() != typeof(T))
-            //{
             await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
-            //}
             throw;
         }
     }
@@ -241,16 +235,13 @@ public class TestManager
     /// <param name="type">The type of the test class containing the method.</param>
     /// <param name="instance">An instance of the test class.</param>
     /// <param name="method">The MethodInfo representing the test method.</param>
-    internal void Test(Type type, object instance, MethodInfo method)
+    internal static void Test(Type type, object instance, MethodInfo method)
     {
         string name = $"{type.FullName}.{method.Name}";
         try
         {
             method.Invoke(instance, new object[] { });
-            if (!_supress)
-            {
-                Console.Out.WriteLine($"Successfully tested {name}.");
-            }
+            Console.Out.WriteLine($"Successfully tested {name}.");
         }
         catch (AssertionFailureException ex)
         {
