@@ -33,13 +33,6 @@
 // SOFTWARE.
 //
 
-using Newtonsoft.Json.Linq;
-using System.Diagnostics.Metrics;
-using System.Globalization;
-using System.Linq;
-using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 namespace Zentient.Tests;
 
 public partial class CollectionAssertionBuilder<T> :
@@ -211,8 +204,8 @@ public partial class CollectionAssertionBuilder<T> :
     {
         ArgumentNullException.ThrowIfNull(otherCollection);
 
-        if (_actual.Any(item => otherCollection.Contains(item, _equality))) return this;
-        throw new AssertionFailureException($"{_message}{message}");
+        Assert.Pass(_actual.Any(item => otherCollection.Contains(item, _equality)));
+        return this;
     }
 
     /// <summary>
@@ -316,6 +309,7 @@ public partial class CollectionAssertionBuilder<T> :
 
         return this;
     }
+
     public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder5(ICollection<T> otherCollection, string message = "")
     {
         ArgumentNullException.ThrowIfNull(otherCollection);
@@ -328,6 +322,7 @@ public partial class CollectionAssertionBuilder<T> :
 
         return this;
     }
+
     public ICollectionAssertionBuilder<T> AreEqualIgnoringOrder6(ICollection<T> otherCollection, string message = "")
     {
         ArgumentNullException.ThrowIfNull(otherCollection);
