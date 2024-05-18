@@ -87,8 +87,6 @@ public static class EnumerableExtensions
     /// <returns>An enumerable of enumerable sequences containing the batched elements.</returns>
     public static IEnumerable<IEnumerable<T>> Batch<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
     {
-        IGrouping<T, TKey> x;
-        // TODO: Implement the grouping logic using the provided keySelector
         var groups = source.GroupBy(keySelector);
 
         foreach(var item in groups)
