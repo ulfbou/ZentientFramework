@@ -405,3 +405,6 @@ newsource/
 *.txt
 /ConsoleTesting
 /newsource
+/Source/Tests/CharExtensionTests.cs
+/.gitignore
+/.gitignore
