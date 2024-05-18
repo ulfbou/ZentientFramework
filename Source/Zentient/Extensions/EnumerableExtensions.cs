@@ -40,10 +40,15 @@ public static class EnumerableExtensions
     /// <param name="source">The source sequence.</param>
     /// <param name="chunkSize">The size of each chunk.</param>
     /// <returns>An enumerable of enumerable sequences containing the chunked elements.</returns>
-    public static IEnumerable<IEnumerable<T>> Chunk<T>(this IEnumerable<T> source, int chunkSize) 
-        => source.Select((x, i) => new { Index = i, Value = x })
+    public static IEnumerable<IEnumerable<T>> Chunk<T>(this IEnumerable<T> source, int chunkSize)
+    {
+        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        ArgumentOutOfRangeException.ThrowIfLessThan<int>(chunkSize, 1, nameof(chunkSize));
+        return source
+            .Select((x, i) => new { Index = i, Value = x })
             .GroupBy(x => x.Index / chunkSize)
-            .Select(g => g.Select(x => x.Value));
+            .Select(g => g.Select(x => x.Value).ToArray()).ToArray();
+    }
 
     /// <summary>
     /// Returns distinct elements from a sequence based on a key selector.
@@ -53,8 +58,12 @@ public static class EnumerableExtensions
     /// <param name="source">The source sequence.</param>
     /// <param name="keySelector">A function to extract the key from each element.</param>
     /// <returns>An enumerable of distinct elements based on the key selector.</returns>
-    public static IEnumerable<T> DistinctBy<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector) =>
-        source.GroupBy(keySelector).Select(group => group.First());
+    public static IEnumerable<T> DistinctBy<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
+    {
+        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        ArgumentNullException.ThrowIfNull(keySelector, nameof(keySelector));
+        return source.GroupBy(keySelector).Select(group => group.First());
+    }
 
     /// <summary>
     /// Randomizes the order of elements in the sequence.
@@ -62,20 +71,29 @@ public static class EnumerableExtensions
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
     /// <param name="source">The source sequence.</param>
     /// <returns>An enumerable with elements in random order.</returns>
-    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source) =>
-        source.OrderBy(x => Guid.NewGuid());
+    public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
+    {
+        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        return source.OrderBy(x => Guid.NewGuid());
+    }
 
     /// <summary>
-    /// Batches the elements of the sequence into groups of a specified size.
+    /// Batches the elements of the sequence into groups of similar elements, based on a specified key selector function.
     /// </summary>
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+    /// <typeparam name="TKey">The type of the key used to group elements.</typeparam>
     /// <param name="source">The source sequence.</param>
-    /// <param name="batchSize">The size of each batch.</param>
+    /// <param name="keySelector">A function that extracts the key from an element.</param>
     /// <returns>An enumerable of enumerable sequences containing the batched elements.</returns>
-    public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> source, int batchSize) =>
-        source.Select((x, i) => new { Index = i, Value = x })
-              .GroupBy(x => x.Index / batchSize)
-              .Select(g => g.Select(x => x.Value));
+    public static IEnumerable<IEnumerable<T>> Batch<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
+    {
+        var groups = source.GroupBy(keySelector);
+
+        foreach(var item in groups)
+        {
+            yield return item;
+        }
+    }
 
     /// <summary>
     /// Performs an action for each element in the sequence.
