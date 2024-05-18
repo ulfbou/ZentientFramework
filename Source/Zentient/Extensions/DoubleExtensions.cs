@@ -60,7 +60,7 @@ public static class DoubleExtensions
     /// <param name="value">The double value to round.</param>
     /// <param name="decimalPlaces">The number of decimal places to round to.</param>
     /// <returns>The rounded double value.</returns>
-    public static double RoundToDecimalPlaces(this double value, int decimalPlaces) => Math.Round(value, decimalPlaces);
+    public static double Round(this double value, int decimalPlaces) => Math.Round(value, decimalPlaces);
 
     /// <summary>
     /// Converts the double from radians to degrees.

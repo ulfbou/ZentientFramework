@@ -30,6 +30,7 @@ using Zentient.Tests;
 
 namespace Tests;
 
+[TestClass]
 public class AssertionBuilderTests
 {
     public Assert Assert { get => Assert.Instance; }

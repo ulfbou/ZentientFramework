@@ -26,8 +26,6 @@
 // SOFTWARE.
 //
 
-using System;
-
 namespace Zentient.Extensions;
 
 /// <summary>

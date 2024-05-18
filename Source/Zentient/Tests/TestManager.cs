@@ -70,6 +70,7 @@ public class TestManager
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
         int count = 0;
+        int success = 0;
 
         try
         {
@@ -94,6 +95,7 @@ public class TestManager
                 {
                     Test(testType, testInfo.Instance, test);
                 }
+                success++;
             }
             catch (AssertionFailureException ex)
             {
@@ -105,7 +107,7 @@ public class TestManager
             }
         }
 
-        await Console.Out.WriteLineAsync($"Ran {count} tests.");
+        await Console.Out.WriteLineAsync($"Ran {success} successful tests out of {count} tests.");
     }
 
     /// <summary>
