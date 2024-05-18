@@ -15,13 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Extensions", "Sour
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleTesting", "ConsoleTesting\ConsoleTesting.csproj", "{2D90A471-E134-41B1-93A2-D0FA8794BE3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Attributes", "Source\Zentient\Attributes\Zentient.Attributes.csproj", "{6215753A-B858-4159-8B1C-1E9EC77D67CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Attributes", "Source\Zentient\Attributes\Zentient.Attributes.csproj", "{6215753A-B858-4159-8B1C-1E9EC77D67CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Configuration", "Source\Zentient\Configuration\Zentient.Configuration.csproj", "{3A182B9C-0A44-40A3-9B1F-7823A766A7DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Configuration", "Source\Zentient\Configuration\Zentient.Configuration.csproj", "{3A182B9C-0A44-40A3-9B1F-7823A766A7DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Extensions", "Source\Zentient\Extensions\Zentient.Extensions.csproj", "{4D50D880-C191-4B4B-8206-E6DC8B5783C9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Reflector", "Source\Zentient\Reflector\Zentient.Reflector.csproj", "{714875DE-C929-49B3-89B4-B5C789E58380}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Reflector", "Source\Zentient\Reflector\Zentient.Reflector.csproj", "{714875DE-C929-49B3-89B4-B5C789E58380}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +43,18 @@ Global
 		{2D90A471-E134-41B1-93A2-D0FA8794BE3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D90A471-E134-41B1-93A2-D0FA8794BE3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D90A471-E134-41B1-93A2-D0FA8794BE3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6215753A-B858-4159-8B1C-1E9EC77D67CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6215753A-B858-4159-8B1C-1E9EC77D67CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6215753A-B858-4159-8B1C-1E9EC77D67CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6215753A-B858-4159-8B1C-1E9EC77D67CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A182B9C-0A44-40A3-9B1F-7823A766A7DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A182B9C-0A44-40A3-9B1F-7823A766A7DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A182B9C-0A44-40A3-9B1F-7823A766A7DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A182B9C-0A44-40A3-9B1F-7823A766A7DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{714875DE-C929-49B3-89B4-B5C789E58380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{714875DE-C929-49B3-89B4-B5C789E58380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{714875DE-C929-49B3-89B4-B5C789E58380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{714875DE-C929-49B3-89B4-B5C789E58380}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
