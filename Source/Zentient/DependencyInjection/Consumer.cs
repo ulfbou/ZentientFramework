@@ -31,9 +31,20 @@ namespace Zentient.DependencyInjection;
 
 public partial class Consumer : BaseConsumer
 {
+    private readonly IServiceProvider _serviceProvider;
+
+    public Consumer(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
     public override void Consume([Inject] IService service)
     {
-        // Original method implementation
         service.Serve();
+    }
+
+    private IServiceProvider GetServiceProvider()
+    {
+        return _serviceProvider;
     }
 }

@@ -31,6 +31,6 @@ namespace Zentient.DependencyInjection;
 
 public interface IService
 {
-    void Serve();
-    Task ServeAsync(); // Assuming you want an async method as well.
+    public void Serve();
+    public Task ServeAsync(); // Assuming you want an async method as well.
 }

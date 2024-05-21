@@ -42,7 +42,6 @@ public class ServiceImplementation : IService
     public async Task ServeAsync()
     {
         // Implementation of ServeAsync
-        await Task.Delay(1); // Simulate asynchronous work
-        Console.WriteLine("Service is serving asynchronously.");
+        await Console.Out.WriteLineAsync("Service is serving asynchronously.");
     }
 }

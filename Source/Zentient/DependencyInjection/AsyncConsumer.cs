@@ -31,8 +31,20 @@ namespace Zentient.DependencyInjection;
 
 public partial class AsyncConsumer : AsyncBaseConsumer
 {
-    public override Task ConsumeAsync(IService service)
+    private readonly IServiceProvider _serviceProvider;
+
+    public AsyncConsumer(IServiceProvider serviceProvider)
     {
-        throw new NotImplementedException();
+        _serviceProvider = serviceProvider;
+    }
+
+    public override async Task ConsumeAsync([Inject] IService service)
+    {
+        await service.ServeAsync();
+    }
+
+    private async Task<IServiceProvider> GetServiceProviderAsync()
+    {
+        return await Task.Run(() => _serviceProvider);
     }
 }

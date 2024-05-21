@@ -1,5 +1,5 @@
 ﻿//
-// class: BaseConsumer.cs
+// class: BaseConsumer
 //
 // Description:
 // 
