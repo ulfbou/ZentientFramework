@@ -15,10 +15,10 @@ Zentient.Tests is a testing framework designed to facilitate unit testing in C# 
 
 To get started with Zentient.Tests, follow these steps:
 
-1. **Installation**: Zentient.Tests can be installed via NuGet Package Manager.
+1. **Installation**: Zentient.Tests can be cloned via GitHub.
 
    ```bash
-   Install-Package Zentient.Tests
+   git clone https://github.com/ulfbou/ZentientFramework
    ```
 
 2. **Writing Tests**: Write unit tests using the fluent API provided by Zentient.Tests.
