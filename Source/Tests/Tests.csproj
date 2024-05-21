@@ -17,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ConsoleTesting\ConsoleTesting.csproj" />
+    <ProjectReference Include="..\Zentient\DependencyInjection\Zentient.DependencyInjection.csproj" />
     <ProjectReference Include="..\Zentient\Tests\Zentient.Tests.csproj" />
     <ProjectReference Include="..\Zentient\Vectors\Zentient.Vectors.csproj" />
   </ItemGroup>
@@ -35,8 +37,5 @@
       <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
     </Reference>
   </ItemGroup>
-	<!--<ItemGroup>
-		<Using Remove="microsoft.visualstudio.testtools.unittesting"/>
-	</ItemGroup>-->
 
 </Project>
