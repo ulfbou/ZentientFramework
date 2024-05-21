@@ -51,6 +51,109 @@ public class TestManager
     /// <remarks>
     /// This method loads all tests, invokes setup methods if available, and executes each test method.
     /// </remarks>
+    private async Task RunTestsAsync(Type testType, TestInfo testInfo)
+    {
+        await Console.Out.WriteLineAsync($"Starting tests for: {testType.FullName}");
+        try
+        {
+            testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync($"Setup failure for {testType.FullName}: {ex.Message}");
+            return;
+        }
+
+        foreach (var test in testInfo.Tests)
+        {
+            try
+            {
+                if (IsAsyncMethod(test))
+                {
+                    await TestAsync(testType, testInfo.Instance, test);
+                }
+                else
+                {
+                    Test(testType, testInfo.Instance, test);
+                }
+            }
+            catch (AssertionFailureException ex)
+            {
+                await Console.Out.WriteLineAsync($"Test failed for {testType.FullName}: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync($"Unexpected error during tests for {testType.FullName}: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task LoadTests()
+    {
+        await Console.Out.WriteLineAsync("Initializing tests.");
+
+        // Retrieve test types asynchronously
+        await foreach (var type in GetTestTypes())
+        {
+            await Task.Run(() => LoadAndProcessTestType(type));
+        }
+    }
+
+private async Task LoadAndProcessTestType(Type type)
+    {
+        await Console.Out.WriteLineAsync($"Loading test class: {type.FullName}");
+
+        var methods = type.GetMethods();
+        MethodInfo? setup = null;
+        List<MethodInfo> tests = new List<MethodInfo>();
+
+        foreach (var method in methods)
+        {
+            if (method.GetCustomAttribute<TestSetupAttribute>() != null)
+            {
+                if (setup != null)
+                {
+                    throw new BadSetupException($"{type.FullName} has multiple methods annotated with TestSetupAttribute.");
+                }
+                setup = method;
+            }
+            else if (method.GetCustomAttribute<TestMethodAttribute>() != null)
+            {
+                tests.Add(method);
+            }
+        }
+
+        if (setup == null && tests.Count == 0)
+        {
+            await Console.Out.WriteLineAsync($"No setup or test methods found in {type.FullName}. Skipping.");
+            return;
+        }
+
+        object? instance;
+        try
+        {
+            instance = Activator.CreateInstance(type);
+            if (instance == null)
+            {
+                throw new BadSetupException($"Could not create an instance of {type.FullName}.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync($"Error creating instance of {type.FullName}: {ex.Message}");
+            return;
+        }
+
+        await Console.Out.WriteLineAsync($"Adding tests for {type.FullName}");
+
+        if (!_testInfo.TryGetValue(type, out _))
+        {
+            _testInfo.Add(type, new TestInfo(instance, setup, tests));
+        }
+    }
+#if false
+#endif
+
     public async Task Run(bool supress = false)
     {
         _supress = supress;
@@ -67,6 +170,7 @@ public class TestManager
         }
     }
 
+#if false
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
         try
@@ -102,7 +206,6 @@ public class TestManager
             }
         }
     }
-
     /// <summary>
     /// Loads all test classes and their methods.
     /// </summary>
@@ -187,6 +290,7 @@ public class TestManager
 
         }
     }
+#endif
 
     /// <summary>
     /// Retrieves all types marked with the TestClassAttribute from the executing assembly asynchronously.
@@ -269,3 +373,108 @@ public class TestManager
         return typeof(Task).IsAssignableFrom(method.ReturnType);
     }
 }
+
+
+#if false
+private async Task RunTestsAsync(Type testType, TestInfo testInfo)
+{
+    await Console.Out.WriteLineAsync($"Starting tests for: {testType.FullName}");
+    try
+    {
+        testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
+    }
+    catch (Exception ex)
+    {
+        await Console.Out.WriteLineAsync($"Setup failure for {testType.FullName}: {ex.Message}");
+        return;
+    }
+
+    foreach (var test in testInfo.Tests)
+    {
+        try
+        {
+            if (IsAsyncMethod(test))
+            {
+                await TestAsync(testType, testInfo.Instance, test);
+            }
+            else
+            {
+                Test(testType, testInfo.Instance, test);
+            }
+        }
+        catch (AssertionFailureException ex)
+        {
+            await Console.Out.WriteLineAsync($"Test failed for {testType.FullName}: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            await Console.Out.WriteLineAsync($"Unexpected error during tests for {testType.FullName}: {ex.Message}");
+        }
+    }
+}
+
+private async Task LoadTests()
+{
+    await Console.Out.WriteLineAsync("Initializing tests.");
+
+    // Retrieve test types asynchronously
+    await foreach (var type in GetTestTypes())
+    {
+        await Task.Run(() => LoadAndProcessTestType(type));
+    }
+}
+
+private async Task LoadAndProcessTestType(Type type)
+{
+    await Console.Out.WriteLineAsync($"Loading test class: {type.FullName}");
+
+    var methods = type.GetMethods();
+    MethodInfo? setup = null;
+    List<MethodInfo> tests = new List<MethodInfo>();
+
+    foreach (var method in methods)
+    {
+        if (method.GetCustomAttribute<TestSetupAttribute>() != null)
+        {
+            if (setup != null)
+            {
+                throw new BadSetupException($"{type.FullName} has multiple methods annotated with TestSetupAttribute.");
+            }
+            setup = method;
+        }
+        else if (method.GetCustomAttribute<TestMethodAttribute>() != null)
+        {
+            tests.Add(method);
+        }
+    }
+
+    if (setup == null && tests.Count == 0)
+    {
+        await Console.Out.WriteLineAsync($"No setup or test methods found in {type.FullName}. Skipping.");
+        return;
+    }
+
+    object? instance;
+    try
+    {
+        instance = Activator.CreateInstance(type);
+        if (instance == null)
+        {
+            throw new BadSetupException($"Could not create an instance of {type.FullName}.");
+        }
+    }
+    catch (Exception ex)
+    {
+        await Console.Out.WriteLineAsync($"Error creating instance of {type.FullName}: {ex.Message}");
+        return;
+    }
+
+    await Console.Out.WriteLineAsync($"Adding tests for {type.FullName}");
+
+    if (!_testInfo.TryGetValue(type, out _))
+    {
+        _testInfo.Add(type, new TestInfo(instance, setup, tests));
+    }
+}
+
+#endif
