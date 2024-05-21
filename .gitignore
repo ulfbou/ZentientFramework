@@ -396,11 +396,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-
-Docs/*.txt
+*.txt#
+*.txt
+/ConsoleTesting
+/newsource
+/*.txt
 .gitignore
 newsource/
-*.txt
-*.txt#
-/ConsoleTesting
-/.gitignore

@@ -37,5 +37,8 @@
       <HintPath>..\Zentient\Vectors\bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
     </Reference>
   </ItemGroup>
+	<!--<ItemGroup>
+		<Using Remove="microsoft.visualstudio.testtools.unittesting"/>
+	</ItemGroup>-->
 
 </Project>
