@@ -3,7 +3,9 @@ Project that I set up while learning about C# .NET core
 
 ## Documentation
 
-Our ZentientFramework Wiki is currently under construction. The landing page is available, and we are working hard to provide you with a comprehensive tutorial and additional documentation.
+Our ZentientFramework Wiki is currently under construction. The landing page is available, and we are working hard to provide you with a comprehensive tutorial and additional documentation. 
+
+For more information and updates on the ZentientFramework, please visit our [Wiki](https://github.com/ulfbou/ZentientFramework/wiki).
 
 ### Coming Soon
 
