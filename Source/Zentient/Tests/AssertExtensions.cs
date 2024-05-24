@@ -192,8 +192,16 @@ public static class AssertExtensions
     /// Creates an assertion builder for the specified string message.
     /// </summary>
     /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="subject">The subject to be asserted.</param>
+    /// <param name="comparer">The comparer to be used for the assertion.</param>
+    /// <param name="equality">The equality comparer to be used for the assertion.</param>
     /// <param name="message">The message to be asserted.</param>
     /// <returns>An instance of IStringAssertionBuilder.</returns>
-    public static IStringAssertionBuilder That(this Assert assert, string message)
-        => new StringAssertionBuilder(message);
+    public static IStringAssertionBuilder That(
+        this Assert assert,
+        string subject,
+        IComparer<string>? comparer = null,
+        IEqualityComparer<string>? equality = null,
+        string message = "")
+        => new StringAssertionBuilder(subject, comparer, equality, message);
 }

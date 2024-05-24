@@ -37,13 +37,17 @@ using System.Linq;
 
 namespace Zentient.Tests;
 
-public class StringAssertionBuilder 
+public class StringAssertionBuilder
     : AssertionBuilder<string>, IStringAssertionBuilder
 {
     private readonly bool _isComparerIgnoringCase;
     private readonly bool _isEqualityComparerIgnoringCase;
 
-    public StringAssertionBuilder(string actual, IComparer<string> comparer, IEqualityComparer<string> equality, string message) 
+    public StringAssertionBuilder(
+        string actual,
+        IComparer<string>? comparer,
+        IEqualityComparer<string>? equality,
+        string message)
         : base(actual, comparer, equality, message)
     {
         _isComparerIgnoringCase = DefaultComparers<string>.Comparer != comparer && IsComparerIgnoringCase();
@@ -51,19 +55,19 @@ public class StringAssertionBuilder
     }
 
     public StringAssertionBuilder(string actual, IComparer<string> comparer, string message = "") :
-        this(actual, comparer, DefaultComparers<string>.EqualityComparer, message) 
-    {}
+        this(actual, comparer, DefaultComparers<string>.EqualityComparer, message)
+    { }
 
     public StringAssertionBuilder(string actual, IEqualityComparer<string> equality, string message = "") :
         this(actual, DefaultComparers<string>.Comparer, equality, message)
-    {}
+    { }
 
     public StringAssertionBuilder(string actual, string message = "") :
-        this(actual, 
+        this(actual,
             DefaultComparers<string>.Comparer,
-            DefaultComparers<string>.EqualityComparer, 
+            DefaultComparers<string>.EqualityComparer,
             message)
-    {}
+    { }
 
     /// <summary>
     /// Asserts that two strings are equal ignoring case.
