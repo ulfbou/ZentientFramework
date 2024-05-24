@@ -45,46 +45,19 @@ public class TestManager
     private Dictionary<Type, TestInfo> _testInfo = new Dictionary<Type, TestInfo>();
     private bool _supress;
 
-    /// <summary>
-    /// Runs all tests asynchronously.
-    /// </summary>
-    /// <remarks>
-    /// This method loads all tests, invokes setup methods if available, and executes each test method.
-    /// </remarks>
-    private async Task RunTestsAsync(Type testType, TestInfo testInfo)
+    public async Task Run(bool supress = false)
     {
-        await Console.Out.WriteLineAsync($"Starting tests for: {testType.FullName}");
-        try
+        _supress = supress;
+
+        if (_testInfo is null || _testInfo.Count() == 0)
         {
-            testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
-        }
-        catch (Exception ex)
-        {
-            await Console.Out.WriteLineAsync($"Setup failure for {testType.FullName}: {ex.Message}");
-            return;
+            await LoadTests();
         }
 
-        foreach (var test in testInfo.Tests)
+        // Execute tests concurrently
+        if (_testInfo != null)
         {
-            try
-            {
-                if (IsAsyncMethod(test))
-                {
-                    await TestAsync(testType, testInfo.Instance, test);
-                }
-                else
-                {
-                    Test(testType, testInfo.Instance, test);
-                }
-            }
-            catch (AssertionFailureException ex)
-            {
-                await Console.Out.WriteLineAsync($"Test failed for {testType.FullName}: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync($"Unexpected error during tests for {testType.FullName}: {ex.Message}");
-            }
+            await Task.WhenAll(_testInfo.Select(kvp => RunTestsAsync(kvp.Key, kvp.Value)));
         }
     }
 
@@ -151,35 +124,23 @@ private async Task LoadAndProcessTestType(Type type)
             _testInfo.Add(type, new TestInfo(instance, setup, tests));
         }
     }
-#if false
-#endif
 
-    public async Task Run(bool supress = false)
-    {
-        _supress = supress;
-
-        if (_testInfo is null || _testInfo.Count() == 0)
-        {
-            await LoadTests();
-        }
-
-        // Execute tests concurrently
-        if (_testInfo != null)
-        {
-            await Task.WhenAll(_testInfo.Select(kvp => RunTestsAsync(kvp.Key, kvp.Value)));
-        }
-    }
-
-#if false
+    /// <summary>
+    /// Runs all tests asynchronously.
+    /// </summary>
+    /// <remarks>
+    /// This method loads all tests, invokes setup methods if available, and executes each test method.
+    /// </remarks>
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
+        await Console.Out.WriteLineAsync($"Starting tests for: {testType.FullName}");
         try
         {
             testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
         }
         catch (Exception ex)
         {
-            await Console.Out.WriteLineAsync($"Failure when setting up: {ex.Message}");
+            await Console.Out.WriteLineAsync($"Setup failure for {testType.FullName}: {ex.Message}");
             return;
         }
 
@@ -198,99 +159,14 @@ private async Task LoadAndProcessTestType(Type type)
             }
             catch (AssertionFailureException ex)
             {
-                await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
+                await Console.Out.WriteLineAsync($"Test failed for {testType.FullName}: {ex.Message}");
             }
             catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
+                await Console.Out.WriteLineAsync($"Unexpected error during tests for {testType.FullName}: {ex.Message}");
             }
         }
     }
-    /// <summary>
-    /// Loads all test classes and their methods.
-    /// </summary>
-    /// <exception cref="BadSetupException">Thrown when there are issues with the setup of test classes.</exception>
-    /// <remarks>
-    /// This method searches for test classes in the executing assembly and collects their setup methods and test methods.
-    /// </remarks>
-    private async Task LoadTests()
-    {
-        await Console.Out.WriteLineAsync("Initializing tests.");
-
-        // Retrieve test types asynchronously
-        IAsyncEnumerable<Type> types = GetTestTypes();
-
-        // Load tests concurrently
-        await foreach (var type in types)
-        {
-            await Task.Run(async () =>
-            {
-                // Load and process each test type
-                await LoadAndProcessTestType(type);
-            });
-        }
-    }
-
-    private async Task LoadAndProcessTestType(Type type)
-    {
-        await Console.Out.WriteLineAsync($"Loading {type.FullName}");
-        // Load and process tests for the given type
-        // Add appropriate error handling here
-        var methods = type.GetMethods();
-
-        MethodInfo? setup = null;
-        List<MethodInfo> tests = new List<MethodInfo>();
-
-        foreach (var method in methods)
-        {
-            // Check if the method has SetupMethodAttribute
-            if (method.GetCustomAttribute<TestSetupAttribute>() != null)
-            {
-                if (setup != null)
-                {
-                    throw new BadSetupException($"{type.FullName}: Multiple Methods annotated by TestSetupAttribute.");
-                }
-
-                setup = method;
-            }
-            // Check if the method has TestMethodAttribute
-            else if (method.GetCustomAttribute<TestMethodAttribute>() != null)
-            {
-                tests.Add(method);
-            }
-        }
-
-        if (setup is null && tests.Count == 0)
-            return;
-
-        object? instance;
-        try
-        {
-            instance = Activator.CreateInstance(type);
-
-            if (instance is null)
-                throw new BadSetupException($"Could not create an instance of {type.FullName}.");
-        }
-        catch (Exception ex)
-        {
-            await Console.Out.WriteLineAsync($"Error {type.FullName}: {ex.Message}");
-            throw;
-        }
-
-        await Console.Out.WriteLineAsync($"Adding {type.FullName}");
-
-        TestInfo value;
-
-        if (!_testInfo.TryGetValue(type, out value))
-        {
-            _testInfo.Add(type, new TestInfo(instance!, setup, tests));
-        }
-        else
-        {
-
-        }
-    }
-#endif
 
     /// <summary>
     /// Retrieves all types marked with the TestClassAttribute from the executing assembly asynchronously.
@@ -373,108 +249,3 @@ private async Task LoadAndProcessTestType(Type type)
         return typeof(Task).IsAssignableFrom(method.ReturnType);
     }
 }
-
-
-#if false
-private async Task RunTestsAsync(Type testType, TestInfo testInfo)
-{
-    await Console.Out.WriteLineAsync($"Starting tests for: {testType.FullName}");
-    try
-    {
-        testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
-    }
-    catch (Exception ex)
-    {
-        await Console.Out.WriteLineAsync($"Setup failure for {testType.FullName}: {ex.Message}");
-        return;
-    }
-
-    foreach (var test in testInfo.Tests)
-    {
-        try
-        {
-            if (IsAsyncMethod(test))
-            {
-                await TestAsync(testType, testInfo.Instance, test);
-            }
-            else
-            {
-                Test(testType, testInfo.Instance, test);
-            }
-        }
-        catch (AssertionFailureException ex)
-        {
-            await Console.Out.WriteLineAsync($"Test failed for {testType.FullName}: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            await Console.Out.WriteLineAsync($"Unexpected error during tests for {testType.FullName}: {ex.Message}");
-        }
-    }
-}
-
-private async Task LoadTests()
-{
-    await Console.Out.WriteLineAsync("Initializing tests.");
-
-    // Retrieve test types asynchronously
-    await foreach (var type in GetTestTypes())
-    {
-        await Task.Run(() => LoadAndProcessTestType(type));
-    }
-}
-
-private async Task LoadAndProcessTestType(Type type)
-{
-    await Console.Out.WriteLineAsync($"Loading test class: {type.FullName}");
-
-    var methods = type.GetMethods();
-    MethodInfo? setup = null;
-    List<MethodInfo> tests = new List<MethodInfo>();
-
-    foreach (var method in methods)
-    {
-        if (method.GetCustomAttribute<TestSetupAttribute>() != null)
-        {
-            if (setup != null)
-            {
-                throw new BadSetupException($"{type.FullName} has multiple methods annotated with TestSetupAttribute.");
-            }
-            setup = method;
-        }
-        else if (method.GetCustomAttribute<TestMethodAttribute>() != null)
-        {
-            tests.Add(method);
-        }
-    }
-
-    if (setup == null && tests.Count == 0)
-    {
-        await Console.Out.WriteLineAsync($"No setup or test methods found in {type.FullName}. Skipping.");
-        return;
-    }
-
-    object? instance;
-    try
-    {
-        instance = Activator.CreateInstance(type);
-        if (instance == null)
-        {
-            throw new BadSetupException($"Could not create an instance of {type.FullName}.");
-        }
-    }
-    catch (Exception ex)
-    {
-        await Console.Out.WriteLineAsync($"Error creating instance of {type.FullName}: {ex.Message}");
-        return;
-    }
-
-    await Console.Out.WriteLineAsync($"Adding tests for {type.FullName}");
-
-    if (!_testInfo.TryGetValue(type, out _))
-    {
-        _testInfo.Add(type, new TestInfo(instance, setup, tests));
-    }
-}
-
-#endif

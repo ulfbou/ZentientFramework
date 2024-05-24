@@ -1,5 +1,5 @@
 ﻿//
-// Class: Assert
+// Class: AssertExtensions
 //
 // Description:
 // The Assert class provides a fluent API with a set of static methods for making assertions in unit tests. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.
@@ -135,18 +135,42 @@ namespace Zentient.Tests;
 
 public static class AssertExtensions
 {
+    /// <summary>
+    /// Creates an exception assertion builder for the specified action.
+    /// </summary>
+    /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="action">The action that may throw an exception.</param>
+    /// <returns>An instance of <see cref="IExceptionAssertionBuilder"/>.</returns>
     public static IExceptionAssertionBuilder That(this Assert assert, Action action)
         => new ExceptionAssertionBuilder(action);
 
-    public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, T[] array)
-            => new CollectionAssertionBuilder<T>(array);
 
+    /// <summary>
+    /// Creates a collection assertion builder for the specified array.
+    /// </summary>
+    /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="array">The array to be asserted.</param>
+    /// <returns>An instance of ICollectionAssertionBuilder.</returns>
+    public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, T[] array)
+        => new CollectionAssertionBuilder<T>(array);
+
+    /// <summary>
+    /// Creates a collection assertion builder for the specified collection.
+    /// </summary>
+    /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="collection">The collection to be asserted.</param>
+    /// <returns>An instance of ICollectionAssertionBuilder.</returns>
     // var duplicateCollection = new List<int> { 1, 2, 2, 3 };
     // Assert.That<int>(duplicateCollection);
     public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, ICollection<T> collection)
         => new CollectionAssertionBuilder<T>(collection);
 
-
+    /// <summary>
+    /// Creates a collection assertion builder for the specified enumerable.
+    /// </summary>
+    /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="enumeration">The enumerable to be asserted.</param>
+    /// <returns>An instance of ICollectionAssertionBuilder.</returns>
     // var duplicateCollection = new List<int> { 1, 2, 2, 3 };
     // Assert.That((IEnumerable<int>) duplicateCollection)
     // var expected = collection1.Zip(collection2, (x, y) => new Pair(x, x));
@@ -154,9 +178,22 @@ public static class AssertExtensions
     public static ICollectionAssertionBuilder<T> That<T>(this Assert assert, IEnumerable<T> enumeration)
         => new CollectionAssertionBuilder<T>(enumeration.ToList());
 
+    /// <summary>
+    /// Creates an assertion builder for the specified subject.
+    /// </summary>
+    /// <typeparam name="T">The type of the subject.</typeparam>
+    /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="subject">The subject to be asserted.</param>
+    /// <returns>An instance of IAssertionBuilder.</returns>
     public static IAssertionBuilder<T> That<T>(this Assert assert, T subject)
         => new AssertionBuilder<T>(subject);
 
+    /// <summary>
+    /// Creates an assertion builder for the specified string message.
+    /// </summary>
+    /// <param name="assert">The assert object calling the extension method.</param>
+    /// <param name="message">The message to be asserted.</param>
+    /// <returns>An instance of IStringAssertionBuilder.</returns>
     public static IStringAssertionBuilder That(this Assert assert, string message)
         => new StringAssertionBuilder(message);
 }

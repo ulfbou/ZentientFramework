@@ -11,7 +11,7 @@
 // The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, which are part of a fluent API, developers can chain together multiple assertions in a readable and concise manner, ensuring that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
 // 
 // MIT License
-//
+//t
 // Copyright (c) 2024 Ulf Bourelius
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,13 +33,12 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
 namespace Zentient.Tests;
 
 public sealed class Assert
 {
-    public static Assert Instance = new Assert();
+    // Implementing Singleton pattern
+    public static Assert Instance { get; } = new Assert();
 
     private Assert() { }
 
@@ -47,24 +46,19 @@ public sealed class Assert
     /// Validates that the test is true.
     /// </summary>
     /// <param name="test">The test.</param>
+    /// <param name="message">The message to be issued if the test fails.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the test fails.</exception>
     public static void Pass(bool test, string message = "")
     {
         if (!test) throw new AssertionFailureException(message);
     }
 
     /// <summary>
-    /// Validates that the provided action fails by throwing an exception.
-    /// </summary>
-    /// <param name="action">The action to be validated.</param>
-    public static void Fail(bool test, string message = "")
-    {
-        if (test) throw new AssertionFailureException(message);
-    }
-
-    /// <summary>
     /// Validates that the provided function executes successfully without throwing any exceptions.
     /// </summary>
     /// <param name="action">The function to be validated.</param>
+    /// <param name="message">The message to be issued if the test fails.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the test succeeds.</exception>
     public static void Pass(Func<object> action, string message = "")
     {
         // Act & Assert
@@ -74,14 +68,26 @@ public sealed class Assert
         }
         catch (Exception ex)
         {
-            throw new Exception($"Failed: {ex.Message}");
+            throw new AssertionFailureException(message, ex);
         }
+    }
+
+    /// <summary>
+    /// Validates that the test is false.
+    /// </summary>
+    /// <param name="test">The test.</param>
+    /// <param name="message">The message to be issued if the test fails.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the test succeeds.</exception>
+    public static void Fail(bool test, string message = "")
+    {
+        if (test) throw new AssertionFailureException(message);
     }
 
     /// <summary>
     /// Validates that the provided action fails by throwing an exception.
     /// </summary>
     /// <param name="action">The action to be validated.</param>
+    /// <exception cref="AssertionFailureException">Thrown if the test succeeds.</exception>
     public static void Fail(Action action, string message = "")
     {
         // Act & Assert
@@ -98,6 +104,11 @@ public sealed class Assert
         throw new AssertionFailureException(message);
     }
 
+    /// <summary>
+    /// Throws <see cref="AssertionFailureException"/>
+    /// </summary>
+    /// <param name="message"></param>
+    /// <exception cref="AssertionFailureException">Thrown to mark the test as failed.</exception>
     public static void Fail(string message = "")
     {
         throw new AssertionFailureException(message);

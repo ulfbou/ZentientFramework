@@ -1,5 +1,5 @@
 ﻿//
-// Class: Assert
+// Class: IStringAssertionBuilder
 //
 // Description:
 // The Assert class provides a fluent API with a set of static methods for making assertions in unit tests. These methods allow developers to validate the behavior and output of code under test, ensuring that it meets the expected criteria.

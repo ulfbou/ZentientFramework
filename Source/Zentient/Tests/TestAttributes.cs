@@ -1,5 +1,6 @@
 //
 // File: TestAttributes.cs
+// 
 // Description:
 // This file contains custom attribute classes used for defining and organizing tests within test classes. These attributes are designed to mark classes and methods as test-related entities, allowing for the identification and execution of test cases in the test management system.
 //
@@ -55,7 +56,9 @@ public class TestSetupAttribute : Attribute { }
 /// <summary>
 /// Specifies that a method is a test method expects that an Exception is thrown..
 /// </summary>
+/// <remarks>This attribute is not yet supported.</remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public class ExpectedExceptionAttribute : Attribute
+public class ExpectedExceptionAttribute(Type exceptionType) : Attribute
 {
+    public Type ExceptionType { get; } = exceptionType;
 }
