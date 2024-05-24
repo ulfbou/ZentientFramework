@@ -11,7 +11,7 @@
 // The purpose of the Assert class is to provide a convenient and expressive way for developers to write unit tests and make assertions about the behavior and output of their code. By using these assertion methods, which are part of a fluent API, developers can chain together multiple assertions in a readable and concise manner, ensuring that their code behaves as expected under different conditions and scenarios, leading to more robust and reliable software.
 // 
 // MIT License
-//t
+//
 // Copyright (c) 2024 Ulf Bourelius
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
