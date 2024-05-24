@@ -6,14 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Docs\API Documentation Guide.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Docs\API Documentation Guide.txt" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Include="serilog" Version="3.1.1" />
 		<PackageReference Include="serilog.Extensions.Logging" Version="8.0.0" />
