@@ -12,7 +12,7 @@ public class ConfigurationManager : IEnumerable<KeyValuePair<string, object>>
 
     public ConfigurationManager(Configurator configurator)
     {
-        Configuration = new Dictionary<string,object>(configurator);
+        Configuration = new Dictionary<string, object>(configurator);
     }
 
     public ConfigurationManager()
