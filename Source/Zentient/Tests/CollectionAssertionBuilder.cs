@@ -45,18 +45,18 @@ namespace Zentient.Tests;
 public partial class CollectionAssertionBuilder<T> :
     AssertionBuilderBase<ICollection<T>>, ICollectionAssertionBuilder<T> where T : notnull
 {
-    private readonly IComparer<T> _comparer;
-    private readonly IEqualityComparer<T> _equality;
+    protected readonly IComparer<T> _comparer;
+    protected readonly IEqualityComparer<T> _equality;
 
     public CollectionAssertionBuilder(
         ICollection<T> actual,
-        IComparer<T> comparer,
-        IEqualityComparer<T> equality,
+        IComparer<T>? comparer,
+        IEqualityComparer<T>? equality,
         string message)
         : base(actual, message)
     {
-        _comparer = comparer;
-        _equality = equality;
+        _comparer = comparer ?? DefaultComparers<T>.Comparer;
+        _equality = equality ?? DefaultComparers<T>.EqualityComparer;
     }
 
     /// <summary>
@@ -91,6 +91,7 @@ public partial class CollectionAssertionBuilder<T> :
     #region CollectionAssertions
     public int Compare(T? actual, T? expected) => _comparer.Compare(actual, expected);
     public bool Equals(T? actual, T? expected) => _equality.Equals(actual, expected);
+    public override bool Equals(object? expected) => _equality.Equals((T?)_actual, (T?)expected);
 
     /// <summary>
     /// Validates if the count of the collection matches the expected count.

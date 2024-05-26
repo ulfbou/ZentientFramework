@@ -39,8 +39,11 @@ namespace Zentient.Tests;
 /// Provides fluent assertion methods for comparing equality and other conditions.
 /// </summary>
 /// <typeparam name="T">The type of the subject being asserted.</typeparam>
-public class AssertionBuilder<T> : AssertionBuilderBase<T>, IAssertionBuilder<T>
+public class AssertionBuilder<T> : AssertionBuilderBase<T>, IAssertionBuilder<T> where T : class
 {
+    protected readonly IComparer<T> _comparer;
+    protected readonly IEqualityComparer<T> _equality;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertionBuilder{T}"/> class.
     /// </summary>
@@ -49,8 +52,10 @@ public class AssertionBuilder<T> : AssertionBuilderBase<T>, IAssertionBuilder<T>
     /// <param name="equality">Optional. The equality comparer to be used for equality checks.</param>
     /// <param name="message">Optional. The message to be issued if the assertion fails.</param>
     public AssertionBuilder(T actual, IComparer<T>? comparer = null, IEqualityComparer<T>? equality = null, string message = "")
-        : base(actual, comparer, equality, message)
+        : base(actual, message)
     {
+        _comparer = comparer ?? DefaultComparers<T>.Comparer;
+        _equality = equality ?? DefaultComparers<T>.EqualityComparer;
     }
 
     /// <summary>
@@ -166,7 +171,7 @@ public class AssertionBuilder(
 
     public virtual int Compare(object? expected) => _comparer.Compare(_actual, expected);
     public virtual int Compare(object? actual, object? expected) => _comparer.Compare(actual, expected);
-    public override bool Equals(object? expected) => _equality.Equals(_actual, (T?)expected);
+    public override bool Equals(object? expected) => _equality.Equals(_actual, expected);
 
     /// <summary>
     /// Asserts that the subject is not null.

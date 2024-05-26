@@ -185,7 +185,7 @@ public static class AssertExtensions
     /// <param name="assert">The assert object calling the extension method.</param>
     /// <param name="subject">The subject to be asserted.</param>
     /// <returns>An instance of IAssertionBuilder.</returns>
-    public static IAssertionBuilder<T> That<T>(this Assert assert, T subject)
+    public static IAssertionBuilder<T> That<T>(this Assert assert, T subject) where T : class
         => new AssertionBuilder<T>(subject);
 
     /// <summary>

@@ -39,19 +39,16 @@ namespace Zentient.Tests;
 
 public class AssertionBuilderBase<T>(
     T actual,
-    IComparer<T>? comparer = null,
-    IEqualityComparer<T>? equality = null,
     string message = "")
-    : IAssertionBuilder<T>
+    : IAssertionBuilder<T> where T : class
 {
     protected readonly T _actual = actual;
-    protected readonly IComparer<T> _comparer = comparer ?? DefaultComparers<T>.Comparer;
-    protected readonly IEqualityComparer<T> _equality = equality ?? DefaultComparers<T>.EqualityComparer;
     protected readonly string _message = message;
 
-    public virtual int Compare(T? actual, T? expected) => _comparer.Compare(_actual, expected);
-    public virtual bool Equals(T? actual, T? expected) => _equality.Equals(actual, expected);
-    public override bool Equals(object? expected) => _equality.Equals(_actual, (T?)expected);
+
+    public virtual int Compare(T? actual, T? expected) => DefaultComparers<T>.Comparer.Compare(actual, expected);
+    public virtual bool Equals(T? actual, T? expected) => DefaultComparers<T>.EqualityComparer.Equals(actual, expected);
+    public override bool Equals(object? expected) => DefaultComparers<T>.EqualityComparer.Equals((T?)_actual, (T?)expected);
 
     /// <summary>
     /// Asserts that the subject is equal to the expected value.
