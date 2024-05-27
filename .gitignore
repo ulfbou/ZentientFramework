@@ -401,3 +401,5 @@ FodyWeavers.xsd
 *.txt
 *.txt#
 *.sln
+/ZentientFramework.sln
+
