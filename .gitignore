@@ -400,3 +400,4 @@ FodyWeavers.xsd
 /newsource
 *.txt
 *.txt#
+/Source/Zentient/Configurator/Docs
