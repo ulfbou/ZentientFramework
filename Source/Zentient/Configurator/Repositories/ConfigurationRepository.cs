@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using Zentient.Configurator.Contexts;
 using Zentient.Configurator.Schemas;
 
@@ -13,29 +14,36 @@ namespace Zentient.Configurator.Repositories
 
         public ConfigurationRepository(ConfigurationContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
+            ArgumentNullException.ThrowIfNull(context.Configurations);
             _context = context;
         }
 
-        public async Task AddSchema(ConfigurationSchema schema)
+        public async Task AddSchemaAsync(ConfigurationSchema schema)
         {
+            ArgumentNullException.ThrowIfNull(schema);
             await _context.Schemas.InsertOneAsync(schema);
         }
 
-        public async Task<ConfigurationSchema> GetSchema(string id)
+        public async Task AddConfigurationAsync(Configuration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            await _context.Configurations.InsertOneAsync(configuration);
+        }
+
+        public async Task<ConfigurationSchema> GetSchemaAsync(string id)
         {
             return await (await _context.Schemas.FindAsync<ConfigurationSchema>(c => c.Id == id)).FirstOrDefaultAsync();
         }
 
-        public async Task AddConfiguration(Configuration config)
+        public async Task<Configuration> GetConfigurationAsync(string id)
         {
-            await _context.Configurations.InsertOneAsync(config);
+            return await (await _context.Configurations.FindAsync<Configuration>(c => c.Id == id)).FirstOrDefaultAsync();
         }
+        public async Task BackupDataAsync(string backupFilePath)
+            => await _context.BackupDataAsync(backupFilePath);
 
-        public async Task<Configuration> GetConfiguration(string id)
-        {
-            return await (await _context.Configurations.FindAsync<Configurator>(c => c.Id == id)).FirstOrDefaultAsync();
-        }
-
-        // Other CRUD operations
+        public async Task RestoreData(string backupFilePath)
+            => await _context.RestoreData(backupFilePath);
     }
 }

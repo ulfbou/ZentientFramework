@@ -7,6 +7,6 @@
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public Dictionary<string, string> Properties { get; set; }
+        public Dictionary<string, PropertyDefinition> Properties { get; set; } = new Dictionary<string, PropertyDefinition>();
     }
 }

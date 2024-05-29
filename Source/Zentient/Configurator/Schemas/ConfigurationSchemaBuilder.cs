@@ -5,12 +5,8 @@
     /// </summary>
     public class ConfigurationSchemaBuilder
     {
-        private readonly ConfigurationSchema _schema;
-
-        public ConfigurationSchemaBuilder()
-        {
-            _schema = new ConfigurationSchema { Properties = new Dictionary<string, string>() };
-        }
+        private readonly ConfigurationSchema _schema
+            = new ConfigurationSchema { Properties = new Dictionary<string, PropertyDefinition>() };
 
         public ConfigurationSchemaBuilder WithName(string name)
         {
@@ -18,9 +14,14 @@
             return this;
         }
 
-        public ConfigurationSchemaBuilder WithProperty(string key, string type)
+        public ConfigurationSchemaBuilder WithProperty(string key, string type, bool isRequired = true)
         {
-            _schema.Properties[key] = type;
+            _schema.Properties[key] = new PropertyDefinition
+            {
+                Type = type,
+                IsRequired = isRequired
+            };
+
             return this;
         }
 

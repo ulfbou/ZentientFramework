@@ -396,8 +396,12 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/ConsoleTesting
-/newsource
+
+Docs/*.txt
+.gitignore
+newsource/
 *.txt
 *.txt#
+/ConsoleTesting
+/.gitignore
 /Source/Zentient/Configurator/Docs

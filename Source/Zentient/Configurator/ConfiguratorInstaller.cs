@@ -18,15 +18,18 @@ namespace Zentient.Configurator
             _configurationService = configurationService;
         }
 
-        public void Install()
+        public string DefaultSchemaName { get => "DefaultSchema"; }
+        public string DefaultConfiguration { get => "DefaultConfiguration"; }
+
+        public async Task Install()
         {
-            _configurationService.CreateSchema(builder =>
-                builder.WithName("DefaultSchema")
+            await _configurationService.CreateSchema(builder =>
+                builder.WithName(DefaultSchemaName)
                        .WithProperty("Key1", "string")
                        .WithProperty("Key2", "int"));
 
-            _configurationService.CreateConfiguration(builder =>
-                builder.WithSchema("DefaultSchema")
+            await _configurationService.CreateConfiguration(builder =>
+                builder.WithSchema(DefaultConfiguration)
                        .WithProperty("Key1", "Value1")
                        .WithProperty("Key2", "123"));
         }

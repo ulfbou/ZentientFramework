@@ -1,7 +1,5 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.Extensions.Options;
-using Zentient.Configurator;
+﻿using FluentValidation.Results;
+using System.Net;
 
 namespace Zentient.Configurator.Schemas
 {
@@ -12,31 +10,70 @@ namespace Zentient.Configurator.Schemas
     {
         public bool TryValidate(Configuration configuration, out ValidationResult validationResult)
         {
-            var validator = new InlineValidator<Configurator>();
+            var errors = new List<ValidationFailure>();
 
-            try
+            foreach (var kvp in configuration.Data)
             {
-                foreach (var property in Properties)
+                if (!Properties.ContainsKey(kvp.Key))
                 {
-                    if (!configuration.Data.ContainsKey(property.Key))
-                    {
-                        validationResult = new ValidationResult(new[] { new ValidationFailure(property.Key, "Property not found") });
-                        return false;
-                    }
-
-                    validator.RuleFor(c => c.Data[property.Key]).NotEmpty(); // Simplified validation
+                    errors.Add(new ValidationFailure(kvp.Key, "Property not found in schema"));
+                    continue;
                 }
 
-                validationResult = validator.Validate(configuration);
-                return validationResult.IsValid;
+                if (!IsValidType(kvp.Value, Properties[kvp.Key].Type))
+                {
+                    errors.Add(new ValidationFailure(kvp.Key, $"Invalid type for property {kvp.Key}"));
+                }
             }
-            catch (Exception ex)
+
+            validationResult = new ValidationResult(errors);
+            return validationResult.IsValid;
+        }
+
+        private bool IsValidType(object value, string expectedType)
+        {
+            switch (expectedType.ToLower())
             {
-                // Log exception
-                validationResult = new ValidationResult(new[] {
-                    new ValidationFailure(configuration.SchemaName, $"Exception thrown with `{configuration.SchemaName}: {ex.InnerException}.")
-                });
-                return false;
+                case "string":
+                    return value is string;
+                case "int":
+                    return value is int;
+                case "bool":
+                    return value is bool;
+                case "datetime":
+                    return value is DateTime;
+                case "decimal":
+                    return value is decimal;
+                case "double":
+                    return value is double;
+                case "float":
+                    return value is float;
+                case "long":
+                    return value is long;
+                case "short":
+                    return value is short;
+                case "byte":
+                    return value is byte;
+                case "char":
+                    return value is char;
+                case "sbyte":
+                    return value is sbyte;
+                case "uint":
+                    return value is uint;
+                case "ulong":
+                    return value is ulong;
+                case "ushort":
+                    return value is ushort;
+                case "guid":
+                    return value is Guid;
+                case "timespan":
+                    return value is TimeSpan;
+                case "uri":
+                    return value is Uri;
+                case "version":
+                    return value is Version;
+                default:
+                    return false;
             }
         }
     }
