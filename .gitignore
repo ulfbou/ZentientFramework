@@ -401,3 +401,5 @@ FodyWeavers.xsd
 *.txt
 *.txt#
 /Source/Zentient/Configurator/Docs
+/Source/Zentient/Tests/Zentient.Tests.csproj
+/ZentientFramework.sln
