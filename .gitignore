@@ -404,3 +404,4 @@ newsource/
 *.txt#
 /ConsoleTesting
 /.gitignore
+*.sln
