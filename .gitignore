@@ -405,3 +405,4 @@ newsource/
 *.txt
 /ConsoleTesting
 /newsource
+*.sln
