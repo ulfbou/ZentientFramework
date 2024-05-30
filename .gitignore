@@ -402,6 +402,7 @@ Docs/*.txt
 newsource/
 *.txt
 *.txt#
+*.txt
 /ConsoleTesting
-/.gitignore
-/Source/Zentient/Configurator/Docs
+/newsource
+*.sln
