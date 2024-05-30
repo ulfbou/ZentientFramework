@@ -404,6 +404,5 @@ newsource/
 *.txt#
 *.txt
 /ConsoleTesting
-/newsource
 *.sln
 /ZentientFramework.sln
