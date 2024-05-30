@@ -402,7 +402,7 @@ Docs/*.txt
 newsource/
 *.txt
 *.txt#
-*.txt
-/ConsoleTesting
 *.sln
 /ZentientFramework.sln
+
+/ConsoleTesting
