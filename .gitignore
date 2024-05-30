@@ -404,3 +404,7 @@ FodyWeavers.xsd
 .gitignore
 newsource/
 *.sln
+*.md
+/Source/Zentient/oldlms
+/Source/Zentient/Zentient.LMS/old
+*.md#
