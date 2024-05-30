@@ -69,7 +69,9 @@ public class TestManager
 
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
-        await Console.Out.WriteLineAsync(testType.FullName);
+        int count = 0;
+        int success = 0;
+
         try
         {
             testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
@@ -84,6 +86,7 @@ public class TestManager
         {
             try
             {
+                count++;
                 if (IsAsyncMethod(test))
                 {
                     await TestAsync(testType, testInfo.Instance, test);
@@ -92,6 +95,7 @@ public class TestManager
                 {
                     Test(testType, testInfo.Instance, test);
                 }
+                success++;
             }
             catch (AssertionFailureException ex)
             {
@@ -102,6 +106,8 @@ public class TestManager
                 await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
             }
         }
+
+        await Console.Out.WriteLineAsync($"Ran {success} successful tests out of {count} tests.");
     }
 
     /// <summary>
@@ -227,10 +233,7 @@ public class TestManager
         }
         catch (Exception ex)
         {
-            //if (ex.InnerException?.GetType() != typeof(T))
-            //{
             await Console.Out.WriteLineAsync($"Bad test in {name}: {ex.Message}");
-            //}
             throw;
         }
     }

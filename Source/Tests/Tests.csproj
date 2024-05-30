@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Zentient.Extensions">
+      <HintPath>..\Zentient\Extensions\bin\Debug\net8.0\Zentient.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="Zentient.Tests">
       <HintPath>..\Zentient\Tests\bin\Debug\net8.0\Zentient.Tests.dll</HintPath>
     </Reference>

@@ -149,4 +149,9 @@ public class AssertionBuilderBase<T>(T actual, string message) : IAssertionBuild
 
         throw new AssertionFailureException(message);
     }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
