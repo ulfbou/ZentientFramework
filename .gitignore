@@ -400,3 +400,4 @@ FodyWeavers.xsd
 *.txt
 /ConsoleTesting
 /newsource
+*.sln
