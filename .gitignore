@@ -400,11 +400,4 @@ FodyWeavers.xsd
 /newsource
 *.txt
 *.txt#
-/Source/Zentient/Configurator/Docs
-/Source/Zentient/Tests/Zentient.Tests.csproj
-/ZentientFramework.sln
-<<<<<<< HEAD
-=======
-*.csproj
->>>>>>> Resolved
-/ZentientFramework.sln
+*.sln
