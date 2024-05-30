@@ -68,6 +68,7 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
     /// <param name="source">The source representing the vector as <see cref="ImmutableArray{T}">.</param>
     public AsyncVector(ImmutableArray<T> vector)
     {
+        ArgumentNullException.ThrowIfNull(vector, nameof(vector));
         _vector = vector;
     }
 
@@ -125,12 +126,6 @@ public class AsyncVector<T> where T : struct, IAdditionOperators<T, T, T>, IMult
         return await DotProductProducer(producer1, producer2, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Asynchronously adds another sparse vector with this sparse vector.
-    /// </summary>
-    /// <param name="other">The other sparse vector to add.</param>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-    /// <returns>A new <see cref="AsyncVector{T}"/> representing the result of the addition.</returns>
     public override bool Equals(object? other)
     {
         if (other is null) return false;

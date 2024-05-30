@@ -4,13 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<GenerateDependencyFile>false</GenerateDependencyFile>
+	  <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Reference Include="Zentient.Vectors">
-      <HintPath>bin\Debug\net8.0\Zentient.Vectors.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
 </Project>
