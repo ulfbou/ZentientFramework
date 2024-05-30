@@ -403,3 +403,4 @@ FodyWeavers.xsd
 /*.txt
 .gitignore
 newsource/
+*.sln
