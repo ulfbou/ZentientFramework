@@ -27,6 +27,7 @@
 		<PackageReference Include="serilog.Sinks.Console" Version="5.0.1" />
 		<PackageReference Include="serilog.Sinks.Debug" Version="2.0.0" />
 		<PackageReference Include="serilog.Sinks.File" Version="5.0.0" />
+		<PackageReference Include="Zentient.Repository" Version="1.0.0-beta" />
 	</ItemGroup>
 
 	<ItemGroup>

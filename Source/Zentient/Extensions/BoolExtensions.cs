@@ -26,49 +26,51 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Extensions;
-/// <summary>
-/// Provides extension methods for working with bools.
-/// </summary>
-public static class BoolExtensions
+namespace Zentient.Extensions
 {
     /// <summary>
-    /// Toggles the boolean value.
+    /// Provides extension methods for working with bools.
     /// </summary>
-    /// <param name="value">The boolean value to toggle.</param>
-    /// <returns>The toggled boolean value.</returns>
-    public static bool Toggle(this bool value)
+    public static class BoolExtensions
     {
-        return !value;
-    }
+        /// <summary>
+        /// Toggles the boolean value.
+        /// </summary>
+        /// <param name="value">The boolean value to toggle.</param>
+        /// <returns>The toggled boolean value.</returns>
+        public static bool Toggle(this bool value)
+        {
+            return !value;
+        }
 
-    /// <summary>
-    /// Converts the boolean value to an integer.
-    /// </summary>
-    /// <param name="value">The boolean value to convert.</param>
-    /// <returns>0 if false; 1 if true.</returns>
-    public static int ToInt(this bool value)
-    {
-        return value ? 1 : 0;
-    }
+        /// <summary>
+        /// Converts the boolean value to an integer.
+        /// </summary>
+        /// <param name="value">The boolean value to convert.</param>
+        /// <returns>0 if false; 1 if true.</returns>
+        public static int ToInt(this bool value)
+        {
+            return value ? 1 : 0;
+        }
 
-    /// <summary>
-    /// Converts the boolean value to "Yes" or "No".
-    /// </summary>
-    /// <param name="value">The boolean value to convert.</param>
-    /// <returns>"Yes" if true; "No" if false.</returns>
-    public static string ToStringYesNo(this bool value)
-    {
-        return value ? "Yes" : "No";
-    }
+        /// <summary>
+        /// Converts the boolean value to "Yes" or "No".
+        /// </summary>
+        /// <param name="value">The boolean value to convert.</param>
+        /// <returns>"Yes" if true; "No" if false.</returns>
+        public static string ToStringYesNo(this bool value)
+        {
+            return value ? "Yes" : "No";
+        }
 
-    /// <summary>
-    /// Converts the boolean value to "On" or "Off".
-    /// </summary>
-    /// <param name="value">The boolean value to convert.</param>
-    /// <returns>"On" if true; "Off" if false.</returns>
-    public static string ToStringOnOff(this bool value)
-    {
-        return value ? "On" : "Off";
+        /// <summary>
+        /// Converts the boolean value to "On" or "Off".
+        /// </summary>
+        /// <param name="value">The boolean value to convert.</param>
+        /// <returns>"On" if true; "Off" if false.</returns>
+        public static string ToStringOnOff(this bool value)
+        {
+            return value ? "On" : "Off";
+        }
     }
 }

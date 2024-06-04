@@ -21,4 +21,4 @@ Contributions to Zenitient Framework are welcome! If you find any bugs or have s
 
 ## License
 
-Zentient.Tests is licensed under the [MIT License](LICENSE).
+Zentient Framework is licensed under the [MIT License](LICENSE).
