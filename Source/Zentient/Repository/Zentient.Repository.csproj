@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>Zentient.Repository</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Ulf Bourelius</Authors>
+		<Description>A generic repository and unit of work pattern implementation for Entity Framework Core, part of the Zentient Framework. It provides a set of methods for managing the overall data access and transactional behavior of an application, including saving changes to the database, beginning and committing transactions, and getting repositories for specific entity types.</Description>
+		<PackageTags>EntityFrameworkCore, Repository, UnitOfWork, GenericRepository, DataAccess, Database, ZentientFramework</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageLicenseFile></PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/ulfbou/ZentientFramework/wiki</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ulfbou/ZentientFramework</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+</Project>
