@@ -158,7 +158,7 @@ namespace Zentient.Repository
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>The entity entry, if it was soft deleted. Otherwise null.</returns>
         /// <exception cref="InvalidOperationException">Thrown if entity does not support soft delete.</exception>
-        public Task<EntityEntry<TEntity>?> UndeleteAsync(TEntity entity, CancellationToken cancellation = default);
+        public Task<EntityEntry<TEntity>?> SoftUndeleteAsync(TEntity entity, CancellationToken cancellation = default);
 
         /// <summary>
         /// Count the number of entities asynchronously.

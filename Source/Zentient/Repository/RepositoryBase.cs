@@ -177,7 +177,7 @@ namespace Zentient.Repository
                 cancellation.ThrowIfCancellationRequested();
                 entityentry = await _dbSet.AddAsync(entity, cancellation);
                 await OnEntityAddedAsync(entity);
-                await LogAuditAsync(entity, "Add", cancellation);
+                //await LogAuditAsync(entity, "Add", cancellation);
                 await _context.SaveChangesAsync(cancellation);
             }
             catch (OperationCanceledException)
@@ -214,7 +214,7 @@ namespace Zentient.Repository
                 foreach (var entity in entities)
                 {
                     await OnEntityAddedAsync(entity);
-                    await LogAuditAsync(entity, "Add", cancellation);
+                    //await LogAuditAsync(entity, "Add", cancellation);
                 }
 
                 result = await _context.SaveChangesAsync(cancellation);
@@ -250,7 +250,7 @@ namespace Zentient.Repository
                 cancellation.ThrowIfCancellationRequested();
                 entityEntry = _dbSet.Update(entity);
                 await OnEntityUpdatedAsync(entity);
-                await LogAuditAsync(entity, "Update", cancellation);
+                //await LogAuditAsync(entity, "Update", cancellation);
                 await _context.SaveChangesAsync(cancellation);
             }
             catch (OperationCanceledException)
@@ -284,7 +284,7 @@ namespace Zentient.Repository
                 cancellation.ThrowIfCancellationRequested();
                 entityEntry = _dbSet.Remove(entity);
                 await OnEntityRemovedAsync(entity);
-                await LogAuditAsync(entity, "Remove", cancellation);
+                //await LogAuditAsync(entity, "Remove", cancellation);
                 await _context.SaveChangesAsync(cancellation);
             }
             catch (OperationCanceledException)
@@ -321,7 +321,7 @@ namespace Zentient.Repository
                 foreach (var entity in entities)
                 {
                     await OnEntityRemovedAsync(entity);
-                    await LogAuditAsync(entity, "Add", cancellation);
+                    //await LogAuditAsync(entity, "Add", cancellation);
                 }
 
                 count = await _context.SaveChangesAsync();
@@ -446,6 +446,8 @@ namespace Zentient.Repository
         /// <exception cref="InvalidOperationException">Thrown if entity does not support soft delete.</exception>
         public virtual async Task<EntityEntry<TEntity>?> SoftDeleteAsync(TEntity entity, CancellationToken cancellation = default)
         {
+            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+
             if (entity is ISoftDeletable<TKey> softDeletable)
             {
                 EntityEntry<TEntity>? entityEntry = null;
@@ -454,7 +456,7 @@ namespace Zentient.Repository
                     cancellation.ThrowIfCancellationRequested();
                     softDeletable.IsDeleted = true;
                     entityEntry = _dbSet.Update(entity);
-                    await LogAuditAsync(entity, "SoftDelete", cancellation);
+                    //await LogAuditAsync(entity, "SoftDelete", cancellation);
                     await _context.SaveChangesAsync(cancellation);
                 }
                 catch (OperationCanceledException)
@@ -479,8 +481,10 @@ namespace Zentient.Repository
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>The entity entry, if it was soft deleted. Otherwise null.</returns>
         /// <exception cref="InvalidOperationException">Thrown if entity does not support soft delete.</exception>
-        public virtual async Task<EntityEntry<TEntity>?> UndeleteAsync(TEntity entity, CancellationToken cancellation = default)
+        public virtual async Task<EntityEntry<TEntity>?> SoftUndeleteAsync(TEntity entity, CancellationToken cancellation = default)
         {
+            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+
             if (entity is ISoftDeletable<TKey> softDeletable)
             {
                 try
@@ -488,7 +492,7 @@ namespace Zentient.Repository
                     cancellation.ThrowIfCancellationRequested();
                     softDeletable.IsDeleted = false;
                     var entityEntry = _dbSet.Update(entity);
-                    await LogAuditAsync(entity, "SoftUndelete", cancellation);
+                    //await LogAuditAsync(entity, "SoftUndelete", cancellation);
                     await _context.SaveChangesAsync(cancellation);
                     return entityEntry;
                 }
@@ -522,24 +526,12 @@ namespace Zentient.Repository
             }
         }
 
-        private async Task LogAuditAsync(TEntity entity, string operation, CancellationToken cancellation)
-        {
-            var auditLog = new AuditLog<TKey>
-            {
-                EntityId = (entity as dynamic).Id,
-                EntityType = _entityType,
-                Operation = operation,
-                Timestamp = DateTime.UtcNow,
-                Changes = JsonConvert.SerializeObject(entity)
-            };
-            await _context.Set<AuditLog<TKey>>().AddAsync(auditLog, cancellation);
-            await _context.SaveChangesAsync(cancellation);
-        }
-
         // TODO: Verify and document the rest of the methods
 
         protected virtual async Task OnEntityAddedAsync(TEntity entity)
         {
+            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+
             if (EntityAdded != null)
             {
                 await EntityAdded(entity);
@@ -548,6 +540,8 @@ namespace Zentient.Repository
 
         protected virtual async Task OnEntityUpdatedAsync(TEntity entity)
         {
+            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+
             if (EntityUpdated != null)
             {
                 await EntityUpdated(entity);
@@ -556,6 +550,8 @@ namespace Zentient.Repository
 
         protected virtual async Task OnEntityRemovedAsync(TEntity entity)
         {
+            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+
             if (EntityRemoved != null)
             {
                 await EntityRemoved(entity);
@@ -564,6 +560,8 @@ namespace Zentient.Repository
 
         protected virtual async Task HandleExceptionAsync(Exception ex, CancellationToken cancellation = default)
         {
+            ArgumentNullException.ThrowIfNull(ex, nameof(ex));
+
             if (_exceptionHandler != null)
             {
                 cancellation.ThrowIfCancellationRequested();
@@ -578,6 +576,8 @@ namespace Zentient.Repository
 
         protected virtual async Task DefaultExceptionHandler(Exception ex)
         {
+            ArgumentNullException.ThrowIfNull(ex, nameof(ex));
+
             await Console.Out.WriteLineAsync(ex.Message);
         }
 
@@ -589,6 +589,22 @@ namespace Zentient.Repository
             ArgumentNullException.ThrowIfNull(exceptionHandler, nameof(exceptionHandler));
             _exceptionHandler = exceptionHandler;
         }
+
+        // TODO: Verify and document the rest of the methods
+        private async Task LogAuditAsync(TEntity entity, string operation, CancellationToken cancellation)
+        {
+            var auditLog = new AuditLog<TKey>
+            {
+                EntityId = (entity as dynamic).Id,
+                EntityType = _entityType,
+                Operation = operation,
+                Timestamp = DateTime.UtcNow,
+                Changes = JsonConvert.SerializeObject(entity)
+            };
+            //await _context.Set<AuditLog<TKey>>().AddAsync(auditLog, cancellation);
+            await _context.SaveChangesAsync(cancellation);
+        }
+
 
         protected virtual void Dispose(bool disposing)
         {
