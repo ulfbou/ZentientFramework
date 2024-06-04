@@ -1,4 +1,4 @@
-﻿//
+﻿// 
 // Class: IEntity
 //
 // Description:

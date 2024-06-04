@@ -1,6 +1,4 @@
-﻿// Generate professional documentation for the IRepository interface following in the same style as the current documentation. Provide additional documentation whereever you see fit. provide full xml support in the documentaiton including <see cref="MyModel{TEntity, TKey}"/>. 
-
-//
+﻿//
 // Class: CursorPaginatedList
 //
 // Description:
