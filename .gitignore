@@ -407,3 +407,4 @@ newsource/
 
 /ConsoleTesting
 *.md
+*.md#
