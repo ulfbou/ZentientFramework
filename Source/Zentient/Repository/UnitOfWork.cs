@@ -84,35 +84,38 @@ namespace Zentient.Repository
         /// Save all changes to the repositories.
         /// </summary>
         /// <returns>The number of state entries written to the database. </returns>
-        public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
+        public async Task<int> SaveChangesAsync(CancellationToken cancellation = default)
+            => await _context.SaveChangesAsync(cancellation);
 
         /// <summary>
         /// Begin a transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction already has been activated.</exception>
-        public void BeginTransaction()
+        public async Task BeginTransactionAsync(CancellationToken cancellation = default)
         {
             if (_transaction is not null) throw new InvalidOperationException("A transaction has already been activated.");
 
-            _transaction = _context.Database.BeginTransaction();
+            _transaction = await _context.Database.BeginTransactionAsync(cancellation);
         }
 
         /// <summary>
         /// Commit the transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction has not been activated.</exception>
-        public void CommitTransaction()
+        public async Task<int> CommitTransactionAsync(CancellationToken cancellation = default)
         {
             if (_transaction is null) throw new InvalidOperationException("Transaction has not been activated.");
 
             try
             {
-                _context.SaveChanges();
-                _transaction.Commit();
+                var result = await _context.SaveChangesAsync(cancellation);
+                await _transaction.CommitAsync(cancellation);
+
+                return result;
             }
             catch
             {
-                _transaction.Rollback();
+                await _transaction.RollbackAsync(cancellation);
                 throw;
             }
         }
@@ -121,11 +124,11 @@ namespace Zentient.Repository
         /// Rollback the transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction has not been activated.</exception>
-        public void RollbackTransaction()
+        public async Task RollbackTransactionAsync(CancellationToken cancellation = default)
         {
             if (_transaction is null) throw new InvalidOperationException("Transaction has not been started.");
 
-            _transaction.Rollback();
+            await _transaction.RollbackAsync(cancellation);
         }
 
         public void Dispose()

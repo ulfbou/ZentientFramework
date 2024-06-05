@@ -50,24 +50,24 @@ namespace Zentient.Repository
         /// Save all changes to the repositories.
         /// </summary>
         /// <returns>The number of state entries written to the database. </returns>
-        public Task<int> SaveChangesAsync();
+        public Task<int> SaveChangesAsync(CancellationToken cancellation = default);
 
         /// <summary>
         /// Begin a transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction already has been activated.</exception>
-        public void BeginTransaction();
+        public Task BeginTransactionAsync(CancellationToken cancellation = default);
 
         /// <summary>
         /// Commit the transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction has not been activated.</exception>
-        public void CommitTransaction();
+        public Task<int> CommitTransactionAsync(CancellationToken cancellation = default);
 
         /// <summary>
         /// Rollback the transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction has not been activated.</exception>
-        public void RollbackTransaction();
+        public Task RollbackTransactionAsync(CancellationToken cancellation = default);
     }
 }
