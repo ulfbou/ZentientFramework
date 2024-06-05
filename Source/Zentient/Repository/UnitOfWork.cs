@@ -47,16 +47,19 @@ namespace Zentient.Repository
     {
         private readonly DbContext _context;
         private readonly IDictionary<Type, object> _repositories;
+        private readonly ExceptionHandler? _exceptionHandler;
         private IDbContextTransaction? _transaction = null;
 
         /// <summary>
         /// Constructs a new unit of work.
         /// </summary>
         /// <param name="context">The database context for the unit of work.</param>
-        public UnitOfWork(DbContext context)
+        /// <param name="exceptionHandler">The exception handler for the unit of work.</param>
+        public UnitOfWork(DbContext context, ExceptionHandler? exceptionHandler = null)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _repositories = new Dictionary<Type, object>();
+            _exceptionHandler = exceptionHandler;
         }
 
         /// <summary>
@@ -70,7 +73,7 @@ namespace Zentient.Repository
 
             if (!_repositories.ContainsKey(type))
             {
-                var repositoryInstance = new RepositoryBase<TEntity, TKey>(_context);
+                var repositoryInstance = new RepositoryBase<TEntity, TKey>(_context, _exceptionHandler);
                 _repositories.Add(type, repositoryInstance);
             }
 
