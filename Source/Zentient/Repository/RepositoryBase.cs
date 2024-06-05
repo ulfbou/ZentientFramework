@@ -2,7 +2,7 @@
 // Class: RepositoryBase
 //
 // Description:
-// The RepositoryBase class is a base class for repositories that interact with a database context. It provides a set of methods for querying, adding, updating, and deleting entities in the database, as well as handling exceptions that occur during data access operations. The class is designed to be generic and flexible, allowing it to work with any entity type that implements the IEntity interface.
+// The RepositoryBase class is a base class for repositories that interact with a database context. It provides a set of methods for querying, adding, updating, and deleting entities in the database, as well as handling exceptions that occur during data access operations. The class is designed to be generic and flexible, allowing it to work with any entity type.
 //
 // Purpose:
 // The purpose of the RepositoryBase class is to provide a common set of methods for working with a database context in a consistent and reusable way. By defining a standard set of operations for managing entities, developers can write code that is more modular, flexible, and maintainable, leading to higher-quality software. The class also helps to decouple the data access logic from the rest of the application, making it easier to test and refactor the code in the future.
@@ -56,7 +56,10 @@ namespace Zentient.Repository
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TKey">The key type</typeparam>
-    public class RepositoryBase<TEntity, TKey> : IRepository<TEntity, TKey>, IDisposable where TEntity : class
+    public class RepositoryBase<TEntity, TKey>
+        : IRepository<TEntity, TKey>, IDisposable
+        where TEntity : class
+        where TKey : struct
     {
         protected readonly DbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
@@ -443,7 +446,9 @@ namespace Zentient.Repository
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>The entity entry, if it was soft deleted. Otherwise null.</returns>
         /// <exception cref="InvalidOperationException">Thrown if entity does not support soft delete.</exception>
-        public virtual async Task<EntityEntry<TEntity>?> SoftDeleteAsync(TEntity entity, CancellationToken cancellation = default)
+        public virtual async Task<EntityEntry<TEntity>?> SoftDeleteAsync(
+            TEntity entity,
+            CancellationToken cancellation = default)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
 

@@ -39,7 +39,7 @@ namespace Zentient.Repository
     /// Represents an entity that can be soft-deleted.
     /// </summary>
     /// <typeparam name="TKey">The type that enables soft-deletion.</typeparam>
-    public interface ISoftDeletable<TKey> : IEntity<TKey>
+    public interface ISoftDeletable<TKey> : IEntity<TKey> where TKey : struct
     {
         bool IsDeleted { get; set; }
     }

@@ -44,7 +44,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
         /// <typeparam name="TKey">The key type of the entity.</typeparam>
-        public IRepository<T, TKey> GetRepository<T, TKey>() where T : class;
+        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class where TKey : struct;
 
         /// <summary>
         /// Save all changes to the repositories.

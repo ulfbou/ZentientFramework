@@ -35,7 +35,6 @@
 
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Zentient.Repository
 {
@@ -65,17 +64,17 @@ namespace Zentient.Repository
         /// </summary>
         /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
         /// <typeparam name="TKey">The key type of the entity.</typeparam>
-        public IRepository<T, TKey> GetRepository<T, TKey>() where T : class
+        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class where TKey : struct
         {
-            var type = typeof(T);
+            var type = typeof(TEntity);
 
             if (!_repositories.ContainsKey(type))
             {
-                var repositoryInstance = new RepositoryBase<T, TKey>(_context);
+                var repositoryInstance = new RepositoryBase<TEntity, TKey>(_context);
                 _repositories.Add(type, repositoryInstance);
             }
 
-            return (IRepository<T, TKey>)_repositories[type];
+            return (IRepository<TEntity, TKey>)_repositories[type];
         }
 
         /// <summary>

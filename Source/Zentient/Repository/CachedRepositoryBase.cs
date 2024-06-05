@@ -45,7 +45,8 @@ namespace Zentient.Repository
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <typeparam name="TKey"></typeparam>
-    public class CachedRepositoryBase<TEntity, TKey> : RepositoryBase<TEntity, TKey>, IDisposable where TEntity : class, IEntity<TKey>
+    public class CachedRepositoryBase<TEntity, TKey> : RepositoryBase<TEntity, TKey>, IDisposable
+        where TEntity : class, IEntity<TKey> where TKey : struct
     {
         protected readonly IMemoryCache _cache;
         protected readonly TimeSpan _cacheDuration;

@@ -39,7 +39,7 @@ namespace Zentient.Repository
     /// Represents an entity with a primary key.
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
-    public interface IEntity<TKey>
+    public interface IEntity<TKey> where TKey : struct
     {
         public TKey Id { get; set; }
     }
