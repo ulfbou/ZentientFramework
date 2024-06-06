@@ -7,7 +7,7 @@
 		<PackageId>Zentient.Repository</PackageId>
 		<AssemblyTitle>Zentient Framework Repository API</AssemblyTitle>
 		<AssemblyProduct>Zentient.Repository</AssemblyProduct>
-		<Version>1.0.0-beta</Version>
+		<Version>1.1.0-beta</Version>
 		<Authors>Ulf Bourelius</Authors>
 		<Description>A generic repository and unit of work pattern implementation for Entity Framework Core, part of the Zentient Framework. It provides a set of methods for managing the overall data access and transactional behavior of an application, including saving changes to the database, beginning and committing transactions, and getting repositories for specific entity types.</Description>
 		<PackageTags>EntityFrameworkCore, Repository, UnitOfWork, GenericRepository, DataAccess, Database, ZentientFramework</PackageTags>
