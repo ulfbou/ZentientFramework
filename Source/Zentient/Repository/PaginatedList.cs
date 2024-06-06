@@ -2,13 +2,31 @@
 // Class: PaginatedList
 //
 // Description:
-// The <see cref="PaginatedList{T}"/> class represents a list of entities that have been paginated. It is a generic class that takes an entity type as a type parameter and inherits from the <see cref="List{T}"/> class. The class provides properties for the page index, total pages, and whether there is a previous or next page, as well as a method to create a new instance of the class asynchronously.
+// The <see cref="PaginatedList{T}"/> class represents a list of entities that
+// have been paginated. It is a generic class that takes an entity type as a type
+// parameter and inherits from the <see cref="List{T}"/> class. The class provides
+// properties for the page index, total pages, and whether there is a previous or
+// next page, as well as a method to create a new instance of the class
+// asynchronously.
 // 
 // Purpose:
-// The purpose of the <see cref="PaginatedList{T}"/> class is to provide a common set of methods for working with a list of entities that have been paginated. By defining a standard set of operations for managing pagination, developers can write code that is more modular, flexible, and maintainable, leading to higher-quality software. The class also helps to decouple the data access logic from the rest of the application, making it easier to test and refactor the code in the future.
+// The purpose of the <see cref="PaginatedList{T}"/> class is to provide a common
+// set of methods for working with a list of entities that have been paginated.
+// By defining a standard set of operations for managing pagination, developers
+// can write code that is more modular, flexible, and maintainable, leading to
+// higher-quality software. The class also helps to decouple the data access
+// logic from the rest of the application, making it easier to test and refactor
+// the code in the future.
 //
 // Usage:
-// The <see cref="PaginatedList{T}"/> class is typically used in conjunction with repositories (<see cref="IRepository{TEntity, TKey}") to manage the overall data access and transactional behavior of an application. Developers can create concrete implementations of the <see cref="PaginatedList{T}"/> class for specific entity types, providing a consistent and reusable way to interact with the database. By using the paginated list pattern, developers can write code that is more modular, flexible, and maintainable, leading to a more robust and scalable application.
+// The <see cref="PaginatedList{T}"/> class is typically used in conjunction with
+// repositories (<see cref="IRepository{TEntity, TKey}") to manage the overall
+// data access and transactional behavior of an application. Developers can create
+// concrete implementations of the <see cref="PaginatedList{T}"/> class for
+// specific entity types, providing a consistent and reusable way to interact with
+// the database. By using the paginated list pattern, developers can write code
+// that is more modular, flexible, and maintainable, leading to a more robust and
+// scalable application.
 //
 // MIT License
 //
