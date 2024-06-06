@@ -348,7 +348,7 @@ namespace Zentient.Repository
         /// <param name="filter">Optional. The filter to apply to the search.</param>
         /// <param name="orderBy">Optional. The order to apply to the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>A paginated list of entities.</returns>
         public virtual async Task<PaginatedList<TEntity>> GetPagedAsync(
             int pageIndex,
             int pageSize = 10,
@@ -384,7 +384,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return new PaginatedList<TEntity>(new List<TEntity>(), 0, pageIndex, pageSize);
+                return await PaginatedList<TEntity>.CreateAsync(new List<TEntity>().AsQueryable());
             }
         }
 
@@ -396,7 +396,8 @@ namespace Zentient.Repository
         /// <param name="filter">The filter to apply to the search.</param>
         /// <param name="orderBy">The order to apply to the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>A cursor paginated list of entities.</returns>
+        /// <remarks>The primary key is assumed to be name Id.</remarks>
         public virtual async Task<CursorPaginatedList<TEntity>> GetPagedByCursorAsync(
             TKey lastCursor,
             int pageSize = 10,
@@ -435,7 +436,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return new CursorPaginatedList<TEntity>(new List<TEntity>(), lastCursor, pageSize);
+                return await CursorPaginatedList<TEntity>.CreateAsync(new List<TEntity>().AsQueryable(), 0);
             }
         }
 

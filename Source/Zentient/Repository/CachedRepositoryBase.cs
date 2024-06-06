@@ -209,7 +209,7 @@ namespace Zentient.Repository
                 }
             }
 
-            return page ?? new PaginatedList<TEntity>(new List<TEntity>(), 0, pageIndex, pageSize);
+            return page ?? await PaginatedList<TEntity>.CreateAsync(Enumerable.Empty<TEntity>().AsQueryable(), pageIndex, pageSize);
         }
 
         /// <inheritdoc/>
@@ -233,7 +233,7 @@ namespace Zentient.Repository
                 }
             }
 
-            return page ?? new CursorPaginatedList<TEntity>(new List<TEntity>(), lastCursor, pageSize);
+            return page ?? await CursorPaginatedList<TEntity>.CreateAsync(Enumerable.Empty<TEntity>().AsQueryable(), 0, 1);
         }
 
         /// <inheritdoc/>
