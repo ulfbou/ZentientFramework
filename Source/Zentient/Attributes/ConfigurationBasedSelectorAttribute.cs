@@ -1,5 +1,3 @@
-using System.Reflection.Metadata;
-
 namespace Zentient.Attributes.Injections
 {
     /// <summary>

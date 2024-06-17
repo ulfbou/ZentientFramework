@@ -33,8 +33,6 @@
 // SOFTWARE.
 //
 
-using System.Security.Cryptography.X509Certificates;
-
 namespace Zentient.Tests.Deprecated;
 
 public interface IAssertion<T>

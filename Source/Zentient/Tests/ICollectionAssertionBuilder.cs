@@ -195,7 +195,7 @@ public interface ICollectionAssertionBuilder<T> : IAssertionBuilder<ICollection<
     /// <param name="message">An optional custom error message to include in case of assertion failure.</param>
     /// <returns>The instance of the collection assertion builder for method chaining.</returns>
     public ICollectionAssertionBuilder<T> AreEqualByProperty<TProperty>(
-        ICollection<T> collection, 
-        Func<T, TProperty> selector, 
+        ICollection<T> collection,
+        Func<T, TProperty> selector,
         string message = "");
 }

@@ -70,7 +70,7 @@ public static partial class ZTAssert
         {
             return;
         }
-        catch {}
+        catch { }
         throw new FailedTestException($"Failed test: Expected to not receive {notExpectedObject}, but got {actualObject}.");
     }
 

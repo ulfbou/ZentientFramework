@@ -33,11 +33,9 @@
 // SOFTWARE.
 //
 
-using System.Dynamic;
-
 namespace Zentient.Tests.Deprecated;
 
-public static partial class ZTAssert 
+public static partial class ZTAssert
 {
     /// <summary>
     /// Asserts that the specified delegate throws exception <see cref="T">exception</see>.
