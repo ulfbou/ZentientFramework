@@ -74,8 +74,7 @@ namespace Zentient.Repository
         private PaginatedList(IEnumerable<TEntity> items, int count, int pageIndex, int pageSize) : base(items)
         {
             PageIndex = pageIndex;
-            TotalPages = (int)Math.Ceiling(count / (double)pageSize);
-            this.AddRange(items);
+            TotalPages = count == 0 ? 1 : (int)Math.Ceiling(count / (double)pageSize);
         }
 
         /// <summary>
@@ -95,15 +94,21 @@ namespace Zentient.Repository
         /// <param name="pageIndex">The current page index.</param>
         /// <param name="pageSize">The number of entities per page.</param>
         /// <returns>A paginated list of entities.</returns>
-        public static async Task<PaginatedList<TEntity>> CreateAsync(IQueryable<TEntity> source, int pageIndex = 0, int pageSize = 1)
+        public static async Task<PaginatedList<TEntity>> CreateAsync(
+            IQueryable<TEntity> source,
+            int pageIndex = 1,
+            int pageSize = 10,
+            int? totalCount = null) // Optional total count parameter
         {
             ArgumentNullException.ThrowIfNull(source, nameof(source));
-            ArgumentOutOfRangeException.ThrowIfNegative(pageIndex, nameof(pageIndex));
-            ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1, nameof(pageSize));
-            var count = await source.CountAsync();
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(pageIndex, count, nameof(pageIndex));
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(pageSize, count, nameof(pageSize));
-            var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            if (pageIndex < 1) throw new ArgumentOutOfRangeException(nameof(pageIndex), "Page index must be at least 1.");
+            if (pageSize < 1) throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be at least 1.");
+
+            var count = totalCount ?? await source.CountAsync();
+            var totalPages = count == 0 ? 1 : (int)Math.Ceiling(count / (double)pageSize);
+            pageIndex = Math.Min(pageIndex, totalPages);
+
+            var items = count == 0 ? new List<TEntity>() : await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return new PaginatedList<TEntity>(items, count, pageIndex, pageSize);
         }
     }
