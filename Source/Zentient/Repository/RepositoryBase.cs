@@ -37,10 +37,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
-using System.Threading.Channels;
-
-/// generate professional documentation aligned with the IRepository interface
-
 
 namespace Zentient.Repository
 {
@@ -57,15 +53,15 @@ namespace Zentient.Repository
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TKey">The key type</typeparam>
     public class RepositoryBase<TEntity, TKey>
-        : IRepository<TEntity, TKey>, IDisposable
-        where TEntity : class
+        : IRepository<TEntity, TKey>, IDisposable, IAsyncDisposable
+        where TEntity : class, IEntity<TKey>
         where TKey : struct
     {
         protected readonly DbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
         protected readonly string _entityType = typeof(TEntity).Name;
         protected ExceptionHandler? _exceptionHandler;
-        protected bool disposedValue;
+        protected bool _disposed = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryBase{TEntity, TKey}"/> class.
@@ -93,20 +89,7 @@ namespace Zentient.Repository
         /// <returns>The entity, if it exists. Otherwise null.</returns>
         public virtual async Task<TEntity?> GetAsync(TKey id, CancellationToken cancellation = default)
         {
-            try
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return await _dbSet.FindAsync(new object[] { id }, cancellation);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await HandleExceptionAsync(ex, cancellation);
-                return null;
-            }
+            return await ExecuteDbOperationAsync<TEntity?>(() => _dbSet.FindAsync(new object[] { id }, cancellation).AsTask(), cancellation);
         }
 
         /// <summary>
@@ -116,20 +99,8 @@ namespace Zentient.Repository
         /// <returns>All entities in the repository.</returns>
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellation = default)
         {
-            try
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return await _dbSet.ToListAsync(cancellation);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await HandleExceptionAsync(ex, cancellation);
-                return Enumerable.Empty<TEntity>();
-            }
+            var op = () => _dbSet.ToListAsync(cancellation);
+            return await ExecuteDbOperationAsync(op, cancellation);
         }
 
         /// <summary>
@@ -138,16 +109,18 @@ namespace Zentient.Repository
         /// <param name="predicate">The predicate to match.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>Entities that match the predicate.</returns>
-        public virtual async Task<IEnumerable<TEntity>> FindAsync(
-            Expression<Func<TEntity, bool>> predicate,
-            CancellationToken cancellation = default)
+        public virtual async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellation = default)
         {
-            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+            var op = () => _dbSet.Where(predicate).ToListAsync(cancellation);
+            return await ExecuteDbOperationAsync(op, cancellation);
+        }
 
+        protected async Task<T> ExecuteDbOperationAsync<T>(Func<Task<T>> operation, CancellationToken cancellation)
+        {
             try
             {
                 cancellation.ThrowIfCancellationRequested();
-                return await _dbSet.Where(predicate).ToListAsync();
+                return await operation();
             }
             catch (OperationCanceledException)
             {
@@ -156,7 +129,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return Enumerable.Empty<TEntity>();
+                return default!;
             }
         }
 
@@ -393,8 +366,9 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="lastCursor">The last cursor to use for the search.</param>
         /// <param name="pageSize">Optional. The size of the page to get. Defaults to 10.</param>
-        /// <param name="filter">The filter to apply to the search.</param>
-        /// <param name="orderBy">The order to apply to the search.</param>
+        /// <param name="filter">Optional. The filter to apply to the search.</param>
+        /// <param name="orderBy">Optional. The order to apply to the search.</param>
+        /// <param name="keySelector">Optional. The key selector for the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>A cursor paginated list of entities.</returns>
         /// <remarks>The primary key is assumed to be name Id.</remarks>
@@ -402,8 +376,7 @@ namespace Zentient.Repository
             TKey lastCursor,
             int pageSize = 10,
             Expression<Func<TEntity, bool>> filter = default!,
-            Func<IQueryable<TEntity>,
-                 IOrderedQueryable<TEntity>> orderBy = default!,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = default!,
             CancellationToken cancellation = default)
         {
             ArgumentNullException.ThrowIfNull(lastCursor, nameof(lastCursor));
@@ -411,21 +384,17 @@ namespace Zentient.Repository
 
             try
             {
-                cancellation.ThrowIfCancellationRequested();
                 IQueryable<TEntity> query = _dbSet;
 
-                if (filter is not null)
+                if (filter != null)
                 {
                     query = query.Where(filter);
                 }
 
-                if (orderBy is not null)
+                if (orderBy != null)
                 {
                     query = orderBy(query);
                 }
-
-                // TODO: Handle situations where TKey is not named "Id"
-                query = query.Where(t => ((IComparable<TKey>)EF.Property<TKey>(t, "Id")!).CompareTo(lastCursor) > 0).Take(pageSize);
 
                 return await CursorPaginatedList<TEntity>.CreateAsync(query, lastCursor, pageSize);
             }
@@ -436,7 +405,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return await CursorPaginatedList<TEntity>.CreateAsync(new List<TEntity>().AsQueryable(), 0);
+                return await CursorPaginatedList<TEntity>.CreateAsync(new List<TEntity>().AsQueryable(), lastCursor, pageSize);
             }
         }
 
@@ -565,16 +534,12 @@ namespace Zentient.Repository
 
         protected virtual async Task HandleExceptionAsync(Exception ex, CancellationToken cancellation = default)
         {
-            ArgumentNullException.ThrowIfNull(ex, nameof(ex));
-
             if (_exceptionHandler != null)
             {
-                cancellation.ThrowIfCancellationRequested();
                 await _exceptionHandler(ex, cancellation);
             }
             else
             {
-                // TODO: Log Exception?
                 throw ex;
             }
         }
@@ -609,35 +574,37 @@ namespace Zentient.Repository
             //await _context.Set<AuditLog<TKey>>().AddAsync(auditLog, cancellation);
             await _context.SaveChangesAsync(cancellation);
         }
-
+        public void Dispose()
+        {
+            // Call the virtual Dispose method. Suppress finalization.
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     _context.Dispose();
-                    _exceptionHandler = null;
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
+                _disposed = true;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~RepositoryBase()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
+            if (_context is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else
+            {
+                _context.Dispose();
+            }
+            Dispose(disposing: false);
             GC.SuppressFinalize(this);
         }
     }

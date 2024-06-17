@@ -35,12 +35,14 @@
 //
 
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Zentient.Repository
 {
-    public interface IRepository<TEntity, TKey> where TEntity : class
+    public interface IRepository<TEntity, TKey>
+        : IDisposable
+        where TEntity : class, IEntity<TKey>
+        where TKey : struct
     {
         // Generate professional documentation for the IRepository interface
         /// <summary>
@@ -125,8 +127,6 @@ namespace Zentient.Repository
                  IOrderedQueryable<TEntity>> orderBy = default!,
             CancellationToken cancellation = default);
 
-        /// <summary>
-        /// Get a paginated list of entities by cursor asynchronously.
         /// </summary>
         /// <param name="lastCursor">The last cursor to use for the search.</param>
         /// <param name="pageSize">Optional. The size of the page to get. Defaults to 10.</param>
@@ -135,12 +135,12 @@ namespace Zentient.Repository
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>A task that represents the asynchronous operations. The task result contains the cursor paginated list of entities of type `TEntity`.</returns>
         Task<CursorPaginatedList<TEntity>> GetPagedByCursorAsync(
-            TKey lastCursor,
-            int pageSize = 10,
-            Expression<Func<TEntity, bool>> filter = default!,
-            Func<IQueryable<TEntity>,
-                 IOrderedQueryable<TEntity>> orderBy = default!,
-            CancellationToken cancellation = default);
+                    TKey lastCursor,
+                    int pageSize = 10,
+                    Expression<Func<TEntity, bool>> filter = default!,
+                    Func<IQueryable<TEntity>,
+                         IOrderedQueryable<TEntity>> orderBy = default!,
+                    CancellationToken cancellation = default);
 
         /// <summary>
         /// Soft delete an entity asynchronously.
