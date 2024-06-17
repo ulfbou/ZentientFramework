@@ -33,22 +33,22 @@
 // SOFTWARE.
 //
 
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Collections.Concurrent;
 
 namespace Zentient.Repository
 {
-    // Generate complete and professional documentation. 
-
     /// <summary>
     /// Represents a unit of work for a database context.
     /// </summary>
-    public class UnitOfWork : IUnitOfWork, IDisposable
+    public class UnitOfWork : IUnitOfWork, IDisposable, IAsyncDisposable
     {
         private readonly DbContext _context;
-        private readonly IDictionary<Type, object> _repositories;
+        private readonly ConcurrentDictionary<Type, object> _repositories;
         private readonly ExceptionHandler? _exceptionHandler;
         private IDbContextTransaction? _transaction = null;
+        private bool _disposed;
 
         /// <summary>
         /// Constructs a new unit of work.
@@ -58,7 +58,7 @@ namespace Zentient.Repository
         public UnitOfWork(DbContext context, ExceptionHandler? exceptionHandler = null)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _repositories = new Dictionary<Type, object>();
+            _repositories = new ConcurrentDictionary<Type, object>();
             _exceptionHandler = exceptionHandler;
         }
 
@@ -67,17 +67,12 @@ namespace Zentient.Repository
         /// </summary>
         /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
         /// <typeparam name="TKey">The key type of the entity.</typeparam>
-        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class where TKey : struct
+        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>()
+            where TEntity : class, IEntity<TKey>
+            where TKey : struct
         {
             var type = typeof(TEntity);
-
-            if (!_repositories.ContainsKey(type))
-            {
-                var repositoryInstance = new RepositoryBase<TEntity, TKey>(_context, _exceptionHandler);
-                _repositories.Add(type, repositoryInstance);
-            }
-
-            return (IRepository<TEntity, TKey>)_repositories[type];
+            return (IRepository<TEntity, TKey>)_repositories.GetOrAdd(type, _ => new RepositoryBase<TEntity, TKey>(_context, _exceptionHandler));
         }
 
         /// <summary>
@@ -85,7 +80,17 @@ namespace Zentient.Repository
         /// </summary>
         /// <returns>The number of state entries written to the database. </returns>
         public async Task<int> SaveChangesAsync(CancellationToken cancellation = default)
-            => await _context.SaveChangesAsync(cancellation);
+        {
+            try
+            {
+                return await _context.SaveChangesAsync(cancellation);
+            }
+            catch (Exception ex)
+            {
+                if (_exceptionHandler is not null) await _exceptionHandler(ex, cancellation);
+                throw;
+            }
+        }
 
         /// <summary>
         /// Begin a transaction.
@@ -113,10 +118,16 @@ namespace Zentient.Repository
 
                 return result;
             }
-            catch
+            catch (Exception ex)
             {
                 await _transaction.RollbackAsync(cancellation);
+                if (_exceptionHandler is not null) await _exceptionHandler(ex);
                 throw;
+            }
+            finally
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
             }
         }
 
@@ -133,12 +144,40 @@ namespace Zentient.Repository
 
         public void Dispose()
         {
-            _context?.Dispose();
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
-            if (_transaction is not null)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                _transaction.Dispose();
+                if (disposing)
+                {
+                    _context?.Dispose();
+                    _transaction?.Dispose();
+                }
+                _disposed = true;
             }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.DisposeAsync();
+            }
+            if (_context is IAsyncDisposable asyncDisposableContext)
+            {
+                await asyncDisposableContext.DisposeAsync();
+            }
+            else
+            {
+                _context.Dispose();
+            }
+            _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }
+

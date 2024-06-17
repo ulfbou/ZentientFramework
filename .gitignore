@@ -408,3 +408,6 @@ newsource/
 /ConsoleTesting
 *.md
 *.md#
+/Source/Zentient/Repository/docs/ZentientFramework.wiki/Zentient-Repository-API-Repository-Pattern-Guide.md
+/Source/Zentient/Repository/docs/ZentientFramework.wiki/Zentient-Repository-API-Repository-Pattern-Guide.md
+/Source/Zentient/Repository/docs/Readme.md

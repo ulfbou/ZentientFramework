@@ -33,8 +33,6 @@
 // SOFTWARE.
 //
 
-using Microsoft.EntityFrameworkCore;
-
 namespace Zentient.Repository
 {
     public interface IUnitOfWork : IDisposable
@@ -44,7 +42,9 @@ namespace Zentient.Repository
         /// </summary>
         /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
         /// <typeparam name="TKey">The key type of the entity.</typeparam>
-        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class where TKey : struct;
+        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>()
+            where TEntity : class, IEntity<TKey>
+            where TKey : struct;
 
         /// <summary>
         /// Save all changes to the repositories.
