@@ -1,4 +1,4 @@
-namespace Zentient.Attributes.Injections
+namespace Zentient.Attributes
 {
     /// <summary>
     /// Specifies whether an environment should be included or excluded.

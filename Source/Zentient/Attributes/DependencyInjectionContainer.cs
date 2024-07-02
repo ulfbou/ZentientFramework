@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Zentient.Attributes.Injections;
+namespace Zentient.Attributes;
 
 public class DependencyInjectionContainer : IDisposable
 {

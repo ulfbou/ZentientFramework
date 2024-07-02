@@ -1,4 +1,4 @@
-namespace Zentient.Attributes.Injections
+namespace Zentient.Attributes
 {
     /// <summary>
     /// Specifies the environment in which a class or method should be included or excluded based on a configuration key.
