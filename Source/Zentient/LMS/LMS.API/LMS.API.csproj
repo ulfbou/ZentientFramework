@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
+		<PackageReference Include="fastendpoints" Version="5.26.0" />
+		<PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.6" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Core.Helpers\Zentient.Core.Helpers.csproj" />
+		<ProjectReference Include="..\..\Extensions\Zentient.Extensions.csproj" />
+		<ProjectReference Include="..\..\Repository\Zentient.Repository.csproj" />
+		<ProjectReference Include="..\LMS.Core\LMS.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\LMS.Persistence\LMS.Persistence.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="LMS.Persistence">
+			<HintPath>..\LMS.Persistence\bin\Debug\net8.0\LMS.Persistence.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="LMS.Core">
+			<HintPath>..\LMS.Core\bin\Debug\net8.0\LMS.Core.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Zentient.Core.Helpers">
+			<HintPath>..\..\Core.Helpers\bin\Debug\net8.0\Zentient.Core.Helpers.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Zentient.Extensions">
+			<HintPath>..\..\Extensions\bin\Debug\net8.0\Zentient.Extensions.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Zentient.Repository">
+			<HintPath>..\..\Repository\bin\Debug\net8.0\Zentient.Repository.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>
