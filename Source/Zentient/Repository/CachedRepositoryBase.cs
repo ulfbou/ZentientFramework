@@ -38,6 +38,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
@@ -67,7 +68,7 @@ namespace Zentient.Repository
             IMemoryCache cache,
             TimeSpan? cacheDuration = null,
             ExceptionHandler? exceptionHandler = null)
-            : base(context, exceptionHandler)
+            : base(context, null, null, exceptionHandler)
         {
             _cache = cache;
             _cacheDuration = cacheDuration ?? TimeSpan.FromMinutes(5);

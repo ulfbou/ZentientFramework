@@ -33,9 +33,15 @@
 // SOFTWARE.
 //
 
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
+
 using System.Collections.Concurrent;
+
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
@@ -45,6 +51,8 @@ namespace Zentient.Repository
     public class UnitOfWork : IUnitOfWork, IDisposable, IAsyncDisposable
     {
         private readonly DbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ConcurrentDictionary<Type, object> _repositories;
         private readonly ExceptionHandler? _exceptionHandler;
         private IDbContextTransaction? _transaction = null;
@@ -54,12 +62,16 @@ namespace Zentient.Repository
         /// Constructs a new unit of work.
         /// </summary>
         /// <param name="context">The database context for the unit of work.</param>
+        /// <param name="mapper">Optional. The mapper for the unit of work.</param>
+        /// <param name="loggerFactory">Optional. The logger factory for the unit of work.</param>
         /// <param name="exceptionHandler">The exception handler for the unit of work.</param>
-        public UnitOfWork(DbContext context, ExceptionHandler? exceptionHandler = null)
+        public UnitOfWork(DbContext context, IMapper? mapper = null, ILoggerFactory? loggerFactory = null, IExceptionHandler? exceptionHandler = null)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _mapper ??= Factory.CreateMapper();
+            _loggerFactory ??= Factory.CreateLoggerFactory();
+            _exceptionHandler ??= Factory.CreateExceptionHandler();
             _repositories = new ConcurrentDictionary<Type, object>();
-            _exceptionHandler = exceptionHandler;
         }
 
         /// <summary>
@@ -72,7 +84,57 @@ namespace Zentient.Repository
             where TKey : struct
         {
             var type = typeof(TEntity);
-            return (IRepository<TEntity, TKey>)_repositories.GetOrAdd(type, _ => new RepositoryBase<TEntity, TKey>(_context, _exceptionHandler));
+            return (IRepository<TEntity, TKey>)_repositories.GetOrAdd(type, _ =>
+            {
+                ILogger<TEntity>? _logger = _loggerFactory.CreateLogger<TEntity>();
+                if (_loggerFactory is not null)
+                {
+                    _logger = _loggerFactory.CreateLogger<TEntity>();
+                }
+
+                return new RepositoryBase<TEntity, TKey>(_context, _mapper, _logger, _exceptionHandler);
+            });
+        }
+
+        /// <summary>
+        /// Register a repository for the specified entity type. 
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
+        /// <typeparam name="TKey">The key type of the entity.</typeparam>
+        /// <param name="implementationType">The implementation type of the repository.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the implementation type is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the repository could not be created or added.</exception>
+        public void RegisterRepository<TEntity, TKey>(Type implementationType)
+            where TEntity : class, IEntity<TKey>
+            where TKey : struct
+        {
+            ArgumentNullException.ThrowIfNull(implementationType, nameof(implementationType));
+
+            var serviceEntityType = typeof(IRepository<TEntity, TKey>);
+            // add specific type checks or constraints to ensure that the implementationType is indeed a type that can be assigned to IRepository<TEntity, TKey>.
+            if (!serviceEntityType.IsAssignableFrom(implementationType))
+            {
+                throw new InvalidOperationException($"The implementation type {implementationType.Name} does not implement {serviceEntityType.Name}.");
+            }
+
+            try
+            {
+                var repository = Activator.CreateInstance(implementationType, _context, _exceptionHandler);
+
+                if (repository is null)
+                {
+                    throw new InvalidOperationException($"Repository for {serviceEntityType.Name} could not be created.");
+                }
+
+                if (!_repositories.TryAdd(serviceEntityType, repository))
+                {
+                    throw new InvalidOperationException($"Repository for {serviceEntityType.Name} could not be added.");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (_exceptionHandler is not null) _exceptionHandler(ex);
+            }
         }
 
         /// <summary>
@@ -163,6 +225,8 @@ namespace Zentient.Repository
 
         public async ValueTask DisposeAsync()
         {
+            if (_disposed) return;
+
             if (_transaction != null)
             {
                 await _transaction.DisposeAsync();
@@ -175,6 +239,7 @@ namespace Zentient.Repository
             {
                 _context.Dispose();
             }
+
             _disposed = true;
             GC.SuppressFinalize(this);
         }

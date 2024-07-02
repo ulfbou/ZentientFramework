@@ -47,6 +47,18 @@ namespace Zentient.Repository
             where TKey : struct;
 
         /// <summary>
+        /// Register a repository for the specified entity type. 
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
+        /// <typeparam name="TKey">The key type of the entity.</typeparam>
+        /// <param name="implementationType">The implementation type of the repository.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the implementation type is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the repository could not be created or added.</exception>
+        public void RegisterRepository<TEntity, TKey>(Type implementationType)
+            where TEntity : class, IEntity<TKey>
+            where TKey : struct;
+
+        /// <summary>
         /// Save all changes to the repositories.
         /// </summary>
         /// <returns>The number of state entries written to the database. </returns>

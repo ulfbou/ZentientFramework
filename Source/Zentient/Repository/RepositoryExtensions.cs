@@ -11,5 +11,14 @@ namespace Zentient.Repository
             container.AddSingleton(typeof(IUnitOfWork), typeof(UnitOfWork));
             return container;
         }
+
+        public static IServiceCollection AddRepository(this IServiceCollection container, Type? repositoryType = null)
+        {
+            if (repositoryType is null) repositoryType = typeof(RepositoryBase<,>);
+
+            container.AddSingleton(typeof(IRepository<,>), repositoryType);
+            container.AddSingleton(typeof(IUnitOfWork), typeof(UnitOfWork));
+            return container;
+        }
     }
 }

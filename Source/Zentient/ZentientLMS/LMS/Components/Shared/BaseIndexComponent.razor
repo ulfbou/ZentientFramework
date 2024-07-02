@@ -1,0 +1,23 @@
+﻿@using LMS.Core.Services
+@using Zentient.Repository
+@typeparam TEntity where TEntity : class, IEntity<TKey>
+@typeparam TKey where TKey : notnull, IEquatable<TKey>
+@inject IGenericRequestService<TEntity, TKey> RequestService
+@inject NavigationManager NavigationManager
+
+@code {
+    protected IEnumerable<TEntity> Entities = new List<TEntity>();
+    protected string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Entities = await RequestService.GetAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading activities: {ex.Message}";
+        }
+    }
+}

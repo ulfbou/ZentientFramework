@@ -33,20 +33,20 @@
 // SOFTWARE.
 //
 
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
+
 using System.Linq.Expressions;
+
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
-    /// <summary>
-    /// Definition for a delegate that handles exceptions.
-    /// </summary>
-    /// <param name="ex">The exception to handle.</param>
-    /// <param name="cancellation">Optional. The cancellation token.</param>
-    public delegate Task<Func<Exception, Task>> ExceptionHandler(Exception ex, CancellationToken cancellation = default);
-
     /// <summary>
     /// Base class for a repository.
     /// </summary>
@@ -59,6 +59,8 @@ namespace Zentient.Repository
     {
         protected readonly DbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
+        private readonly IMapper? _mapper;
+        private readonly ILogger<TEntity>? _logger;
         protected readonly string _entityType = typeof(TEntity).Name;
         protected ExceptionHandler? _exceptionHandler;
         protected bool _disposed = false;
@@ -69,10 +71,12 @@ namespace Zentient.Repository
         /// <param name="context">The database context of the repository.</param>
         /// <param name="exceptionHandler">Optional. The exception handler for the repository.</param>
         /// <throws></throws>
-        public RepositoryBase(DbContext context, ExceptionHandler? exceptionHandler = default)
+        public RepositoryBase(DbContext context, IMapper? mapper = null, ILogger<TEntity>? logger = null, ExceptionHandler? exceptionHandler = default)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _dbSet = _context?.Set<TEntity>() ?? throw new InvalidOperationException("db set is null");
+            _mapper = mapper;
+            _logger = logger;
             _exceptionHandler = exceptionHandler;
         }
 

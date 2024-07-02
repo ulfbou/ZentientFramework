@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Zentient.Repository.Tests.Data;
-using Zentient.Repository.Tests.Models;
 
 namespace Zentient.Repository.Tests
 {

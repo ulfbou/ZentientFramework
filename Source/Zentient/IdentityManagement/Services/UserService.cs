@@ -31,10 +31,10 @@
 //
 
 using AutoMapper;
-using IdentityServer4.Services;
+
 using Microsoft.AspNetCore.Identity;
+
 using Zentient.IdentityManagement.DTO;
-using Zentient.IdentityManagement.Identity;
 using Zentient.IdentityManagement.Models;
 using Zentient.Repository;
 

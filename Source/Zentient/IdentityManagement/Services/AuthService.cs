@@ -30,15 +30,11 @@
 // SOFTWARE.
 //
 
-using IdentityServer4.Models;
-using IdentityServer4.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -55,7 +51,6 @@ namespace Zentient.IdentityManagement.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IConfiguration _configuration;
         private readonly JwtSettings _jwtSettings;
 
         public int MAX_FAILED_ATTEMPTS { get; private set; }
@@ -183,7 +178,8 @@ namespace Zentient.IdentityManagement.Services
 
             if (user == null || user.RefreshTokenExpiryTime <= DateTime.Now)
             {
-                user.FailedTokenAttempts++;
+                // Assuming user is initialized properly before this point
+                user!.FailedTokenAttempts++;
                 await _userManager.UpdateAsync(user);
 
                 if (user.FailedTokenAttempts >= MAX_FAILED_ATTEMPTS)
@@ -355,11 +351,10 @@ namespace Zentient.IdentityManagement.Services
         {
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email)
-        };
-
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty)
+            };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -378,7 +373,7 @@ namespace Zentient.IdentityManagement.Services
         {
             const string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
             StringBuilder res = new StringBuilder();
-            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+            using (var rng = RandomNumberGenerator.Create())
             {
                 byte[] uintBuffer = new byte[4];
                 while (length-- > 0)

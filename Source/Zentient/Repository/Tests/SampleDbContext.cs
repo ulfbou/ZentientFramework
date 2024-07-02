@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Zentient.Repository.Tests.Models;
 
-namespace Zentient.Repository.Tests.Data
+namespace Zentient.Repository.Tests
 {
 
     public class SampleDbContext : DbContext

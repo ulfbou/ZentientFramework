@@ -1,4 +1,4 @@
-﻿namespace Zentient.Repository.Tests.Models
+﻿namespace Zentient.Repository.Tests
 {
     public class SampleEntity : ISoftDeletable<int>
     {
