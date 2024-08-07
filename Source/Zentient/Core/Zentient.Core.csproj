@@ -10,9 +10,4 @@
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.6" />
 		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.6" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\LMS\LMS.Core\LMS.Core.csproj" />
-	</ItemGroup>
-
 </Project>
