@@ -1,36 +1,356 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Docs\API Documentation Guide.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Docs\API Documentation Guide.txt" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="serilog" Version="3.1.1" />
-		<PackageReference Include="serilog.Extensions.Logging" Version="8.0.0" />
-		<PackageReference Include="serilog.Extensions.Logging.File" Version="3.0.0" />
-		<PackageReference Include="serilog.Formatting.Compact.Utf8" Version="0.0.2" />
-		<PackageReference Include="serilog.Settings.AppSettings" Version="2.2.2" />
-		<PackageReference Include="serilog.Settings.Configuration" Version="8.0.0" />
-		<PackageReference Include="serilog.Settings.Json" Version="0.0.0.2" />
-		<PackageReference Include="serilog.Settings.Reloader" Version="2.10.0" />
-		<PackageReference Include="serilog.Sinks.Async" Version="1.5.0" />
-		<PackageReference Include="serilog.Sinks.Console" Version="5.0.1" />
-		<PackageReference Include="serilog.Sinks.Debug" Version="2.0.0" />
-		<PackageReference Include="serilog.Sinks.File" Version="5.0.0" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\AccessDenied.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ConfirmEmail.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ConfirmEmailChange.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ExternalLogin.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ForgotPassword.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ForgotPasswordConfirmation.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\InvalidPasswordReset.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\InvalidUser.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Lockout.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Login.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\LoginWith2fa.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\LoginWithRecoveryCode.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\ChangePassword.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\DeletePersonalData.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\Disable2fa.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\Email.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\EnableAuthenticator.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\ExternalLogins.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\GenerateRecoveryCodes.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\Index.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\PersonalData.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\ResetAuthenticator.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\SetPassword.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\TwoFactorAuthentication.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Manage\_Imports.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\Register.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\RegisterConfirmation.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ResendEmailConfirmation.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ResetPassword.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\ResetPasswordConfirmation.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Pages\_Imports.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\AccountLayout.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\ExternalLoginPicker.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\ManageLayout.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\ManageNavMenu.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\RedirectToLogin.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\ShowRecoveryCodes.razor" />
+		<None Remove="Deprecated\Pages\New\Account\Shared\StatusMessage.razor" />
+		<None Remove="Deprecated\Pages\New\Layout\Footer.razor" />
+		<None Remove="Deprecated\Pages\New\Layout\MainLayout.razor" />
+		<None Remove="Deprecated\Pages\New\Layout\NavMenu.razor" />
+		<None Remove="Deprecated\Pages\New\Shared\BaseIndexComponent.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\AccessDenied.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ConfirmEmail.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ConfirmEmailChange.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ExternalLogin.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ForgotPassword.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ForgotPasswordConfirmation.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\InvalidPasswordReset.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\InvalidUser.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Lockout.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Login.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\LoginWith2fa.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\LoginWithRecoveryCode.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\ChangePassword.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\DeletePersonalData.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\Disable2fa.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\Email.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\EnableAuthenticator.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\ExternalLogins.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\GenerateRecoveryCodes.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\Index.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\PersonalData.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\ResetAuthenticator.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\SetPassword.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\TwoFactorAuthentication.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Manage\_Imports.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\Register.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\RegisterConfirmation.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ResendEmailConfirmation.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ResetPassword.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\ResetPasswordConfirmation.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Pages\_Imports.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\AccountLayout.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\ExternalLoginPicker.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\ManageLayout.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\ManageNavMenu.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\RedirectToLogin.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\ShowRecoveryCodes.razor" />
+		<None Remove="Deprecated\Pages\Old\Account\Shared\StatusMessage.razor" />
+		<None Remove="Deprecated\Pages\Old\Layout\Footer.razor" />
+		<None Remove="Deprecated\Pages\Old\Layout\MainLayout.razor" />
+		<None Remove="Deprecated\Pages\Old\Layout\NavMenu.razor" />
 	</ItemGroup>
 
 	<ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-  </ItemGroup>
+		<Content Include="Deprecated\Pages\New\Account\Pages\AccessDenied.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ConfirmEmail.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ConfirmEmailChange.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ExternalLogin.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ForgotPassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ForgotPasswordConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\InvalidPasswordReset.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\InvalidUser.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Lockout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Login.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\LoginWith2fa.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\LoginWithRecoveryCode.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\ChangePassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\DeletePersonalData.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\Disable2fa.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\Email.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\EnableAuthenticator.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\ExternalLogins.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\GenerateRecoveryCodes.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\Index.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\PersonalData.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\ResetAuthenticator.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\SetPassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\TwoFactorAuthentication.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Manage\_Imports.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\Register.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\RegisterConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ResendEmailConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ResetPassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\ResetPasswordConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Pages\_Imports.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\AccountLayout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\ExternalLoginPicker.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\ManageLayout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\ManageNavMenu.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\RedirectToLogin.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\ShowRecoveryCodes.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Account\Shared\StatusMessage.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Layout\Footer.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Layout\MainLayout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Layout\NavMenu.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\New\Shared\BaseIndexComponent.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\AccessDenied.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ConfirmEmail.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ConfirmEmailChange.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ExternalLogin.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ForgotPassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ForgotPasswordConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\InvalidPasswordReset.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\InvalidUser.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Lockout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Login.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\LoginWith2fa.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\LoginWithRecoveryCode.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\ChangePassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\DeletePersonalData.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\Disable2fa.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\Email.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\EnableAuthenticator.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\ExternalLogins.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\GenerateRecoveryCodes.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\Index.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\PersonalData.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\ResetAuthenticator.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\SetPassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\TwoFactorAuthentication.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Manage\_Imports.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\Register.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\RegisterConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ResendEmailConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ResetPassword.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\ResetPasswordConfirmation.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Pages\_Imports.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\AccountLayout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\ExternalLoginPicker.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\ManageLayout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\ManageNavMenu.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\RedirectToLogin.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\ShowRecoveryCodes.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Account\Shared\StatusMessage.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Layout\Footer.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Layout\MainLayout.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="Deprecated\Pages\Old\Layout\NavMenu.razor">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="moq" Version="4.20.70" />
+		<PackageReference Include="Zentient.Repository" Version="1.2.0-beta" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+	</ItemGroup>
 
 </Project>

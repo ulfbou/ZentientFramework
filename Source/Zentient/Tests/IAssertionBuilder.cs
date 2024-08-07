@@ -80,7 +80,7 @@ public interface IAssertionBuilder<T>
     /// </summary>
     /// <exception cref="AssertionFailureException">Thrown if the assertion fails.</exception>
     public IAssertionBuilder<T> IsNotNull(string message = "");
-    
+
     public IAssertionBuilder<T> IsTrue(string message = "");
 }
 

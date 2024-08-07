@@ -1,0 +1,8 @@
+.page {
+    background-color: #494949;
+    min-height: calc(100vh - 114px) ;
+}
+
+main {
+    color:white;
+}

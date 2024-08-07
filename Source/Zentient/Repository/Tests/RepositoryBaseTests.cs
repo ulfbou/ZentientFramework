@@ -1,8 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Moq;
-using Zentient.Repository.Tests.Data;
-using Zentient.Repository.Tests.Models;
 
 namespace Zentient.Repository.Tests
 {
@@ -407,7 +403,7 @@ namespace Zentient.Repository.Tests
 
             // Assert
             Assert.AreEqual(0, result.Count());
-            Assert.AreEqual(0, result.TotalPages);
+            Assert.AreEqual(1, result.TotalPages);
         }
 
         [TestMethod]

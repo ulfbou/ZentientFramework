@@ -1,4 +1,4 @@
-namespace Zentient.Attributes.Injections
+namespace Zentient.Attributes
 {
     /// <summary>
     /// Indicates that a method serves as a factory for creating instances of a specified service type.

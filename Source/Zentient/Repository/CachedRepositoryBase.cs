@@ -1,4 +1,4 @@
-﻿//
+﻿// 
 // Class: CachedRepositoryBase
 // 
 // Description:
@@ -36,7 +36,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
@@ -45,10 +47,14 @@ namespace Zentient.Repository
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <typeparam name="TKey"></typeparam>
-    public class CachedRepositoryBase<TEntity, TKey> : RepositoryBase<TEntity, TKey>, IDisposable where TEntity : class, IEntity<TKey>
+    public class CachedRepositoryBase<TEntity, TKey>
+        : RepositoryBase<TEntity, TKey>, IDisposable
+        where TEntity : class, IEntity<TKey> where TKey : struct
     {
         protected readonly IMemoryCache _cache;
         protected readonly TimeSpan _cacheDuration;
+        private readonly ConcurrentDictionary<string, byte> _cacheKeys = new();
+        private readonly ReaderWriterLockSlim _lock = new();
 
         /// <summary>
         /// Base class for a repository.
@@ -62,23 +68,35 @@ namespace Zentient.Repository
             IMemoryCache cache,
             TimeSpan? cacheDuration = null,
             ExceptionHandler? exceptionHandler = null)
-            : base(context, exceptionHandler)
+            : base(context, null, null, exceptionHandler)
         {
             _cache = cache;
             _cacheDuration = cacheDuration ?? TimeSpan.FromMinutes(5);
         }
 
+        private string GetCacheKey(string methodIdentifier, params object[] parameters)
+        {
+            var key = $"Operation_{methodIdentifier}_Params_{string.Join("_", parameters)}";
+            _lock.EnterWriteLock();
+            try
+            {
+                _cacheKeys.TryAdd(key, 0);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+            return key;
+        }
+
         /// <inheritdoc/>
         public override async Task<TEntity?> GetAsync(TKey id, CancellationToken cancellation = default)
         {
-            string cacheKey = $"{_entityType}_{id}";
+            string cacheKey = GetCacheKey("Get", id);
             if (!_cache.TryGetValue(cacheKey, out TEntity? entity))
             {
                 entity = await base.GetAsync(id, cancellation);
-                if (entity != null)
-                {
-                    _cache.Set(cacheKey, entity, _cacheDuration);
-                }
+                _cache.Set(cacheKey, entity, _cacheDuration);
             }
             return entity;
         }
@@ -86,7 +104,7 @@ namespace Zentient.Repository
         /// <inheritdoc/>
         public override async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellation = default)
         {
-            string cacheKey = $"{_entityType}_All";
+            string cacheKey = GetCacheKey("Get", "All");
             if (!_cache.TryGetValue(cacheKey, out IEnumerable<TEntity>? entities))
             {
                 entities = await base.GetAllAsync(cancellation);
@@ -103,7 +121,7 @@ namespace Zentient.Repository
         /// <inheritdoc/>
         public override async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellation = default)
         {
-            string cacheKey = $"{_entityType}_Find_{predicate}";
+            string cacheKey = GetCacheKey("Find", predicate);
 
             if (!_cache.TryGetValue(cacheKey, out IEnumerable<TEntity>? entities))
             {
@@ -118,18 +136,31 @@ namespace Zentient.Repository
             return entities ?? Enumerable.Empty<TEntity>();
         }
 
+        private void InvalidateCache()
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                foreach (var key in _cacheKeys)
+                {
+                    _cache.Remove(key);
+                }
+
+                _cacheKeys.Clear();
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
+
         /// <inheritdoc/>
         public override async Task<EntityEntry<TEntity>?> AddAsync(
             TEntity entity,
             CancellationToken cancellation = default)
         {
             var result = await base.AddAsync(entity, cancellation);
-
-            if (result != null)
-            {
-                _cache.Remove($"{_entityType}_All");
-            }
-
+            InvalidateCache();
             return result;
         }
 
@@ -137,11 +168,7 @@ namespace Zentient.Repository
         public override async Task<int> AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellation = default)
         {
             var result = await base.AddRangeAsync(entities, cancellation);
-
-            if (result > 0)
-            {
-                _cache.Remove($"{_entityType}_All");
-            }
+            InvalidateCache();
 
             return result;
         }
@@ -152,11 +179,7 @@ namespace Zentient.Repository
             CancellationToken cancellation = default)
         {
             var result = await base.UpdateAsync(entity, cancellation);
-
-            if (result != null)
-            {
-                _cache.Remove($"{_entityType}_All");
-            }
+            InvalidateCache();
 
             return result;
         }
@@ -165,11 +188,7 @@ namespace Zentient.Repository
         public override async Task<EntityEntry<TEntity>?> RemoveAsync(TEntity entity, CancellationToken cancellation = default)
         {
             var result = await base.RemoveAsync(entity, cancellation);
-
-            if (result != null)
-            {
-                _cache.Remove($"{_entityType}_All");
-            }
+            InvalidateCache();
 
             return result;
         }
@@ -178,11 +197,7 @@ namespace Zentient.Repository
         public override async Task<int> RemoveRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellation = default)
         {
             var result = await base.RemoveRangeAsync(entities, cancellation);
-
-            if (result > 0)
-            {
-                _cache.Remove($"{_entityType}_All");
-            }
+            InvalidateCache();
 
             return result;
         }
@@ -208,17 +223,17 @@ namespace Zentient.Repository
                 }
             }
 
-            return page ?? new PaginatedList<TEntity>(new List<TEntity>(), 0, pageIndex, pageSize);
+            return page ?? await PaginatedList<TEntity>.CreateAsync(Enumerable.Empty<TEntity>().AsQueryable(), pageIndex, pageSize);
         }
 
         /// <inheritdoc/>
         public override async Task<CursorPaginatedList<TEntity>> GetPagedByCursorAsync(
-            TKey lastCursor,
-            int pageSize = 10,
-            Expression<Func<TEntity, bool>> filter = default!,
-            Func<IQueryable<TEntity>,
-                 IOrderedQueryable<TEntity>> orderBy = default!,
-            CancellationToken cancellation = default)
+                    TKey lastCursor,
+                    int pageSize = 10,
+                    Expression<Func<TEntity, bool>> filter = default!,
+                    Func<IQueryable<TEntity>,
+                         IOrderedQueryable<TEntity>> orderBy = default!,
+                    CancellationToken cancellation = default)
         {
             string cacheKey = $"{_entityType}_Cursor_{lastCursor}_{pageSize}_{filter}_{orderBy}";
 
@@ -232,13 +247,13 @@ namespace Zentient.Repository
                 }
             }
 
-            return page ?? new CursorPaginatedList<TEntity>(new List<TEntity>(), lastCursor, pageSize);
+            return page ?? await CursorPaginatedList<TEntity>.CreateAsync(Enumerable.Empty<TEntity>().AsQueryable(), 0, 1);
         }
 
         /// <inheritdoc/>
         public override async Task<int> CountAsync(CancellationToken cancellation = default)
         {
-            string cacheKey = $"{_entityType}_Count";
+            string cacheKey = GetCacheKey("Count", "All");
 
             if (!_cache.TryGetValue(cacheKey, out int count))
             {
@@ -269,15 +284,14 @@ namespace Zentient.Repository
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
-            if (!disposedValue)
+            if (!_disposed)
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
                     _cache.Dispose();
                 }
+                base.Dispose(disposing);
+                _disposed = true;
             }
         }
     }

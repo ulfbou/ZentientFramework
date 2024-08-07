@@ -1,10 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Dynamic;
 using System.Reflection;
-using System.Xml.Linq;
 
-namespace Zentient.Attributes.Injections;
+namespace Zentient.Attributes;
 
 public class DependencyInjectionContainer : IDisposable
 {
@@ -548,7 +546,7 @@ public Type ServiceType { get; }
     /// <summary>
     /// Releases unmanaged resources and performs other cleanup operations before the object is reclaimed by garbage collection.
     /// </summary>
-    public void Dispose()
+    public void AsyncDispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
@@ -671,6 +669,20 @@ public Type ServiceType { get; }
         }
 
         return false; // Default to enabled if configuration retrieval fails or key is not found
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~DependencyInjectionContainer()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
     #endregion
 }

@@ -1,5 +1,4 @@
-﻿// Generate professional documentation for the IRepository interface following in the same style as the current documentation. Provide additional documentation whereever you see fit.
-//
+﻿//
 // Class: IRepository
 //
 // Description:
@@ -36,12 +35,15 @@
 //
 
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System.Collections.Generic;
 using System.Linq.Expressions;
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
-    public interface IRepository<TEntity, TKey> where TEntity : class
+    public interface IRepository<TEntity, TKey>
+        : IDisposable
+        where TEntity : class, IEntity<TKey>
+        where TKey : struct
     {
         // Generate professional documentation for the IRepository interface
         /// <summary>
@@ -49,14 +51,14 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="id">The key of the entity to get.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The entity, if it exists. Otherwise null.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the entity of type `TEntity` with the specified primary key value, if it exists; otherwise null.</returns>
         Task<TEntity?> GetAsync(TKey id, CancellationToken cancellation = default);
 
         /// <summary>
         /// Get all entities asynchronously.
         /// </summary>
         /// <param name="cancellationToken">Optional. The cancellation token.</param>
-        /// <returns>All entities in the repository.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains all entities of type `TEntity`.</returns>
         Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellation = default);
 
         /// <summary>
@@ -64,7 +66,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="predicate">The predicate to match.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>Entities that match the predicate.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the entities of type `TEntity` that match the predicate.</returns>
         Task<IEnumerable<TEntity>> FindAsync(
             Expression<Func<TEntity, bool>> predicate,
             CancellationToken cancellation = default);
@@ -74,7 +76,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="entity">The entity to add.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The entity entry, if it was added. Otherwise null.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the entity entry of type `EntityEntry<TEntity>`, if it was added; otherwise null.</returns>
         Task<EntityEntry<TEntity>?> AddAsync(TEntity entity, CancellationToken cancellation = default);
 
         /// <summary>
@@ -82,7 +84,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="entities">The entities to add.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The number of entities added.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the number of entities of type `TEntity` added.</returns>
         Task<int> AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellation = default);
 
         /// <summary>
@@ -90,7 +92,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="entity">The entity to update.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The entity entry, if it was updated. Otherwise null.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the entity entry of type `EntityEntry<TEntity>`, if it was updated; otherwise null.</returns>
         Task<EntityEntry<TEntity>?> UpdateAsync(TEntity entity, CancellationToken cancellation = default);
 
         /// <summary>
@@ -98,7 +100,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="entity">The entity to remove.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The entity entry, if it was removed. Otherwise null.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the entity entry of type `EntityEntry<TEntity>`, if it was removed; otherwise null.</returns>
         Task<EntityEntry<TEntity>?> RemoveAsync(TEntity entity, CancellationToken cancellation = default);
 
         /// <summary>
@@ -106,7 +108,7 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="entities">The entities to remove.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The number of entities removed.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the number of entities of type `TEntity` removed.</returns>
         Task<int> RemoveRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellation = default);
 
         /// <summary>
@@ -117,7 +119,7 @@ namespace Zentient.Repository
         /// <param name="filter">Optional. The filter to apply to the search.</param>
         /// <param name="orderBy">Optional. The order to apply to the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the paginated list of entities of type `TEntity`.</returns>
         Task<PaginatedList<TEntity>> GetPagedAsync(
             int pageIndex,
             int pageSize = 10,
@@ -126,29 +128,27 @@ namespace Zentient.Repository
                  IOrderedQueryable<TEntity>> orderBy = default!,
             CancellationToken cancellation = default);
 
-        /// <summary>
-        /// Get a paginated list of entities by cursor asynchronously.
         /// </summary>
         /// <param name="lastCursor">The last cursor to use for the search.</param>
         /// <param name="pageSize">Optional. The size of the page to get. Defaults to 10.</param>
         /// <param name="filter">The filter to apply to the search.</param>
         /// <param name="orderBy">The order to apply to the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the cursor paginated list of entities of type `TEntity`.</returns>
         Task<CursorPaginatedList<TEntity>> GetPagedByCursorAsync(
-            TKey lastCursor,
-            int pageSize = 10,
-            Expression<Func<TEntity, bool>> filter = default!,
-            Func<IQueryable<TEntity>,
-                 IOrderedQueryable<TEntity>> orderBy = default!,
-            CancellationToken cancellation = default);
+                    TKey lastCursor,
+                    int pageSize = 10,
+                    Expression<Func<TEntity, bool>> filter = default!,
+                    Func<IQueryable<TEntity>,
+                         IOrderedQueryable<TEntity>> orderBy = default!,
+                    CancellationToken cancellation = default);
 
         /// <summary>
         /// Soft delete an entity asynchronously.
         /// </summary>
         /// <param name="entity">The entity to soft delete.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The entity entry, if it was soft deleted. Otherwise null.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the entity entry of type `EntityEntry<TEntity>`, if it was soft deleted; otherwise null.</returns>
         Task<EntityEntry<TEntity>?> SoftDeleteAsync(TEntity entity, CancellationToken cancellation = default);
 
         /// <summary>
@@ -156,14 +156,14 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="entity">The entity to soft delete.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns>The entity entry, if it was soft deleted. Otherwise null.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if entity does not support soft delete.</exception>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the entity entry, if it was soft deleted; otherwise null.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if entity of type `TEntity` does not support soft delete.</exception>
         public Task<EntityEntry<TEntity>?> SoftUndeleteAsync(TEntity entity, CancellationToken cancellation = default);
 
         /// <summary>
         /// Count the number of entities asynchronously.
         /// </summary>
-        /// <returns>The number of entities in the repository.</returns>
+        /// <returns>A task that represents the asynchronous operations. The task result contains the number of entities of type `TEntity` in the repository.</returns>
         public Task<int> CountAsync(CancellationToken cancellation = default);
 
         /// <summary>

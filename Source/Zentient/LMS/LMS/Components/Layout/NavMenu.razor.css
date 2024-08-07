@@ -1,0 +1,51 @@
+h1 {
+   padding: 1.5rem 0;
+   margin-bottom: 0;
+}
+
+.robo {
+    color: #23B0FF;
+}
+
+nav {
+    border-top: 1px solid #23B0FF;
+}
+
+header {
+    background-color: #2E2E2E;
+   
+}
+
+.link-hover {
+    transition: 0.3s;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+
+}
+
+.link-hover:hover {
+    color: #23B0FF;
+}
+
+
+
+.button-logout {
+    background: none;
+    border: none;
+    padding:0 1rem; 
+    color: #007bff;
+    cursor: pointer;
+    font: inherit;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+    .button-logout:hover .link-hover {
+        text-decoration: underline;
+    }
+
+    .nav-link .bi, .button-logout .bi {
+        margin-right: 5px; 
+    }

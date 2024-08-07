@@ -33,8 +33,6 @@
 // SOFTWARE.
 //
 
-using System.Collections.Generic;
-
 namespace Zentient.Tests;
 
 public class AssertionBuilderBase<T>(T actual, string message) : IAssertionBuilder<T>

@@ -7,8 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="microsoft.extensions.configuration" Version="8.0.0" />
-		<PackageReference Include="microsoft.extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="microsoft.extensions.configuration" Version="9.0.0-preview.4.24266.19" />
+		<PackageReference Include="microsoft.extensions.DependencyInjection" Version="9.0.0-preview.4.24266.19" />
+		<PackageReference Include="moq" Version="4.20.70" />
+		<PackageReference Include="Zentient.Repository" Version="1.2.0-beta" />
 	</ItemGroup>
 
 </Project>

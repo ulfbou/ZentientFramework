@@ -1,14 +1,32 @@
-﻿//
+﻿// 
 // Class: PaginatedList
 //
 // Description:
-// The <see cref="PaginatedList{T}"/> class represents a list of entities that have been paginated. It provides a set of properties and methods for managing the overall data access and transactional behavior of an application, including saving changes to the database, beginning and committing transactions, and getting repositories for specific entity types. The class is designed to be generic and flexible, allowing it to work with any entity type that implements the <see cref="DbContext"/> class.
+// The <see cref="PaginatedList{T}"/> class represents a list of entities that
+// have been paginated. It is a generic class that takes an entity type as a type
+// parameter and inherits from the <see cref="List{T}"/> class. The class provides
+// properties for the page index, total pages, and whether there is a previous or
+// next page, as well as a method to create a new instance of the class
+// asynchronously.
 // 
 // Purpose:
-// The purpose of the <see cref="PaginatedList{T}"/> class is to provide a common set of methods for working with a list of entities that have been paginated. By defining a standard set of operations for managing pagination, developers can write code that is more modular, flexible, and maintainable, leading to higher-quality software. The class also helps to decouple the data access logic from the rest of the application, making it easier to test and refactor the code in the future.
+// The purpose of the <see cref="PaginatedList{T}"/> class is to provide a common
+// set of methods for working with a list of entities that have been paginated.
+// By defining a standard set of operations for managing pagination, developers
+// can write code that is more modular, flexible, and maintainable, leading to
+// higher-quality software. The class also helps to decouple the data access
+// logic from the rest of the application, making it easier to test and refactor
+// the code in the future.
 //
 // Usage:
-// The <see cref="PaginatedList{T}"/> class is typically used in conjunction with repositories (<see cref="IRepository{TEntity, TKey}") to manage the overall data access and transactional behavior of an application. Developers can create concrete implementations of the <see cref="PaginatedList{T}"/> class for specific entity types, providing a consistent and reusable way to interact with the database. By using the paginated list pattern, developers can write code that is more modular, flexible, and maintainable, leading to a more robust and scalable application.
+// The <see cref="PaginatedList{T}"/> class is typically used in conjunction with
+// repositories (<see cref="IRepository{TEntity, TKey}") to manage the overall
+// data access and transactional behavior of an application. Developers can create
+// concrete implementations of the <see cref="PaginatedList{T}"/> class for
+// specific entity types, providing a consistent and reusable way to interact with
+// the database. By using the paginated list pattern, developers can write code
+// that is more modular, flexible, and maintainable, leading to a more robust and
+// scalable application.
 //
 // MIT License
 //
@@ -53,11 +71,10 @@ namespace Zentient.Repository
         /// <param name="count">The total number of entities in the list.</param>
         /// <param name="pageIndex">The current page index.</param>
         /// <param name="pageSize">The number of entities per page.</param>
-        public PaginatedList(List<TEntity> items, int count, int pageIndex, int pageSize)
+        private PaginatedList(IEnumerable<TEntity> items, int count, int pageIndex, int pageSize) : base(items)
         {
             PageIndex = pageIndex;
-            TotalPages = (int)Math.Ceiling(count / (double)pageSize);
-            this.AddRange(items);
+            TotalPages = count == 0 ? 1 : (int)Math.Ceiling(count / (double)pageSize);
         }
 
         /// <summary>
@@ -77,10 +94,21 @@ namespace Zentient.Repository
         /// <param name="pageIndex">The current page index.</param>
         /// <param name="pageSize">The number of entities per page.</param>
         /// <returns>A paginated list of entities.</returns>
-        public static async Task<PaginatedList<TEntity>> CreateAsync(IQueryable<TEntity> source, int pageIndex, int pageSize)
+        public static async Task<PaginatedList<TEntity>> CreateAsync(
+            IQueryable<TEntity> source,
+            int pageIndex = 1,
+            int pageSize = 10,
+            int? totalCount = null) // Optional total count parameter
         {
-            var count = await source.CountAsync();
-            var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            ArgumentNullException.ThrowIfNull(source, nameof(source));
+            if (pageIndex < 1) throw new ArgumentOutOfRangeException(nameof(pageIndex), "Page index must be at least 1.");
+            if (pageSize < 1) throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be at least 1.");
+
+            var count = totalCount ?? await source.CountAsync();
+            var totalPages = count == 0 ? 1 : (int)Math.Ceiling(count / (double)pageSize);
+            pageIndex = Math.Min(pageIndex, totalPages);
+
+            var items = count == 0 ? new List<TEntity>() : await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return new PaginatedList<TEntity>(items, count, pageIndex, pageSize);
         }
     }

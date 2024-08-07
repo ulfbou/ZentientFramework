@@ -1,4 +1,4 @@
-namespace Zentient.Attributes.Injections
+namespace Zentient.Attributes
 {
     /// <summary>
     /// Indicates that a class serves as a service implementation to be registered.

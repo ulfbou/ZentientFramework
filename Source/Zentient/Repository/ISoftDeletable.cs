@@ -1,5 +1,4 @@
-﻿// Generate professional documentation for the IRepository interface following in the same style as the current documentation. Provide additional documentation whereever you see fit. provide full xml support in the documentaiton including <see cref="MyModel{TEntity, TKey}"/>. 
-//
+﻿//
 // Class: ISoftDeletable
 //
 // Description:
@@ -40,7 +39,7 @@ namespace Zentient.Repository
     /// Represents an entity that can be soft-deleted.
     /// </summary>
     /// <typeparam name="TKey">The type that enables soft-deletion.</typeparam>
-    public interface ISoftDeletable<TKey> : IEntity<TKey>
+    public interface ISoftDeletable<TKey> : IEntity<TKey> where TKey : struct
     {
         bool IsDeleted { get; set; }
     }

@@ -33,8 +33,6 @@
 // SOFTWARE.
 //
 
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-
 namespace Zentient.Tests;
 
 public sealed class Assert

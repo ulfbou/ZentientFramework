@@ -40,11 +40,11 @@ namespace Zentient.Tests;
 [Serializable]
 public class AssertionFailureException : Exception
 {
-    public AssertionFailureException() {}
+    public AssertionFailureException() { }
 
-    public AssertionFailureException(string? message) : base(message) {}
+    public AssertionFailureException(string? message) : base(message) { }
 
-    public AssertionFailureException(string? message, Exception? innerException) : base(message, innerException) {}
+    public AssertionFailureException(string? message, Exception? innerException) : base(message, innerException) { }
 
-    protected AssertionFailureException(SerializationInfo info, StreamingContext context) : base(info, context) {}
+    protected AssertionFailureException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

@@ -1,9 +1,8 @@
-﻿// Generate professional documentation for the IRepository interface following in the same style as the current documentation. Provide additional documentation whereever you see fit. provide full xml support in the documentaiton. 
-//
+﻿//
 // Class: RepositoryBase
 //
 // Description:
-// The RepositoryBase class is a base class for repositories that interact with a database context. It provides a set of methods for querying, adding, updating, and deleting entities in the database, as well as handling exceptions that occur during data access operations. The class is designed to be generic and flexible, allowing it to work with any entity type that implements the IEntity interface.
+// The RepositoryBase class is a base class for repositories that interact with a database context. It provides a set of methods for querying, adding, updating, and deleting entities in the database, as well as handling exceptions that occur during data access operations. The class is designed to be generic and flexible, allowing it to work with any entity type.
 //
 // Purpose:
 // The purpose of the RepositoryBase class is to provide a common set of methods for working with a database context in a consistent and reusable way. By defining a standard set of operations for managing entities, developers can write code that is more modular, flexible, and maintainable, leading to higher-quality software. The class also helps to decouple the data access logic from the rest of the application, making it easier to test and refactor the code in the future.
@@ -34,36 +33,37 @@
 // SOFTWARE.
 //
 
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
+
 using System.Linq.Expressions;
-using System.Threading.Channels;
 
-/// generate professional documentation aligned with the IRepository interface
-
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
-    /// <summary>
-    /// Definition for a delegate that handles exceptions.
-    /// </summary>
-    /// <param name="ex">The exception to handle.</param>
-    /// <param name="cancellation">Optional. The cancellation token.</param>
-    public delegate Task<Func<Exception, Task>> ExceptionHandler(Exception ex, CancellationToken cancellation = default);
-
     /// <summary>
     /// Base class for a repository.
     /// </summary>
     /// <typeparam name="TEntity">The entity type</typeparam>
     /// <typeparam name="TKey">The key type</typeparam>
-    public class RepositoryBase<TEntity, TKey> : IRepository<TEntity, TKey>, IDisposable where TEntity : class
+    public class RepositoryBase<TEntity, TKey>
+        : IRepository<TEntity, TKey>, IDisposable, IAsyncDisposable
+        where TEntity : class, IEntity<TKey>
+        where TKey : struct
     {
         protected readonly DbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
+        private readonly IMapper? _mapper;
+        private readonly ILogger<TEntity>? _logger;
         protected readonly string _entityType = typeof(TEntity).Name;
         protected ExceptionHandler? _exceptionHandler;
-        protected bool disposedValue;
+        protected bool _disposed = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryBase{TEntity, TKey}"/> class.
@@ -71,10 +71,12 @@ namespace Zentient.Repository
         /// <param name="context">The database context of the repository.</param>
         /// <param name="exceptionHandler">Optional. The exception handler for the repository.</param>
         /// <throws></throws>
-        public RepositoryBase(DbContext context, ExceptionHandler? exceptionHandler = default)
+        public RepositoryBase(DbContext context, IMapper? mapper = null, ILogger<TEntity>? logger = null, ExceptionHandler? exceptionHandler = default)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _dbSet = _context?.Set<TEntity>() ?? throw new InvalidOperationException("db set is null");
+            _mapper = mapper;
+            _logger = logger;
             _exceptionHandler = exceptionHandler;
         }
 
@@ -91,20 +93,7 @@ namespace Zentient.Repository
         /// <returns>The entity, if it exists. Otherwise null.</returns>
         public virtual async Task<TEntity?> GetAsync(TKey id, CancellationToken cancellation = default)
         {
-            try
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return await _dbSet.FindAsync(new object[] { id }, cancellation);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await HandleExceptionAsync(ex, cancellation);
-                return null;
-            }
+            return await ExecuteDbOperationAsync<TEntity?>(() => _dbSet.FindAsync(new object[] { id }, cancellation).AsTask(), cancellation);
         }
 
         /// <summary>
@@ -114,20 +103,8 @@ namespace Zentient.Repository
         /// <returns>All entities in the repository.</returns>
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellation = default)
         {
-            try
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return await _dbSet.ToListAsync(cancellation);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await HandleExceptionAsync(ex, cancellation);
-                return Enumerable.Empty<TEntity>();
-            }
+            var op = () => _dbSet.ToListAsync(cancellation);
+            return await ExecuteDbOperationAsync(op, cancellation);
         }
 
         /// <summary>
@@ -136,16 +113,18 @@ namespace Zentient.Repository
         /// <param name="predicate">The predicate to match.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>Entities that match the predicate.</returns>
-        public virtual async Task<IEnumerable<TEntity>> FindAsync(
-            Expression<Func<TEntity, bool>> predicate,
-            CancellationToken cancellation = default)
+        public virtual async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellation = default)
         {
-            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
+            var op = () => _dbSet.Where(predicate).ToListAsync(cancellation);
+            return await ExecuteDbOperationAsync(op, cancellation);
+        }
 
+        protected async Task<T> ExecuteDbOperationAsync<T>(Func<Task<T>> operation, CancellationToken cancellation)
+        {
             try
             {
                 cancellation.ThrowIfCancellationRequested();
-                return await _dbSet.Where(predicate).ToListAsync();
+                return await operation();
             }
             catch (OperationCanceledException)
             {
@@ -154,7 +133,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return Enumerable.Empty<TEntity>();
+                return default!;
             }
         }
 
@@ -346,7 +325,7 @@ namespace Zentient.Repository
         /// <param name="filter">Optional. The filter to apply to the search.</param>
         /// <param name="orderBy">Optional. The order to apply to the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>A paginated list of entities.</returns>
         public virtual async Task<PaginatedList<TEntity>> GetPagedAsync(
             int pageIndex,
             int pageSize = 10,
@@ -382,7 +361,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return new PaginatedList<TEntity>(new List<TEntity>(), 0, pageIndex, pageSize);
+                return await PaginatedList<TEntity>.CreateAsync(new List<TEntity>().AsQueryable());
             }
         }
 
@@ -391,16 +370,17 @@ namespace Zentient.Repository
         /// </summary>
         /// <param name="lastCursor">The last cursor to use for the search.</param>
         /// <param name="pageSize">Optional. The size of the page to get. Defaults to 10.</param>
-        /// <param name="filter">The filter to apply to the search.</param>
-        /// <param name="orderBy">The order to apply to the search.</param>
+        /// <param name="filter">Optional. The filter to apply to the search.</param>
+        /// <param name="orderBy">Optional. The order to apply to the search.</param>
+        /// <param name="keySelector">Optional. The key selector for the search.</param>
         /// <param name="cancellation">Optional. The cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>A cursor paginated list of entities.</returns>
+        /// <remarks>The primary key is assumed to be name Id.</remarks>
         public virtual async Task<CursorPaginatedList<TEntity>> GetPagedByCursorAsync(
             TKey lastCursor,
             int pageSize = 10,
             Expression<Func<TEntity, bool>> filter = default!,
-            Func<IQueryable<TEntity>,
-                 IOrderedQueryable<TEntity>> orderBy = default!,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = default!,
             CancellationToken cancellation = default)
         {
             ArgumentNullException.ThrowIfNull(lastCursor, nameof(lastCursor));
@@ -408,21 +388,17 @@ namespace Zentient.Repository
 
             try
             {
-                cancellation.ThrowIfCancellationRequested();
                 IQueryable<TEntity> query = _dbSet;
 
-                if (filter is not null)
+                if (filter != null)
                 {
                     query = query.Where(filter);
                 }
 
-                if (orderBy is not null)
+                if (orderBy != null)
                 {
                     query = orderBy(query);
                 }
-
-                // TODO: Handle situations where TKey is not named "Id"
-                query = query.Where(t => ((IComparable<TKey>)EF.Property<TKey>(t, "Id")!).CompareTo(lastCursor) > 0).Take(pageSize);
 
                 return await CursorPaginatedList<TEntity>.CreateAsync(query, lastCursor, pageSize);
             }
@@ -433,7 +409,7 @@ namespace Zentient.Repository
             catch (Exception ex)
             {
                 await HandleExceptionAsync(ex, cancellation);
-                return new CursorPaginatedList<TEntity>(new List<TEntity>(), lastCursor, pageSize);
+                return await CursorPaginatedList<TEntity>.CreateAsync(new List<TEntity>().AsQueryable(), lastCursor, pageSize);
             }
         }
 
@@ -444,7 +420,9 @@ namespace Zentient.Repository
         /// <param name="cancellation">Optional. The cancellation token.</param>
         /// <returns>The entity entry, if it was soft deleted. Otherwise null.</returns>
         /// <exception cref="InvalidOperationException">Thrown if entity does not support soft delete.</exception>
-        public virtual async Task<EntityEntry<TEntity>?> SoftDeleteAsync(TEntity entity, CancellationToken cancellation = default)
+        public virtual async Task<EntityEntry<TEntity>?> SoftDeleteAsync(
+            TEntity entity,
+            CancellationToken cancellation = default)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
 
@@ -560,16 +538,12 @@ namespace Zentient.Repository
 
         protected virtual async Task HandleExceptionAsync(Exception ex, CancellationToken cancellation = default)
         {
-            ArgumentNullException.ThrowIfNull(ex, nameof(ex));
-
             if (_exceptionHandler != null)
             {
-                cancellation.ThrowIfCancellationRequested();
                 await _exceptionHandler(ex, cancellation);
             }
             else
             {
-                // TODO: Log Exception?
                 throw ex;
             }
         }
@@ -604,35 +578,37 @@ namespace Zentient.Repository
             //await _context.Set<AuditLog<TKey>>().AddAsync(auditLog, cancellation);
             await _context.SaveChangesAsync(cancellation);
         }
-
+        public void Dispose()
+        {
+            // Call the virtual Dispose method. Suppress finalization.
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     _context.Dispose();
-                    _exceptionHandler = null;
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
+                _disposed = true;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~RepositoryBase()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
+            if (_context is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else
+            {
+                _context.Dispose();
+            }
+            Dispose(disposing: false);
             GC.SuppressFinalize(this);
         }
     }

@@ -1,0 +1,71 @@
+﻿@typeparam TEntity
+@typeparam TKey
+
+@inherits BaseComponent<TEntity, TKey>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else
+{
+    <div>
+        @HeaderContent
+        <table class="table">
+            <thead>
+                <tr>
+                    @HeaderRow
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entity in entities)
+                {
+                    <tr>
+                        @RowContent(entity)
+                        <td>
+                            @ActionsContent(entity)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @FooterContent
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment HeaderContent { get; set; }
+    [Parameter] public RenderFragment<TEntity> HeaderRow { get; set; }
+    [Parameter] public RenderFragment<TEntity> RowContent { get; set; }
+    [Parameter] public RenderFragment<TEntity> ActionsContent { get; set; }
+    [Parameter] public RenderFragment FooterContent { get; set; }
+
+    private IEnumerable<TEntity> entities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ExecuteWithLoading(async () =>
+        {
+            entities = await GetAllAsync();
+        });
+    }
+
+    private void EditEntity(TKey id)
+    {
+        NavigateTo($"/edit/{id}");
+    }
+
+    private async Task DeleteEntity(TKey id)
+    {
+        await ExecuteWithLoading(async () =>
+        {
+            await DeleteAsync(id);
+            entities = await GetAllAsync();
+        });
+    }
+}

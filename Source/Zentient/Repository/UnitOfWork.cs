@@ -1,5 +1,4 @@
-﻿// Generate professional documentation for the IRepository interface following in the same style as the current documentation. Provide additional documentation whereever you see fit. provide full xml support in the documentaiton. 
-//
+﻿//
 // Class: UnitOfWork
 //
 // Description:
@@ -34,31 +33,45 @@
 // SOFTWARE.
 //
 
-using Microsoft.EntityFrameworkCore.Storage;
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
+
+using System.Collections.Concurrent;
+
+using Zentient.Core.Helpers;
 
 namespace Zentient.Repository
 {
-    // Generate complete and professional documentation. 
-
     /// <summary>
     /// Represents a unit of work for a database context.
     /// </summary>
-    public class UnitOfWork : IUnitOfWork, IDisposable
+    public class UnitOfWork : IUnitOfWork, IDisposable, IAsyncDisposable
     {
         private readonly DbContext _context;
-        private readonly IDictionary<Type, object> _repositories;
+        private readonly IMapper _mapper;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ConcurrentDictionary<Type, object> _repositories;
+        private readonly ExceptionHandler? _exceptionHandler;
         private IDbContextTransaction? _transaction = null;
+        private bool _disposed;
 
         /// <summary>
         /// Constructs a new unit of work.
         /// </summary>
         /// <param name="context">The database context for the unit of work.</param>
-        public UnitOfWork(DbContext context)
+        /// <param name="mapper">Optional. The mapper for the unit of work.</param>
+        /// <param name="loggerFactory">Optional. The logger factory for the unit of work.</param>
+        /// <param name="exceptionHandler">The exception handler for the unit of work.</param>
+        public UnitOfWork(DbContext context, IMapper? mapper = null, ILoggerFactory? loggerFactory = null, IExceptionHandler? exceptionHandler = null)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _repositories = new Dictionary<Type, object>();
+            _mapper ??= Factory.CreateMapper();
+            _loggerFactory ??= Factory.CreateLoggerFactory();
+            _exceptionHandler ??= Factory.CreateExceptionHandler();
+            _repositories = new ConcurrentDictionary<Type, object>();
         }
 
         /// <summary>
@@ -66,53 +79,117 @@ namespace Zentient.Repository
         /// </summary>
         /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
         /// <typeparam name="TKey">The key type of the entity.</typeparam>
-        public IRepository<T, TKey> GetRepository<T, TKey>() where T : class
+        public IRepository<TEntity, TKey> GetRepository<TEntity, TKey>()
+            where TEntity : class, IEntity<TKey>
+            where TKey : struct
         {
-            var type = typeof(T);
-
-            if (!_repositories.ContainsKey(type))
+            var type = typeof(TEntity);
+            return (IRepository<TEntity, TKey>)_repositories.GetOrAdd(type, _ =>
             {
-                var repositoryInstance = new RepositoryBase<T, TKey>(_context);
-                _repositories.Add(type, repositoryInstance);
+                ILogger<TEntity>? _logger = _loggerFactory.CreateLogger<TEntity>();
+                if (_loggerFactory is not null)
+                {
+                    _logger = _loggerFactory.CreateLogger<TEntity>();
+                }
+
+                return new RepositoryBase<TEntity, TKey>(_context, _mapper, _logger, _exceptionHandler);
+            });
+        }
+
+        /// <summary>
+        /// Register a repository for the specified entity type. 
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type of the repository.</typeparam>
+        /// <typeparam name="TKey">The key type of the entity.</typeparam>
+        /// <param name="implementationType">The implementation type of the repository.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the implementation type is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the repository could not be created or added.</exception>
+        public void RegisterRepository<TEntity, TKey>(Type implementationType)
+            where TEntity : class, IEntity<TKey>
+            where TKey : struct
+        {
+            ArgumentNullException.ThrowIfNull(implementationType, nameof(implementationType));
+
+            var serviceEntityType = typeof(IRepository<TEntity, TKey>);
+            // add specific type checks or constraints to ensure that the implementationType is indeed a type that can be assigned to IRepository<TEntity, TKey>.
+            if (!serviceEntityType.IsAssignableFrom(implementationType))
+            {
+                throw new InvalidOperationException($"The implementation type {implementationType.Name} does not implement {serviceEntityType.Name}.");
             }
 
-            return (IRepository<T, TKey>)_repositories[type];
+            try
+            {
+                var repository = Activator.CreateInstance(implementationType, _context, _exceptionHandler);
+
+                if (repository is null)
+                {
+                    throw new InvalidOperationException($"Repository for {serviceEntityType.Name} could not be created.");
+                }
+
+                if (!_repositories.TryAdd(serviceEntityType, repository))
+                {
+                    throw new InvalidOperationException($"Repository for {serviceEntityType.Name} could not be added.");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (_exceptionHandler is not null) _exceptionHandler(ex);
+            }
         }
 
         /// <summary>
         /// Save all changes to the repositories.
         /// </summary>
         /// <returns>The number of state entries written to the database. </returns>
-        public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
+        public async Task<int> SaveChangesAsync(CancellationToken cancellation = default)
+        {
+            try
+            {
+                return await _context.SaveChangesAsync(cancellation);
+            }
+            catch (Exception ex)
+            {
+                if (_exceptionHandler is not null) await _exceptionHandler(ex, cancellation);
+                throw;
+            }
+        }
 
         /// <summary>
         /// Begin a transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction already has been activated.</exception>
-        public void BeginTransaction()
+        public async Task BeginTransactionAsync(CancellationToken cancellation = default)
         {
             if (_transaction is not null) throw new InvalidOperationException("A transaction has already been activated.");
 
-            _transaction = _context.Database.BeginTransaction();
+            _transaction = await _context.Database.BeginTransactionAsync(cancellation);
         }
 
         /// <summary>
         /// Commit the transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction has not been activated.</exception>
-        public void CommitTransaction()
+        public async Task<int> CommitTransactionAsync(CancellationToken cancellation = default)
         {
             if (_transaction is null) throw new InvalidOperationException("Transaction has not been activated.");
 
             try
             {
-                _context.SaveChanges();
-                _transaction.Commit();
+                var result = await _context.SaveChangesAsync(cancellation);
+                await _transaction.CommitAsync(cancellation);
+
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-                _transaction.Rollback();
+                await _transaction.RollbackAsync(cancellation);
+                if (_exceptionHandler is not null) await _exceptionHandler(ex);
                 throw;
+            }
+            finally
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
             }
         }
 
@@ -120,21 +197,52 @@ namespace Zentient.Repository
         /// Rollback the transaction.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction has not been activated.</exception>
-        public void RollbackTransaction()
+        public async Task RollbackTransactionAsync(CancellationToken cancellation = default)
         {
             if (_transaction is null) throw new InvalidOperationException("Transaction has not been started.");
 
-            _transaction.Rollback();
+            await _transaction.RollbackAsync(cancellation);
         }
 
         public void Dispose()
         {
-            _context?.Dispose();
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
-            if (_transaction is not null)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                _transaction.Dispose();
+                if (disposing)
+                {
+                    _context?.Dispose();
+                    _transaction?.Dispose();
+                }
+                _disposed = true;
             }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed) return;
+
+            if (_transaction != null)
+            {
+                await _transaction.DisposeAsync();
+            }
+            if (_context is IAsyncDisposable asyncDisposableContext)
+            {
+                await asyncDisposableContext.DisposeAsync();
+            }
+            else
+            {
+                _context.Dispose();
+            }
+
+            _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }
+

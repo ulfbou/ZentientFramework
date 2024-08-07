@@ -1,0 +1,37 @@
+﻿@page "/"
+@namespace LMS.Pages
+@using LMS.Components.Account.Pages
+@using LMS.Core.Entities
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Login</PageTitle>
+<AuthorizeView>
+    <Authorized>
+        <RedirectToPage page="Index" />
+    </Authorized>
+    <NotAuthorized>
+        <Login />
+    </NotAuthorized>
+</AuthorizeView>
+
+@page "/courses"
+<AuthorizeView Roles="Admin,Teacher,Student">
+    <Authorized>
+        <CourseList />
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to access this resource.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@page "/course/{id:guid}"
+<AuthorizeView Roles="Admin,Teacher,Student">
+    <Authorized>
+        <CourseDetail />
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to access this resource.</p>
+    </NotAuthorized>
+</AuthorizeView>

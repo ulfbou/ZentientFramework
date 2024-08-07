@@ -1,4 +1,4 @@
-﻿//
+﻿// 
 // Class: IEntity
 //
 // Description:
@@ -38,9 +38,15 @@ namespace Zentient.Repository
     /// <summary>
     /// Represents an entity with a primary key.
     /// </summary>
-    /// <typeparam name="TKey"></typeparam>
-    public interface IEntity<TKey>
+    /// <typeparam name="TKey">The type of the primary key.</typeparam>
+    public interface IEntity<TKey> where TKey : notnull
     {
         public TKey Id { get; set; }
+    }
+
+    public interface IDatableEntity<TKey> : IEntity<TKey> where TKey : notnull
+    {
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

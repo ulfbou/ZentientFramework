@@ -28,157 +28,163 @@
 
 using System.Numerics;
 
-namespace Zentient.Extensions;
-
-/// <summary>
-/// Provides extension methods for working with Arrays.
-/// </summary>
-public static class ArrayExtensions
+namespace Zentient.Extensions
 {
     /// <summary>
-    /// Randomly shuffles the elements of the array.
+    /// Provides extension methods for working with Arrays.
     /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="array">The array to shuffle.</param>
-    /// <returns>A array with its elements shuffled.</returns>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static IEnumerable<T> Shuffle<T>(this T[] array) => array.OrderBy(x => Guid.NewGuid());
-
-    /// <summary>
-    /// Splits the array into chunks of a specified size.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="array">The array to split.</param>
-    /// <param name="chunkSize">The size of each chunk.</param>
-    /// <returns>An array of arrays containing the chunks.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when chunkSize is less than two or equal or greater than <paramref name="array"/>.Length.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static T[][] Chunk<T>(this T[] array, int chunkSize)
+    public static class ArrayExtensions
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan<int>(chunkSize, 1, nameof(chunkSize));
-        return array
-            .Select((x, i) => new { Index = i, Value = x })
-            .GroupBy(x => x.Index / chunkSize)
-            .Select(g => g.Select(x => x.Value).ToArray()).ToArray();
-    }
-
-    /// <summary>
-    /// Finds the index of the first element that satisfies a specified condition.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="array">The array to search.</param>
-    /// <param name="predicate">The condition to test each element against.</param>
-    /// <returns>The index of the first element that satisfies the condition, or -1 if no such element is found.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> or <paramref name="predicate"/> is null.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static int IndexWhere<T>(this T[] array, Func<T, bool> predicate)
-    {
-        ArgumentNullException.ThrowIfNull(array, nameof(array));
-        ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
-
-        for (var i = 0; i < array.Length; i++)
+        /// <summary>
+        /// Randomly shuffles the elements of the array.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the array.</typeparam>
+        /// <param name="array">The array to shuffle.</param>
+        /// <returns>A array with its elements shuffled.</returns>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static IEnumerable<T> Shuffle<T>(this T[] array)
         {
-            if (predicate(array[i])) return i;
+            ArgumentNullException.ThrowIfNull(array, nameof(array));
+            return array.OrderBy(x => Guid.NewGuid());
         }
 
-        return -1;
-    }
-
-    /// <summary>
-    /// Finds the index of the last element that satisfies a specified condition.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="array">The array to search.</param>
-    /// <param name="predicate">The condition to test each element against.</param>
-    /// <returns>The index of the last element that satisfies the condition, or -1 if no such element is found.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> or <paramref name="predicate"/> is null.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static int LastIndexWhere<T>(this T[] array, Func<T, bool> predicate)
-    {
-        var i = array.Length;
-
-        do
+        /// <summary>
+        /// Splits the array into chunks of a specified size.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the array.</typeparam>
+        /// <param name="array">The array to split.</param>
+        /// <param name="chunkSize">The size of each chunk.</param>
+        /// <returns>An array of arrays containing the chunks.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when chunkSize is less than one or equal or greater than <paramref name="array"/>.Length.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static T[][] Chunk<T>(this T[] array, int chunkSize)
         {
-            i--;
+            ArgumentNullException.ThrowIfNull(array, nameof(array));
+            ArgumentOutOfRangeException.ThrowIfLessThan<int>(chunkSize, 2, nameof(chunkSize));
+            return array
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(g => g.Select(x => x.Value).ToArray()).ToArray();
         }
-        while (i >= 0 && !predicate(array[i]));
 
-        return i;
-    }
+        /// <summary>
+        /// Finds the index of the first element that satisfies a specified condition.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the array.</typeparam>
+        /// <param name="array">The array to search.</param>
+        /// <param name="predicate">The condition to test each element against.</param>
+        /// <returns>The index of the first element that satisfies the condition, or -1 if no such element is found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> or <paramref name="predicate"/> is null.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static int IndexWhere<T>(this T[] array, Func<T, bool> predicate)
+        {
+            ArgumentNullException.ThrowIfNull(array, nameof(array));
+            ArgumentNullException.ThrowIfNull(predicate, nameof(predicate));
 
-    /// <summary>
-    /// Removes duplicate elements from the array.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="array">The array to remove duplicates from.</param>
-    /// <returns>An array containing only the distinct elements of the original array.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static T[] Distinct<T>(this T[] array)
-    => new HashSet<T>(array).ToArray<T>();
+            for (var i = 0; i < array.Length; i++)
+            {
+                if (predicate(array[i])) return i;
+            }
 
-    /// <summary>
-    /// Computes the sum of the elements in the array.
-    /// </summary>
-    /// <typeparam name="TSelf">The type of the elements in the array.</typeparam>
-    /// <typeparam name="TOther">The type of the elements to be added to the array elements.</typeparam>
-    /// <typeparam name="TResult">The type of the result produced by the addition operator.</typeparam>
-    /// <param name="array">The array of integers.</param>
-    /// <returns>The sum of the elements in the array.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static int Sum<TSelf, TOther, TResult>(this int[] array) where TSelf : struct, IAdditionOperators<TSelf, TOther, TResult>
-    {
-        ArgumentNullException.ThrowIfNull(array, nameof(array));
-        return array.Aggregate((i, j) => i + j);
-    }
+            return -1;
+        }
 
-    /// <summary>
-    /// Computes the sum of the elements in the array.
-    /// </summary>
-    /// <typeparam name="TSelf">The type of the elements in the array.</typeparam>
-    /// <typeparam name="TOther">The type of the elements to be added to the array elements.</typeparam>
-    /// <typeparam name="TResult">The type of the result produced by the addition operator.</typeparam>
-    /// <param name="array">The array of integers.</param>
-    /// <returns>The sum of the elements in the array.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static int Sum<TTerm, TSum>(this int[] array) where TTerm : struct, IAdditionOperators<TTerm, TTerm, TSum>
-    {
-        ArgumentNullException.ThrowIfNull(array, nameof(array));
-        return array.Aggregate((i, j) => i + j);
-    }
+        /// <summary>
+        /// Finds the index of the last element that satisfies a specified condition.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the array.</typeparam>
+        /// <param name="array">The array to search.</param>
+        /// <param name="predicate">The condition to test each element against.</param>
+        /// <returns>The index of the last element that satisfies the condition, or -1 if no such element is found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> or <paramref name="predicate"/> is null.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static int LastIndexWhere<T>(this T[] array, Func<T, bool> predicate)
+        {
+            var i = array.Length;
 
-    /// <summary>
-    /// Computes the sum of the elements in the array.
-    /// </summary>
-    /// <typeparam name="TSelf">The type of the elements in the array.</typeparam>
-    /// <typeparam name="TOther">The type of the elements to be added to the array elements.</typeparam>
-    /// <typeparam name="TResult">The type of the result produced by the addition operator.</typeparam>
-    /// <param name="array">The array of integers.</param>
-    /// <returns>The sum of the elements in the array.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
-    /// <remarks>
-    /// This method has an average time complexity of O(n), where n is the number of elements in the array.
-    /// </remarks>
-    public static int Sum<T>(this int[] array) where T : struct, IAdditionOperators<T, T, T>
-    {
-        ArgumentNullException.ThrowIfNull(array, nameof(array));
-        return array.Aggregate((i, j) => i + j);
+            do
+            {
+                i--;
+            }
+            while (i >= 0 && !predicate(array[i]));
+
+            return i;
+        }
+
+        /// <summary>
+        /// Removes duplicate elements from the array.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the array.</typeparam>
+        /// <param name="array">The array to remove duplicates from.</param>
+        /// <returns>An array containing only the distinct elements of the original array.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static T[] Distinct<T>(this T[] array)
+            => new HashSet<T>(array).ToArray<T>();
+
+        /// <summary>
+        /// Computes the sum of the elements in the array.
+        /// </summary>
+        /// <typeparam name="TSelf">The type of the elements in the array.</typeparam>
+        /// <typeparam name="TOther">The type of the elements to be added to the array elements.</typeparam>
+        /// <typeparam name="TResult">The type of the result produced by the addition operator.</typeparam>
+        /// <param name="array">The array of integers.</param>
+        /// <returns>The sum of the elements in the array.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static int Sum<TSelf, TOther, TResult>(this int[] array) where TSelf : struct, IAdditionOperators<TSelf, TOther, TResult>
+        {
+            ArgumentNullException.ThrowIfNull(array, nameof(array));
+            return array.Aggregate((i, j) => i + j);
+        }
+
+        /// <summary>
+        /// Computes the sum of the elements in the array.
+        /// </summary>
+        /// <typeparam name="TSelf">The type of the elements in the array.</typeparam>
+        /// <typeparam name="TOther">The type of the elements to be added to the array elements.</typeparam>
+        /// <typeparam name="TResult">The type of the result produced by the addition operator.</typeparam>
+        /// <param name="array">The array of integers.</param>
+        /// <returns>The sum of the elements in the array.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static int Sum<TTerm, TSum>(this int[] array) where TTerm : struct, IAdditionOperators<TTerm, TTerm, TSum>
+        {
+            ArgumentNullException.ThrowIfNull(array, nameof(array));
+            return array.Aggregate((i, j) => i + j);
+        }
+
+        /// <summary>
+        /// Computes the sum of the elements in the array.
+        /// </summary>
+        /// <typeparam name="TSelf">The type of the elements in the array.</typeparam>
+        /// <typeparam name="TOther">The type of the elements to be added to the array elements.</typeparam>
+        /// <typeparam name="TResult">The type of the result produced by the addition operator.</typeparam>
+        /// <param name="array">The array of integers.</param>
+        /// <returns>The sum of the elements in the array.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when either <paramref name="array"/> is null.</exception>
+        /// <remarks>
+        /// This method has an average time complexity of O(n), where n is the number of elements in the array.
+        /// </remarks>
+        public static int Sum<T>(this int[] array) where T : struct, IAdditionOperators<T, T, T>
+        {
+            ArgumentNullException.ThrowIfNull(array, nameof(array));
+            return array.Aggregate((i, j) => i + j);
+        }
     }
 }

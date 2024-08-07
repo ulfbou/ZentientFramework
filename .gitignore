@@ -404,9 +404,9 @@ newsource/
 *.txt#
 *.sln
 /ZentientFramework.sln
-
 /ConsoleTesting
 *.md
 /Source/Zentient/oldlms
 /Source/Zentient/Zentient.LMS/old
 *.md#
+/OldSource

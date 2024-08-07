@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Zentient.Attributes.Injections
+namespace Zentient.Attributes
 {
     internal class ServiceRegistrationInfo
     {
