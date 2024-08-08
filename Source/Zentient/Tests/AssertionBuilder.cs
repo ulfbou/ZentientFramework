@@ -49,7 +49,7 @@ public class AssertionBuilder<T> : AssertionBuilderBase<T>, IAssertionBuilder<T>
         _comparer = comparer;
         _equality = equality;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertionBuilder{T}"/> class.
     /// </summary>

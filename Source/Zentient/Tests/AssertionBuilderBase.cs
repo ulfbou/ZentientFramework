@@ -33,8 +33,6 @@
 // SOFTWARE.
 //
 
-using System.Collections.Generic;
-
 namespace Zentient.Tests;
 
 public class AssertionBuilderBase<T>(T actual, string message) : IAssertionBuilder<T>
@@ -148,5 +146,10 @@ public class AssertionBuilderBase<T>(T actual, string message) : IAssertionBuild
         }
 
         throw new AssertionFailureException(message);
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
     }
 }

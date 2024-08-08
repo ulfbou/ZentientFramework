@@ -1,4 +1,33 @@
-﻿using Zentient.Tests;
+﻿//
+// Class: CollectionAssertionBuilderTests
+// 
+// Description:
+// Provides a set of test methods for the class <see chref="CollectionAssertionBuilder"/>. 
+// 
+// MIT License
+// 
+// Copyright (c) 2024 Ulf Bourelius
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+
+using Zentient.Tests;
 
 namespace Tests;
 /// <summary>
@@ -10,7 +39,6 @@ public class ExpectedExceptionAttribute(Type type) : Attribute
     private readonly Type _type = type;
 }
 
-[TestClass]
 public class CollectionAssertionBuilderTests
 {
     public Assert Assert { get => Assert.Instance; }
@@ -34,7 +62,7 @@ public class CollectionAssertionBuilderTests
     }
 
     [TestMethod]
-    public void TestCountEquals_Pass()
+    public void TestCountEquals_NonEmptyCollection_ShouldPass()
     {
         Assert.Pass(() => Assert
             .That(_nonEmptyCollection).CountEquals(3));
@@ -42,28 +70,28 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestCountEquals_Fail()
+    public void TestCountEquals_NonEmptyCollection_ShouldFail()
     {
         Assert.Fail(() => Assert
         .That(_nonEmptyCollection).CountEquals(2));
     }
 
     [TestMethod]
-    public void TestIsEmpty_Pass()
+    public void TestIsEmpty_EmptyCollection_ShouldPass()
     {
         Assert.Pass(() => Assert.That(_emptyCollection).IsEmpty());
     }
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestIsEmpty_Fail()
+    public void TestIsEmpty_NonEmptyCollection_ShouldFail()
     {
         Assert.Fail(() =>
         Assert.That(_nonEmptyCollection).IsEmpty());
     }
 
     [TestMethod]
-    public void TestIsNotEmpty_Pass()
+    public void TestIsNotEmpty_NonEmptyCollection_ShouldPass()
     {
         Assert.Pass(() =>
             Assert.That(_nonEmptyCollection).IsNotEmpty());
@@ -71,14 +99,14 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestIsNotEmpty_Fail()
+    public void TestIsNotEmpty_EmptyCollection_ShouldFail()
     {
         Assert.Fail(() =>
             Assert.That(_emptyCollection).IsNotEmpty());
     }
 
     [TestMethod]
-    public void TestContains_Pass()
+    public void TestContains_NonEmptyCollection_ShouldPass()
     {
         Assert.Pass(() =>
             Assert.That(_nonEmptyCollection).Contains(2));
@@ -86,14 +114,14 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestContains_Fail()
+    public void TestContains_NonEmptyCollection_ShouldFail()
     {
         Assert.Fail(() =>
             Assert.That(_nonEmptyCollection).Contains(4));
     }
 
     [TestMethod]
-    public void TestDoesNotContain_Pass()
+    public void TestDoesNotContain_NonEmptyCollection_ShouldPass()
     {
         Assert.Pass(() =>
             Assert.That(_nonEmptyCollection).DoesNotContain(4));
@@ -101,14 +129,14 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestDoesNotContain_Fail()
+    public void TestDoesNotContain_NonEmptyCollection_ShouldFail()
     {
         Assert.Fail(() =>
             Assert.That(_nonEmptyCollection).DoesNotContain(2));
     }
 
     [TestMethod]
-    public void TestSequenceEquals_Pass()
+    public void TestSequenceEquals_NonEmptyCollection_ShouldPass()
     {
         var collectionToCompare = new List<int> { 1, 2, 3 };
         Assert.Pass(() =>
@@ -117,7 +145,7 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestSequenceEquals_Fail()
+    public void TestSequenceEquals_NonEmptyCollection_ShouldFail()
     {
         var collectionToCompare = new List<int> { 3, 2, 1 };
         Assert.Fail(() =>
@@ -135,7 +163,7 @@ public class CollectionAssertionBuilderTests
 
 
     [TestMethod]
-    public void TestIsSubsetOf_Pass()
+    public void TestIsSubsetOf_NonEmptyCollection_ShouldPass()
     {
         var superset = new List<int> { 1, 2, 3, 4 };
         Assert.Pass(() =>
@@ -144,7 +172,7 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestIsSubsetOf_Fail()
+    public void TestIsSubsetOf_NonEmptyCollection_ShouldFail()
     {
         var superset = new List<int> { 1, 2 };
         Assert.Fail(() =>
@@ -152,7 +180,7 @@ public class CollectionAssertionBuilderTests
     }
 
     [TestMethod]
-    public void TestIsSupersetOf_Pass()
+    public void TestIsSupersetOf_NonEmptyCollection_ShouldPass()
     {
         var subset = new List<int> { 1, 2 };
         Assert.Pass(() =>
@@ -161,7 +189,7 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestIsSupersetOf_Fail()
+    public void TestIsSupersetOf_NonEmptyCollection_ShouldFail()
     {
         var subset = new List<int> { 4, 5 };
         Assert.Fail(() =>
@@ -169,7 +197,7 @@ public class CollectionAssertionBuilderTests
     }
 
     [TestMethod]
-    public void TestIntersectsWith_Pass()
+    public void TestIntersectsWith_NonEmptyCollection_ShouldPass()
     {
         var otherCollection = new List<int> { 2, 4 };
         Assert.Pass(() =>
@@ -178,7 +206,7 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestIntersectsWith_Fail()
+    public void TestIntersectsWith_NonEmptyCollection_ShouldFail()
     {
         var otherCollection = new List<int> { 4, 5 };
         Assert.Fail(() =>
@@ -186,7 +214,7 @@ public class CollectionAssertionBuilderTests
     }
 
     [TestMethod]
-    public void TestHasUniqueItems_Pass()
+    public void TestHasUniqueItems_NonEmptyCollection_ShouldPass()
     {
         var uniqueCollection = new List<int> { 1, 2, 3 };
         Assert.Pass(() =>
@@ -195,7 +223,7 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestHasUniqueItems_Fail()
+    public void TestHasUniqueItems_NonEmptyCollection_ShouldFail()
     {
         var duplicateCollection = new List<int> { 1, 2, 2, 3 };
 
@@ -204,7 +232,7 @@ public class CollectionAssertionBuilderTests
     }
 
     [TestMethod]
-    public void TestHasDuplicates_Pass()
+    public void TestHasDuplicates_NonEmptyCollection_ShouldPass()
     {
         var duplicateCollection = new List<int> { 1, 2, 2, 3 };
         Assert.Pass(() =>
@@ -214,7 +242,7 @@ public class CollectionAssertionBuilderTests
 
     [TestMethod]
     [ExpectedException(typeof(AssertionFailureException))]
-    public void TestHasDuplicates_Fail()
+    public void TestHasDuplicates_NonEmptyCollection_ShouldFail()
     {
         var uniqueCollection = new List<int> { 1, 2, 3 };
         Assert.Fail(() =>

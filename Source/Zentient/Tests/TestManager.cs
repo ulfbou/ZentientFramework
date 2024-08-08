@@ -173,6 +173,9 @@ private async Task LoadAndProcessTestType(Type type)
 #if false
     private async Task RunTestsAsync(Type testType, TestInfo testInfo)
     {
+        int count = 0;
+        int success = 0;
+
         try
         {
             testInfo.Setup?.Invoke(testInfo.Instance, new object[] { });
@@ -187,6 +190,7 @@ private async Task LoadAndProcessTestType(Type type)
         {
             try
             {
+                count++;
                 if (IsAsyncMethod(test))
                 {
                     await TestAsync(testType, testInfo.Instance, test);
@@ -195,6 +199,7 @@ private async Task LoadAndProcessTestType(Type type)
                 {
                     Test(testType, testInfo.Instance, test);
                 }
+                success++;
             }
             catch (AssertionFailureException ex)
             {
@@ -205,6 +210,8 @@ private async Task LoadAndProcessTestType(Type type)
                 await Console.Out.WriteLineAsync($"Testing {testType.FullName}: Failed! Reason: {ex.Message}.");
             }
         }
+
+        await Console.Out.WriteLineAsync($"Ran {success} successful tests out of {count} tests.");
     }
     /// <summary>
     /// Loads all test classes and their methods.

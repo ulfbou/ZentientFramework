@@ -1,14 +1,8 @@
 //
-// File: ExceptionAssertionBuilderTests.cs
+// Class: ExceptionAssertionBuilderTests
 // 
 // Description:
-// Defines a set of fluent assertion methods for evaluating equality, type compatibility, and other logical conditions. These methods empower developers to confirm the expected behavior and results of the code under test. The IAssertBuilder interface promotes a more intuitive and sustainable testing practice by supporting a chainable method syntax.
-// 
-// Usage:
-// The IAssertBuilder interface is implemented to facilitate unit testing assertions on object states. Upon instantiation with the target test object, it offers a sequence of chainable methods designed to throw exceptions upon assertion failure, thereby indicating test failures.
-// 
-// Purpose:
-// The IAssertBuilder interface aims to provide a straightforward and articulate means for crafting test assertions. Leveraging a fluent interface pattern, it simplifies test code structure and enhances the clarity of test assertions, aiding developers in grasping the test's purpose and the standards for its success.
+// Provides a set of test methods for the class <see chref="ExceptionAssertionBuilder"/>. 
 // 
 // MIT License
 // 
@@ -37,7 +31,6 @@ using Zentient.Tests;
 
 namespace Tests;
 
-[TestClass]
 public class ExceptionAssertionBuilderTests
 {
     public Assert Assert { get => Assert.Instance; }

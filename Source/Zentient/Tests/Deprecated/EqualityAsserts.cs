@@ -33,9 +33,7 @@
 // SOFTWARE.
 //
 
-using Zentient.Tests.Deprecated;
-
-namespace Zentient.Tests;
+namespace Zentient.Tests.Deprecated;
 
 public static partial class ZTAssert
 {
@@ -64,13 +62,13 @@ public static partial class ZTAssert
     {
         try
         {
-            AreEqual<T>(notExpectedObject, actualObject);
+            AreEqual(notExpectedObject, actualObject);
         }
         catch (FailedTestException ex)
         {
             return;
         }
-        catch {}
+        catch { }
         throw new FailedTestException($"Failed test: Expected to not receive {notExpectedObject}, but got {actualObject}.");
     }
 

@@ -26,90 +26,91 @@
 // SOFTWARE.
 //
 
-namespace Zentient.Extensions;
-
-/// <summary>
-/// Provides extension methods for working with integers.
-/// </summary>
-public static class IntegerExtensions
+namespace Zentient.Extensions
 {
     /// <summary>
-    /// Determines whether the integer is an even number.
+    /// Provides extension methods for working with integers.
     /// </summary>
-    /// <param name="value">The integer value to check.</param>
-    /// <returns>True if the integer is even; otherwise, false.</returns>
-    public static bool IsEven(this int value)
+    public static class IntegerExtensions
     {
-        return value % 2 == 0;
-    }
-
-    /// <summary>
-    /// Determines whether the integer is an odd number.
-    /// </summary>
-    /// <param name="value">The integer value to check.</param>
-    /// <returns>True if the integer is odd; otherwise, false.</returns>
-    public static bool IsOdd(this int value)
-    {
-        return value % 2 != 0;
-    }
-
-    /// <summary>
-    /// Determines whether the integer is a prime number.
-    /// </summary>
-    /// <param name="value">The integer value to check.</param>
-    /// <returns>True if the integer is prime; otherwise, false.</returns>
-    public static bool IsPrime(this int value)
-    {
-        if (value <= 1)
-            return false;
-
-        if (value % 2 == 0) return false;
-
-        for (int i = 3; i <= Math.Sqrt(value); i+=2)
+        /// <summary>
+        /// Determines whether the integer is an even number.
+        /// </summary>
+        /// <param name="value">The integer value to check.</param>
+        /// <returns>True if the integer is even; otherwise, false.</returns>
+        public static bool IsEven(this int value)
         {
-            if (value % i == 0)
+            return value % 2 == 0;
+        }
+
+        /// <summary>
+        /// Determines whether the integer is an odd number.
+        /// </summary>
+        /// <param name="value">The integer value to check.</param>
+        /// <returns>True if the integer is odd; otherwise, false.</returns>
+        public static bool IsOdd(this int value)
+        {
+            return value % 2 != 0;
+        }
+
+        /// <summary>
+        /// Determines whether the integer is a prime number.
+        /// </summary>
+        /// <param name="value">The integer value to check.</param>
+        /// <returns>True if the integer is prime; otherwise, false.</returns>
+        public static bool IsPrime(this int value)
+        {
+            if (value <= 1)
                 return false;
+
+            if (value % 2 == 0) return false;
+
+            for (int i = 3; i <= Math.Sqrt(value); i += 2)
+            {
+                if (value % i == 0)
+                    return false;
+            }
+
+            return true;
         }
 
-        return true;
-    }
-
-    /// <summary>
-    /// Converts the integer to its ordinal representation.
-    /// </summary>
-    /// <param name="value">The integer value to convert.</param>
-    /// <returns>The ordinal representation of the integer.</returns>
-    public static string ToOrdinal(this int value)
-    {
-        if (value <= 0)
-            return value.ToString();
-
-        string suffix;
-        switch (value % 100)
+        /// <summary>
+        /// Converts the integer to its ordinal representation.
+        /// </summary>
+        /// <param name="value">The integer value to convert.</param>
+        /// <returns>The ordinal representation of the integer.</returns>
+        public static string ToOrdinal(this int value)
         {
-            case 11:
-            case 12:
-            case 13:
-                suffix = "th";
-                break;
-            default:
-                switch (value % 10)
-                {
-                    case 1:
-                        suffix = "st";
-                        break;
-                    case 2:
-                        suffix = "nd";
-                        break;
-                    case 3:
-                        suffix = "rd";
-                        break;
-                    default:
-                        suffix = "th";
-                        break;
-                }
-                break;
+            if (value <= 0)
+                return value.ToString();
+
+            string suffix;
+            switch (value % 100)
+            {
+                case 11:
+                case 12:
+                case 13:
+                    suffix = "th";
+                    break;
+                default:
+                    switch (value % 10)
+                    {
+                        case 1:
+                            suffix = "st";
+                            break;
+                        case 2:
+                            suffix = "nd";
+                            break;
+                        case 3:
+                            suffix = "rd";
+                            break;
+                        default:
+                            suffix = "th";
+                            break;
+                    }
+                    break;
+            }
+            return value.ToString() + suffix;
         }
-        return value.ToString() + suffix;
     }
 }
