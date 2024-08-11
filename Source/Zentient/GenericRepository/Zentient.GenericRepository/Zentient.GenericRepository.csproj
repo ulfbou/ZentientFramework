@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Repository.QueryObjects\Zentient.Repository.QueryObjects\Zentient.Repository.QueryObjects.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Zentient.Core">
+			<HintPath>..\..\Core\bin\Debug\net8.0\Zentient.Core.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>

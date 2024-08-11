@@ -36,7 +36,7 @@
 
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
-using Zentient.Core.Helpers;
+using Zentient.Core;
 
 namespace Zentient.Repository
 {
@@ -139,8 +139,7 @@ namespace Zentient.Repository
                     TKey lastCursor,
                     int pageSize = 10,
                     Expression<Func<TEntity, bool>> filter = default!,
-                    Func<IQueryable<TEntity>,
-                         IOrderedQueryable<TEntity>> orderBy = default!,
+                    Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = default!,
                     CancellationToken cancellation = default);
 
         /// <summary>

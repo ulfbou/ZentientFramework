@@ -36,8 +36,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 using System.Linq.Expressions;
-
-using Zentient.Core.Helpers;
+using Zentient.Core;
 
 namespace Zentient.Repository
 {

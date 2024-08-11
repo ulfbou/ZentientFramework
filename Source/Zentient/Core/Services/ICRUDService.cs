@@ -1,8 +1,4 @@
-﻿using LMS.Core.Entities;
-using LMS.Core.Identity;
-using LMS.Core.Services;
-
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Zentient.Core.Services
 {

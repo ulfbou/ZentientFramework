@@ -40,8 +40,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 using System.Collections.Concurrent;
-
-using Zentient.Core.Helpers;
+using Zentient.Core;
 
 namespace Zentient.Repository
 {
@@ -65,12 +64,12 @@ namespace Zentient.Repository
         /// <param name="mapper">Optional. The mapper for the unit of work.</param>
         /// <param name="loggerFactory">Optional. The logger factory for the unit of work.</param>
         /// <param name="exceptionHandler">The exception handler for the unit of work.</param>
-        public UnitOfWork(DbContext context, IMapper? mapper = null, ILoggerFactory? loggerFactory = null, IExceptionHandler? exceptionHandler = null)
+        public UnitOfWork(DbContext context, IMapper? mapper = null, ILoggerFactory? loggerFactory = null, ExceptionHandler? exceptionHandler = null)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _mapper ??= Factory.CreateMapper();
-            _loggerFactory ??= Factory.CreateLoggerFactory();
-            _exceptionHandler ??= Factory.CreateExceptionHandler();
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _exceptionHandler = exceptionHandler ?? throw new ArgumentNullException(nameof(exceptionHandler));
             _repositories = new ConcurrentDictionary<Type, object>();
         }
 

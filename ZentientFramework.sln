@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -7,37 +6,53 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{CDCF6B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Zentient", "Zentient", "{F0F6B1C3-B65D-4A78-AA03-5518D79444AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Attributes", "Source\Zentient\Attributes\Zentient.Attributes.csproj", "{A5F8ACD7-85AF-4B80-96F4-11C63873F40D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Attributes", "Source\Zentient\Attributes\Zentient.Attributes.csproj", "{A5F8ACD7-85AF-4B80-96F4-11C63873F40D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Benchmarking", "Source\Zentient\Benchmarking\Zentient.Benchmarking.csproj", "{5C7C0350-465F-45C8-9698-B29A4A4F52EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Configurator", "Source\Zentient\Configurator\Zentient.Configurator.csproj", "{D4B1CEBE-DF8B-47FF-9F95-5A92827B93A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Configurator", "Source\Zentient\Configurator\Zentient.Configurator.csproj", "{D4B1CEBE-DF8B-47FF-9F95-5A92827B93A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Core", "Source\Zentient\Core\Zentient.Core.csproj", "{1392A4F6-A5A5-4390-B35B-E0A674209638}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Core", "Source\Zentient\Core\Zentient.Core.csproj", "{1392A4F6-A5A5-4390-B35B-E0A674209638}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.DTOGenerator", "Source\Zentient\DTOGenerator\Zentient.DTOGenerator.csproj", "{03CA7E83-F8FB-4E5A-8E1F-358EAE903923}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.DTOGenerator", "Source\Zentient\DTOGenerator\Zentient.DTOGenerator.csproj", "{03CA7E83-F8FB-4E5A-8E1F-358EAE903923}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.DependencyInjection", "Source\Zentient\DependencyInjection\Zentient.DependencyInjection.csproj", "{B0D60F5A-D133-4012-8594-623C1DB711D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.DependencyInjection", "Source\Zentient\DependencyInjection\Zentient.DependencyInjection.csproj", "{B0D60F5A-D133-4012-8594-623C1DB711D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Extensions", "Source\Zentient\Extensions\Zentient.Extensions.csproj", "{E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Extensions", "Source\Zentient\Extensions\Zentient.Extensions.csproj", "{E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.IdentityManagement", "Source\Zentient\IdentityManagement\Zentient.IdentityManagement.csproj", "{D6487402-5227-4C6D-845F-4F4AAF4CC285}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.IdentityManagement", "Source\Zentient\IdentityManagement\Zentient.IdentityManagement.csproj", "{D6487402-5227-4C6D-845F-4F4AAF4CC285}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Reflector", "Source\Zentient\Reflector\Zentient.Reflector.csproj", "{8D979165-4DE3-4C63-B80B-A6292E330C48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Reflector", "Source\Zentient\Reflector\Zentient.Reflector.csproj", "{8D979165-4DE3-4C63-B80B-A6292E330C48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Repository", "Source\Zentient\Repository\Zentient.Repository.csproj", "{7AF1F48E-DA6E-4729-AF96-108BD232BC78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Repository", "Source\Zentient\Repository\Zentient.Repository.csproj", "{7AF1F48E-DA6E-4729-AF96-108BD232BC78}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0EF47E52-9304-400E-816E-47C4BC1AAA9D} = {0EF47E52-9304-400E-816E-47C4BC1AAA9D}
+		{1392A4F6-A5A5-4390-B35B-E0A674209638} = {1392A4F6-A5A5-4390-B35B-E0A674209638}
+		{E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C} = {E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Tests", "Source\Zentient\Tests\Zentient.Tests.csproj", "{5EA59779-F1A2-4965-89A0-D1DAFF47B8F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Tests", "Source\Zentient\Tests\Zentient.Tests.csproj", "{5EA59779-F1A2-4965-89A0-D1DAFF47B8F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Vectors", "Source\Zentient\Vectors\Zentient.Vectors.csproj", "{4A8822DD-1B89-4914-A1AE-99C7CE2440E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Vectors", "Source\Zentient\Vectors\Zentient.Vectors.csproj", "{4A8822DD-1B89-4914-A1AE-99C7CE2440E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Repository.QueryObjects", "Source\Zentient\Repository.QueryObjects\Zentient.Repository.QueryObjects\Zentient.Repository.QueryObjects.csproj", "{0EF47E52-9304-400E-816E-47C4BC1AAA9D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1392A4F6-A5A5-4390-B35B-E0A674209638} = {1392A4F6-A5A5-4390-B35B-E0A674209638}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.GenericRepository", "Source\Zentient\GenericRepository\Zentient.GenericRepository\Zentient.GenericRepository.csproj", "{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0EF47E52-9304-400E-816E-47C4BC1AAA9D} = {0EF47E52-9304-400E-816E-47C4BC1AAA9D}
+		{1392A4F6-A5A5-4390-B35B-E0A674209638} = {1392A4F6-A5A5-4390-B35B-E0A674209638}
+		{E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C} = {E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.GenericRepository.Tests", "Source\Tests\Zentient.GenericRepository.Tests\Zentient.GenericRepository.Tests.csproj", "{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A5F8ACD7-85AF-4B80-96F4-11C63873F40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -88,6 +103,21 @@ Global
 		{4A8822DD-1B89-4914-A1AE-99C7CE2440E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A8822DD-1B89-4914-A1AE-99C7CE2440E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A8822DD-1B89-4914-A1AE-99C7CE2440E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EF47E52-9304-400E-816E-47C4BC1AAA9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EF47E52-9304-400E-816E-47C4BC1AAA9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EF47E52-9304-400E-816E-47C4BC1AAA9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EF47E52-9304-400E-816E-47C4BC1AAA9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F0F6B1C3-B65D-4A78-AA03-5518D79444AC} = {CDCF6B65-6332-443C-A82D-81313E1E7603}
@@ -103,5 +133,8 @@ Global
 		{7AF1F48E-DA6E-4729-AF96-108BD232BC78} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
 		{5EA59779-F1A2-4965-89A0-D1DAFF47B8F7} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
 		{4A8822DD-1B89-4914-A1AE-99C7CE2440E2} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {05C2C4F0-E91F-411D-8557-F04C865FA7AF}
 	EndGlobalSection
 EndGlobal

@@ -42,8 +42,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 using System.Linq.Expressions;
-
-using Zentient.Core.Helpers;
+using Zentient.Core;
 
 namespace Zentient.Repository
 {

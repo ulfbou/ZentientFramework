@@ -38,7 +38,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
-using Zentient.Core.Helpers;
+using Zentient.Core;
 
 namespace Zentient.Repository
 {

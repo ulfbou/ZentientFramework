@@ -47,6 +47,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Core\Zentient.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="Readme.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 

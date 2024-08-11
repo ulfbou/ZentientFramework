@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkcore" Version="8.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+		<PackageReference Include="MSTest.TestAdapter" Version="3.5.1" />
+		<PackageReference Include="MSTest.TestFramework" Version="3.5.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Zentient.Core">
+			<HintPath>..\..\Core\bin\Debug\net8.0\Zentient.Core.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>
