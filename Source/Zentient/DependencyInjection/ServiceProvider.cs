@@ -1,6 +1,4 @@
-﻿
-
-namespace Zentient.DependencyInjection
+﻿namespace Zentient.DependencyInjection
 {
     public class ServiceProvider : IServiceProvider, IAsyncDisposable
     {
@@ -10,20 +8,20 @@ namespace Zentient.DependencyInjection
         private readonly IServiceProvider? _parentProvider;
         private readonly List<object> _disposables = new();
 
+        public ServiceProvider(Dictionary<Type, ServiceDescriptor> serviceDescriptorsDictionary, IServiceProvider serviceProvider)
+        {
+            ArgumentNullException.ThrowIfNull(serviceDescriptorsDictionary);
+
+            _serviceDescriptors = serviceDescriptorsDictionary.ToDictionary();
+            _parentProvider = serviceProvider;
+        }
+
         public ServiceProvider(IEnumerable<ServiceDescriptor> serviceDescriptors, IServiceProvider? parentProvider = null)
         {
             ArgumentNullException.ThrowIfNull(serviceDescriptors);
 
             _serviceDescriptors = serviceDescriptors.ToDictionary(x => x.ServiceType, x => x);
             _parentProvider = parentProvider;
-        }
-
-        public ServiceProvider(Dictionary<Type, ServiceDescriptor> serviceDescriptors, ServiceProvider serviceProvider)
-        {
-            ArgumentNullException.ThrowIfNull(serviceDescriptors);
-
-            _serviceDescriptors = serviceDescriptors.ToDictionary();
-            _parentProvider = serviceProvider;
         }
 
         public TService GetService<TService>()
@@ -48,6 +46,8 @@ namespace Zentient.DependencyInjection
                     _scopedInstances[serviceType] = implementation;
                     break;
             }
+
+            TrackDisposable(implementation);
 
             return implementation;
         }
@@ -102,7 +102,7 @@ namespace Zentient.DependencyInjection
             return null;
         }
 
-        public ServiceProvider CreateScope()
+        public IServiceProvider CreateScope()
         {
             return new ServiceProvider(_serviceDescriptors, this);
         }
@@ -110,44 +110,73 @@ namespace Zentient.DependencyInjection
         private object CreateInstance(Type implementationType)
         {
             // TODO: Evaluate all potential constructors and select the one with the most parameters that can be instantiated.
-            var constructor = implementationType.GetConstructors().First();
-            var parameters = constructor.GetParameters();
-            if (parameters.Length == 0)
-            {
-                try
-                {
-                    // TODO: Handle null return value.
-                    return Activator.CreateInstance(implementationType);
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException($"Failed to create instance of type {implementationType}.", ex);
-                }
-            }
-            try
-            {
-                // TODO: Handle null return value.
-                var parameterInstances = parameters.Select(param => GetService(param.ParameterType)).ToArray();
-                return Activator.CreateInstance(implementationType, parameterInstances);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to create instance of type {implementationType}.", ex);
-            }
-        }
-
-
-        private async Task<object> CreateInstanceAsync(Type implementationType)
-        {
-            var constructor = implementationType.GetConstructors().First();
+            var constructor = ConstructorSelector.GetBestConstructor(implementationType, this);
             var parameters = constructor.GetParameters();
             if (parameters.Length == 0)
             {
                 return Activator.CreateInstance(implementationType);
             }
 
-            var parameterInstances = await Task.WhenAll(parameters.Select(async param => await GetServiceAsync(param.ParameterType)));
-            return Activator.CreateInstance(implementationType, parameterInstances);
+            var parameterInstances = new List<object>();
+            foreach (var param in parameters)
+            {
+                if (CanResolve(param.ParameterType))
+                {
+                    parameterInstances.Add(GetServiceAsync(param.ParameterType));
+                }
+                else if (param.HasDefaultValue)
+                {
+                    parameterInstances.Add(param.DefaultValue);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unable to resolve parameter '{param.Name}' for type '{implementationType.FullName}'");
+                }
+            }
+
+            return Activator.CreateInstance(implementationType, parameterInstances.ToArray());
+        }
+
+        private async Task<object> CreateInstanceAsync(Type implementationType)
+        {
+            var constructor = ConstructorSelector.GetBestConstructor(implementationType, this);
+            var parameters = constructor.GetParameters();
+            if (parameters.Length == 0)
+            {
+                return Activator.CreateInstance(implementationType);
+            }
+
+            var parameterInstances = new List<object>();
+            foreach (var param in parameters)
+            {
+                if (CanResolve(param.ParameterType))
+                {
+                    parameterInstances.Add(GetServiceAsync(param.ParameterType));
+                }
+                else if (param.HasDefaultValue)
+                {
+                    parameterInstances.Add(param.DefaultValue);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unable to resolve parameter '{param.Name}' for type '{implementationType.FullName}'");
+                }
+            }
+
+            return Activator.CreateInstance(implementationType, parameterInstances.ToArray());
+        }
+
+        private bool CanResolve(Type type)
+        {
+            try
+            {
+                GetServiceAsync(type).Wait();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void TrackDisposable(object implementation)
@@ -179,5 +208,7 @@ namespace Zentient.DependencyInjection
 
             _disposables.Clear();
         }
+
+        public Dictionary<Type, ServiceDescriptor> ServiceDescriptors => _serviceDescriptors;
     }
 }

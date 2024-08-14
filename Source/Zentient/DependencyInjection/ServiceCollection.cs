@@ -4,19 +4,22 @@
     {
         private readonly List<ServiceDescriptor> _serviceDescriptors = new();
 
-        public void AddSingleton<TService, TImplementation>() where TImplementation : TService
+        public IServiceCollection AddSingleton<TService, TImplementation>() where TImplementation : TService
         {
             _serviceDescriptors.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Singleton));
+            return this;
         }
 
-        public void AddScoped<TService, TImplementation>() where TImplementation : TService
+        public IServiceCollection AddScoped<TService, TImplementation>() where TImplementation : TService
         {
             _serviceDescriptors.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped));
+            return this;
         }
 
-        public void AddTransient<TService, TImplementation>() where TImplementation : TService
+        public IServiceCollection AddTransient<TService, TImplementation>() where TImplementation : TService
         {
             _serviceDescriptors.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Transient));
+            return this;
         }
 
         public IServiceProvider Build()

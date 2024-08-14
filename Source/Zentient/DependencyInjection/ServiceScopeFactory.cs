@@ -2,10 +2,16 @@
 {
     public class ServiceScopeFactory : IServiceScopeFactory
     {
+        private readonly IServiceProvider _rootProvider;
+
+        public ServiceScopeFactory(IServiceProvider rootProvider)
+        {
+            _rootProvider = rootProvider;
+        }
+
         public IServiceScope CreateScope()
         {
-            // Create a new scope
-            return new ServiceScope();
+            return new ServiceScope(new ServiceProvider(_rootProvider.ServiceDescriptors, _rootProvider));
         }
     }
 }

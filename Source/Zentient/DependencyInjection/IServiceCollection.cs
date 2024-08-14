@@ -8,9 +8,9 @@ namespace Zentient.DependencyInjection
 {
     public interface IServiceCollection : IList<ServiceDescriptor>
     {
-        void AddSingleton<TService, TImplementation>() where TImplementation : TService;
-        void AddScoped<TService, TImplementation>() where TImplementation : TService;
-        void AddTransient<TService, TImplementation>() where TImplementation : TService;
+        IServiceCollection AddSingleton<TService, TImplementation>() where TImplementation : TService;
+        IServiceCollection AddScoped<TService, TImplementation>() where TImplementation : TService;
+        IServiceCollection AddTransient<TService, TImplementation>() where TImplementation : TService;
         IServiceProvider Build();
     }
 }

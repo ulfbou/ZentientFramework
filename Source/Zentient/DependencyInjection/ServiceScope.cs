@@ -2,6 +2,15 @@
 {
     public class ServiceScope : IServiceScope
     {
-        // Methods to manage scoped services
+        private readonly ServiceProvider _serviceProvider;
+
+        public ServiceScope(ServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public IServiceProvider ServiceProvider => _serviceProvider;
+
+        public ValueTask DisposeAsync() => _serviceProvider.DisposeAsync();
     }
 }
