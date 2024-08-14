@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -35,19 +35,29 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Tests", "Source\Ze
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Vectors", "Source\Zentient\Vectors\Zentient.Vectors.csproj", "{4A8822DD-1B89-4914-A1AE-99C7CE2440E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Repository.QueryObjects", "Source\Zentient\Repository.QueryObjects\Zentient.Repository.QueryObjects\Zentient.Repository.QueryObjects.csproj", "{0EF47E52-9304-400E-816E-47C4BC1AAA9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.Repository.QueryObjects", "Source\Zentient\Repository.QueryObjects\Zentient.Repository.QueryObjects\Zentient.Repository.QueryObjects.csproj", "{0EF47E52-9304-400E-816E-47C4BC1AAA9D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1392A4F6-A5A5-4390-B35B-E0A674209638} = {1392A4F6-A5A5-4390-B35B-E0A674209638}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.GenericRepository", "Source\Zentient\GenericRepository\Zentient.GenericRepository\Zentient.GenericRepository.csproj", "{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.GenericRepository", "Source\Zentient\GenericRepository\Zentient.GenericRepository\Zentient.GenericRepository.csproj", "{9BDD9776-B49F-4ABA-ADF3-539F6D4E9450}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0EF47E52-9304-400E-816E-47C4BC1AAA9D} = {0EF47E52-9304-400E-816E-47C4BC1AAA9D}
 		{1392A4F6-A5A5-4390-B35B-E0A674209638} = {1392A4F6-A5A5-4390-B35B-E0A674209638}
 		{E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C} = {E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.GenericRepository.Tests", "Source\Tests\Zentient.GenericRepository.Tests\Zentient.GenericRepository.Tests.csproj", "{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zentient.GenericRepository.Tests", "Source\Tests\Zentient.GenericRepository.Tests\Zentient.GenericRepository.Tests.csproj", "{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.DependencyInjection.Tests", "Source\Zentient\DependencyInjection.Tests\Zentient.DependencyInjection.Tests\Zentient.DependencyInjection.Tests.csproj", "{6DD594FA-9658-481E-9D23-75E30CECFE0F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1392A4F6-A5A5-4390-B35B-E0A674209638} = {1392A4F6-A5A5-4390-B35B-E0A674209638}
+		{A5F8ACD7-85AF-4B80-96F4-11C63873F40D} = {A5F8ACD7-85AF-4B80-96F4-11C63873F40D}
+		{B0D60F5A-D133-4012-8594-623C1DB711D0} = {B0D60F5A-D133-4012-8594-623C1DB711D0}
+		{E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C} = {E9C1BD8C-EEA3-44A4-8C67-FCF169D7103C}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Blazorite", "Source\Zentient\Blazorite\Zentient.Blazorite.csproj", "{4CEBAA16-90A0-4042-9B1B-F668F4EF57E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +125,14 @@ Global
 		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6E6077D-6D4C-42C5-84D2-A590B93E4EEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DD594FA-9658-481E-9D23-75E30CECFE0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DD594FA-9658-481E-9D23-75E30CECFE0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DD594FA-9658-481E-9D23-75E30CECFE0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DD594FA-9658-481E-9D23-75E30CECFE0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CEBAA16-90A0-4042-9B1B-F668F4EF57E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CEBAA16-90A0-4042-9B1B-F668F4EF57E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CEBAA16-90A0-4042-9B1B-F668F4EF57E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CEBAA16-90A0-4042-9B1B-F668F4EF57E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -133,6 +151,7 @@ Global
 		{7AF1F48E-DA6E-4729-AF96-108BD232BC78} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
 		{5EA59779-F1A2-4965-89A0-D1DAFF47B8F7} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
 		{4A8822DD-1B89-4914-A1AE-99C7CE2440E2} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
+		{4CEBAA16-90A0-4042-9B1B-F668F4EF57E2} = {F0F6B1C3-B65D-4A78-AA03-5518D79444AC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {05C2C4F0-E91F-411D-8557-F04C865FA7AF}
