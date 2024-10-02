@@ -30,3 +30,44 @@ Serilog (for logging)
 
 FeatureFlagsUtilit Manages feature flags and controls feature visibil↓
 
+
+
+
+2. Integration:
+
+• Integrates with IService Provider and ILogger.
+
+• Supports attribute-based service registration for retry and fallback policies.
+
+Includes a custom XML configuration section for feature flags and logging behavior.
+
+Implementation Details
+
+LoggingUtility Class
+
+• Wraps a Serilog Logger instance.
+
+Provides methods for logging at different levels (LogError, LogWarning, LogInfo).
+
+Configures logging behavior based on exception severity.
+
+RetryUtility Class
+
+Wraps Polly's retry and fallback policies.
+
+• Provides methods for defining and executing retry policies (Retry, RetryWithFallback).
+
+FeatureFlagsUtility Class
+
+Manages feature flags and controls feature visibility.
+
+Implements IsFeatureEnabled method to check feature status based on flags.
+
+Attribute-Based Service Registration
+
+• Custom attributes (RetryAttribute, FallbackAttribute) for declarative configuration.
+
+• Extension method for IServiceCollection to register services with retry and fallback policies.
+
+Custom XML Configuration Section
+
