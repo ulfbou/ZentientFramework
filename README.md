@@ -102,3 +102,46 @@ public class UserService : IUserService
         return await Task.FromResult(Zentient.Results.Result<User>.Success(new User(Guid.NewGuid(), request.Name)));
     }
 }
+```
+
+## ⚙️ Customizing ProblemDetails Mapping
+
+You can customize how Zentient.Results errors are mapped to ProblemDetails by implementing the IProblemDetailsMapper interface and registering it with your DI container. This allows you to add custom extensions, adjust titles, or apply organizational-specific formatting.
+
+```csharp
+// Example Custom Mapper
+public class MyCustomProblemDetailsMapper : IProblemDetailsMapper
+{
+    public ProblemDetails Map(ErrorInfo error, HttpContext httpContext)
+    {
+        var problemDetails = new ProblemDetails
+        {
+            Status = error.Category.ToHttpStatusCode(), // Map category to HTTP status
+            Type = $"[https://yourcompany.com/errors/](https://yourcompany.com/errors/){error.Code.ToLower()}",
+            Title = error.Message,
+            Detail = error.Detail,
+            Instance = httpContext.Request.Path,
+            Extensions = {
+                { "correlationId", httpContext.TraceIdentifier },
+                { "internalCode", error.Code },
+                { "customInfo", error.Data } // Include custom data if available
+            }
+        };
+        return problemDetails;
+    }
+}
+
+// Register in Program.cs
+builder.Services.AddScoped<IProblemDetailsMapper, MyCustomProblemDetailsMapper>();
+```
+
+## 📊 Logging and Observability Integration
+
+Zentient.Endpoints is designed with observability in mind. The rich, structured ErrorInfo and TransportMetadata within EndpointResult provide perfect payloads for structured logging (e.g., Serilog, Microsoft.Extensions.Logging) and tracing (e.g., OpenTelemetry). Failures can be logged with detailed context, making debugging and monitoring distributed systems far more effective.
+
+## 🗺️ Roadmap & Contributing
+
+We're excited to evolve Zentient.Endpoints to support more transports and advanced scenarios. Your contributions and feedback are highly welcome! Please visit our GitHub repository for the latest updates, issues, and contribution guidelines.
+
+ * GitHub Repository: https://github.com/ulfbou/Zentient.Endpoints
+
