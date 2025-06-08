@@ -1,147 +1,238 @@
-# Zentient.Endpoints
 
-## 🚀 The Universal Bridge for Zentient.Results and Transport Protocols
+# Zentient.Endpoints — Unified, Transport-Agnostic Result Handling for .NET
 
-`Zentient.Endpoints` is a .NET library designed to streamline how `Zentient.Results` are consumed and adapted at the "endpoint" or "transport" layer of your application. Whether you're building a Web API, a gRPC service, or integrating with messaging queues, `Zentient.Endpoints` provides a unified, clean, and extensible way to translate the explicit outcomes of your business logic (represented by `Zentient.Results`) into appropriate responses for various communication protocols.
-
----
-
-## ✨ Why `Zentient.Endpoints`?
-
-In modern, layered architectures like Clean Architecture, your application's core logic should produce clear, explicit outcomes using a pattern like `Zentient.Results`. However, mapping these internal results to external transport-specific responses (like HTTP status codes and Problem Details, or gRPC error codes and metadata) often introduces boilerplate and inconsistency.
-
-`Zentient.Endpoints` solves this by offering:
-
-* **Unified Abstraction:** A common interface (`IEndpointResult`) for all endpoint outcomes, regardless of the underlying transport.
-* **Protocol-Specific Adapters:** Dedicated, opt-in packages (`.Http`, `.Grpc`, etc.) to cleanly translate `IEndpointResult` into standard protocol responses.
-* **Robust Error Handling:** Seamless integration with `Zentient.Results` ensures detailed error information is consistently captured and exposed.
-* **Extensibility:** Easily customize how errors are mapped (e.g., Problem Details, gRPC metadata) or integrate new transport protocols.
-* **Enhanced Developer Experience:** Reduce boilerplate, improve readability, and ensure consistent error handling across your entire system.
+[![NuGet](https://img.shields.io/nuget/v/Zentient.Endpoints?label=Zentient.Endpoints)](https://www.nuget.org/packages/Zentient.Endpoints)
+[![NuGet](https://img.shields.io/nuget/v/Zentient.Endpoints.Http?label=Zentient.Endpoints.Http)](https://www.nuget.org/packages/Zentient.Endpoints.Http)
+[![Build](https://img.shields.io/github/actions/workflow/status/ulfbou/Zentient.Endpoints/build.yml)](https://github.com/ulfbou/Zentient.Endpoints/actions)
+![License](https://img.shields.io/github/license/ulfbou/Zentient.Endpoints)
+![.NET Versions](https://img.shields.io/badge/.NET-8.0%20%7C%209.0-blue)
 
 ---
 
-## 📦 Packaging Strategy
+## Table of Contents
 
-`Zentient.Endpoints` follows a modular packaging approach, allowing you to only include the components relevant to your specific application's needs.
-
-* **`Zentient.Endpoints` (Core):**
-    * **Purpose:** Contains the foundational, transport-agnostic interfaces (`IEndpointResult`), base types (`EndpointResult<T>`, `Unit`), and core functional extensions (`Bind`, `Map`).
-    * **Dependencies:** Primarily `Zentient.Results`.
-    * **Installation:**
-        ```bash
-        dotnet add package Zentient.Endpoints
-        ```
-
-* **`Zentient.Endpoints.Http`:**
-    * **Purpose:** Provides specific functionality for mapping `IEndpointResult` to ASP.NET Core HTTP responses, including Minimal APIs and traditional MVC controllers. This includes extensions for `IResult` (ASP.NET Core's HTTP result type), `IEndpointFilter` for global response normalization, and configurable Problem Details mapping.
-    * **Dependencies:** `Zentient.Endpoints`, `Microsoft.AspNetCore.Http.Abstractions`, `Microsoft.AspNetCore.Mvc.Core`.
-    * **Installation:**
-        ```bash
-        dotnet add package Zentient.Endpoints.Http
-        ```
-
-* **`Zentient.Endpoints.Grpc`:**
-    * **Purpose:** Offers utilities and extension methods for integrating `IEndpointResult` with gRPC services, including mapping `Zentient.Results` failures to `RpcException` with structured metadata.
-    * **Dependencies:** `Zentient.Endpoints`, `Grpc.AspNetCore`, `Grpc.Net.Client`.
-    * **Installation:**
-        ```bash
-        dotnet add package Zentient.Endpoints.Grpc
-        ```
+- [Overview](#-overview)
+- [Why Zentient.Endpoints?](#-why-zentientendpoints)
+- [Architecture](#-architecture-overview)
+- [Quick Start](#-quick-start)
+- [Advanced Usage](#-advanced-usage)
+- [Observability](#-observability)
+- [Vision & Roadmap](#-vision--roadmap)
+- [Contributing](#-contributing)
 
 ---
 
-## 🛠️ When to Use `EndpointResult<T>` over Raw `Result<T>`
+## 🚀 Overview
 
-Use `EndpointResult<T>` when your `Zentient.Results` outcome needs to be exposed at a public application boundary (an "endpoint") and potentially adapted for a specific transport protocol.
+**Zentient.Endpoints** is a modular, protocol-agnostic result adapter for .NET services. It bridges your clean, transport-neutral application logic—using [`Zentient.Results`](https://www.nuget.org/packages/Zentient.Results)—with HTTP, gRPC, and messaging transports.
 
-* **`Zentient.Results.IResult<T>` / `Result<T>`:** Ideal for internal application layers (e.g., domain services, application services, command/query handlers) where the focus is purely on the business outcome and error details.
-* **`Zentient.Endpoints.IEndpointResult<T>` / `EndpointResult<T>`:** Use this as the return type for your Minimal API handlers, MVC controller actions, gRPC service methods, or message consumers. It wraps the `Zentient.Results` outcome and can carry additional `TransportMetadata` relevant to how it will be presented to the outside world.
+_No more boilerplate status code mapping. No more brittle exception filters. Just structured, consistent, observable outcomes, every time._
 
 ---
 
-## 💻 Quick Usage Example (HTTP)
+## ❓ Why Zentient.Endpoints?
+
+When building modern .NET APIs, the transport layer (HTTP, gRPC, MQ) often leaks into your core logic through:
+
+- 🔁 Repeated error-to-response mapping
+- ⚠️ Inconsistent error formats across transports
+- 🙈 Opaque try-catch blocks for edge case handling
+- 🔍 Weak observability with missing context
+
+Zentient.Endpoints introduces a single, consistent boundary abstraction:
+
+```
+IResult<T> (from Zentient.Results) → IEndpointResult<T> → Transport-specific response
+```
+
+### ✨ Key Differentiators
+
+- 🚛 **Protocol-Agnostic Outcome Flow**  
+  Return `IResult<T>` from your application logic, and adapt it to HTTP, gRPC, or Messaging with zero knowledge of the transport in your service layer.
+
+- 🧱 **Clean Architecture Compliant**  
+  `EndpointResult<T>` lives at the Presentation layer and cleanly wraps domain results. No controller, service, or mapper duplication.
+
+- 📦 **Modular & Extensible**  
+  - Zentient.Endpoints.Http for ASP.NET Core  
+  - Zentient.Endpoints.Grpc for gRPC  
+  - Custom transports coming soon (Messaging, SignalR)
+
+- 🛡️ **Exception Resilience**  
+  Automatically captures exceptions in bind chains and turns them into structured `ErrorInfo`.
+
+- 🔍 **Structured Observability**  
+  Transport metadata + rich ErrorInfo = deeply traceable logs and spans.
+
+---
+
+## 🏛️ Architecture Overview
+
+Zentient.Endpoints serves as the unified boundary adapter:
+
+```mermaid
+graph TD
+    subgraph Core Application Layers
+        A[Domain Layer] --> B[Application Layer]
+    end
+    B --> |Zentient.Results.IResult<T>| C{Zentient.Endpoints}
+    C --> |IEndpointResult<T>| D[HTTP (Minimal API/MVC)]
+    C --> |IEndpointResult<T>| E[gRPC]
+    C --> |IEndpointResult<T>| F[Messaging (Coming Soon)]
+    D --> G[HTTP Client/Browser]
+    E --> H[gRPC Client]
+    F --> I[Message Consumer]
+
+    style C fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+---
+
+## 💻 Quick Start
+
+**1. Install NuGet Packages**
+
+```bash
+dotnet add package Zentient.Endpoints
+dotnet add package Zentient.Endpoints.Http
+```
+
+**2. Configure Services in Program.cs**
 
 ```csharp
-// In your Minimal API endpoint handler (e.g., Program.cs or a dedicated module)
+builder.Services.AddProblemDetails();
+builder.Services.AddZentientEndpointsHttp(); // Adds NormalizeEndpointResultFilter
+```
 
-// 1. Add services:
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddProblemDetails(); // Ensure ProblemDetails is configured
-builder.Services.AddZentientEndpointsHttp(); // Extension method to add necessary services
+**3. Use EndpointResult<T> in Minimal API**
 
-// 2. Use the endpoint filter for consistent response mapping
+```csharp
 app.UseEndpointFilter<NormalizeEndpointResultFilter>();
 
-// 3. Define an endpoint that returns EndpointResult<T>
 app.MapPost("/api/users", async (CreateUserRequest request, IUserService userService) =>
 {
-    // userService method returns Zentient.Results.IResult<User>
-    var userResult = await userService.CreateUser(request);
-
-    // Wrap it in EndpointResult to prepare for transport mapping
-    var endpointResult = EndpointResult<User>.From(userResult);
-
-    // Endpoint filter will intercept this and convert it to Microsoft.AspNetCore.Http.IResult
-    return endpointResult;
+    var result = await userService.CreateUser(request);
+    return EndpointResult<User>.From(result); // auto-normalized to Results.Ok/BadRequest/etc
 })
-.WithName("CreateUser")
-.Produces<UserResponse>((int)HttpStatusCode.Created)
-.ProducesProblem((int)HttpStatusCode.BadRequest) // Indicates ProblemDetails will be returned
-.ProducesProblem((int)HttpStatusCode.InternalServerError);
-
-// Inside your IUserService (Application Layer)
-public class UserService : IUserService
-{
-    // ...
-    public async Task<Zentient.Results.IResult<User>> CreateUser(CreateUserRequest request)
-    {
-        // Your business logic returns Zentient.Results.IResult<User>
-        // e.g., return Result<User>.Success(newUser);
-        // e.g., return Result<User>.Failure(new ErrorInfo(...), ResultStatuses.BadRequest);
-        return await Task.FromResult(Zentient.Results.Result<User>.Success(new User(Guid.NewGuid(), request.Name)));
-    }
-}
+.Produces<UserResponse>(201)
+.ProducesProblem(400)
+.ProducesProblem(500);
 ```
 
-## ⚙️ Customizing ProblemDetails Mapping
-
-You can customize how Zentient.Results errors are mapped to ProblemDetails by implementing the IProblemDetailsMapper interface and registering it with your DI container. This allows you to add custom extensions, adjust titles, or apply organizational-specific formatting.
+**4. Return IResult<T> from Application Layer**
 
 ```csharp
-// Example Custom Mapper
-public class MyCustomProblemDetailsMapper : IProblemDetailsMapper
+public class UserService : IUserService
 {
-    public ProblemDetails Map(ErrorInfo error, HttpContext httpContext)
+    public async Task<IResult<User>> CreateUser(CreateUserRequest req)
     {
-        var problemDetails = new ProblemDetails
-        {
-            Status = error.Category.ToHttpStatusCode(), // Map category to HTTP status
-            Type = $"[https://yourcompany.com/errors/](https://yourcompany.com/errors/){error.Code.ToLower()}",
-            Title = error.Message,
-            Detail = error.Detail,
-            Instance = httpContext.Request.Path,
-            Extensions = {
-                { "correlationId", httpContext.TraceIdentifier },
-                { "internalCode", error.Code },
-                { "customInfo", error.Data } // Include custom data if available
-            }
-        };
-        return problemDetails;
+        if (string.IsNullOrWhiteSpace(req.Name))
+            return Result<User>.Failure(ErrorInfo.BadRequest("EmptyName", "Name is required"));
+
+        return Result<User>.Success(new User(Guid.NewGuid(), req.Name));
     }
 }
-
-// Register in Program.cs
-builder.Services.AddScoped<IProblemDetailsMapper, MyCustomProblemDetailsMapper>();
 ```
 
-## 📊 Logging and Observability Integration
+---
 
-Zentient.Endpoints is designed with observability in mind. The rich, structured ErrorInfo and TransportMetadata within EndpointResult provide perfect payloads for structured logging (e.g., Serilog, Microsoft.Extensions.Logging) and tracing (e.g., OpenTelemetry). Failures can be logged with detailed context, making debugging and monitoring distributed systems far more effective.
+## 🔧 Advanced Usage
 
-## 🗺️ Roadmap & Contributing
+### 🛠 Custom IProblemDetailsMapper
 
-We're excited to evolve Zentient.Endpoints to support more transports and advanced scenarios. Your contributions and feedback are highly welcome! Please visit our GitHub repository for the latest updates, issues, and contribution guidelines.
+Customize HTTP ProblemDetails output:
 
- * GitHub Repository: https://github.com/ulfbou/Zentient.Endpoints
+```csharp
+public class MyProblemDetailsMapper : IProblemDetailsMapper
+{
+    public ProblemDetails Map(ErrorInfo error, HttpContext ctx)
+    {
+        var pd = new ProblemDetails
+        {
+            Status = error.Category.ToHttpStatusCode(),
+            Type = $"https://errors.myapi.com/{error.Code}",
+            Title = error.Message,
+            Detail = error.Detail,
+            Instance = ctx.Request.Path
+        };
+        pd.Extensions["requestId"] = ctx.TraceIdentifier;
+        pd.Extensions["errorCode"] = error.Code;
+        return pd;
+    }
+}
+```
 
+**Register:**
+
+```csharp
+builder.Services.AddScoped<IProblemDetailsMapper, MyProblemDetailsMapper>();
+```
+
+### 🔐 Exception-Safe Binding
+
+`EndpointResult<T>` includes a `.Bind(...)` method that gracefully handles exceptions:
+
+```csharp
+return EndpointResult<User>
+    .From(serviceResult)
+    .Bind(user => user.IsActive ? Result.Success(user) : throw new InvalidOperationException());
+```
+
+Exceptions are captured and wrapped as structured `ErrorInfo.Internal`.
+
+---
+
+## 📡 gRPC Support
+
+With Zentient.Endpoints.Grpc:
+
+```csharp
+public override Task<UserResponse> GetUser(UserRequest req, ServerCallContext ctx)
+{
+    var result = await _service.GetUser(req.Id);
+    return result
+        .ToEndpointResult()
+        .ToRpcResult(mapper: MyGrpcMapper); // Handles RpcException, metadata
+}
+```
+
+Automatically maps errors to gRPC trailers with rich metadata.
+
+---
+
+## 📊 Observability
+
+- **Structured Logging:**  
+  Every ErrorInfo has Category, Code, Message, and Data, ready for Serilog/Elastic/OpenSearch indexing.
+
+- **OpenTelemetry Tracing:**  
+  Easily attach transport + result metadata to spans.
+
+---
+
+## 🗺️ Vision & Roadmap
+
+Zentient.Endpoints aims to become the standard outcome adapter for multi-transport .NET systems.
+
+**Planned:**
+- ✅ HTTP & gRPC support
+- 🔄 RabbitMQ / Kafka (Messaging)
+- 📡 SignalR/WebSocket support
+- 🧰 Code generators for SDKs
+- 🛠 Better ProblemDetails extension helpers
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from experienced .NET developers who care about clean, scalable service boundaries.
+
+- Open an issue
+- Join discussions
+- Submit a PR with tests and motivation
+
+> Zentient.Endpoints is built for those who believe the boundary between core and edge should be elegant, not repetitive.
+
+---
+
+> Created with ❤️ by [@ulfbou](https://github.com/ulfbou) and the Zentient contributors.
