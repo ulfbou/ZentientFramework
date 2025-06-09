@@ -1,0 +1,71 @@
+<!-- Directory.Build.props -->
+<Project>
+	<PropertyGroup>
+		<!--
+      VersionPrefix will be dynamically updated by semantic-release.
+      Do NOT set a fixed 'Version' or GitVersion-derived 'Version' here.
+      semantic-release will manage this property.
+    -->
+		<VersionPrefix>0.1.0</VersionPrefix>
+
+		<!-- NuGet Metadata -->
+		<Authors>Ulf Bourelius</Authors>
+		<Company>Zentient</Company>
+		<Copyright>Copyright © 2025 Ulf Bourelius. All rights reserved.</Copyright>
+		<!-- Corrected symbol -->
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/ulfbou/Zentient.Endpoints</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ulfbou/Zentient.Endpoints.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<!-- Symbols & Debugging -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<!-- Language & Compiler Settings -->
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Default Target Frameworks for most projects (can be overridden by individual projects) -->
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+
+		<!-- Build Behavior & Quality Gates -->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+		<!-- Debug and Release Configuration Overrides -->
+		<!-- OutputPath is managed by Directory.Build.targets, so remove it from here to avoid conflicts -->
+		<!-- <OutputPath>bin\$(Configuration)\</OutputPath> -->
+		<DebugType Condition="'$(Configuration)' == 'Debug'">portable</DebugType>
+		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
+		<!-- Always include for public libraries -->
+		<Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+		<DebugSymbols Condition="'$(Configuration)' == 'Debug'">true</DebugSymbols>
+		<DebugSymbols Condition="'$(Configuration)' == 'Release'">true</DebugSymbols>
+		<!-- Always include for public libraries -->
+		<DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG;TRACE</DefineConstants>
+		<DefineConstants Condition="'$(Configuration)' == 'Release'">$(DefineConstants);TRACE</DefineConstants>
+	</PropertyGroup>
+
+	<!-- Common Package References (applied to all projects) -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+		<!-- Add global analyzers here -->
+		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- Conditional compilation symbols for target frameworks, if needed.
+       Often these are automatically defined by the SDK, but explicit definition can be useful. -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER;NET9_0_OR_GREATER</DefineConstants>
+	</PropertyGroup>
+
+</Project>
