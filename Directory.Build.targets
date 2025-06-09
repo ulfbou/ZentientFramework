@@ -12,7 +12,15 @@
 	</PropertyGroup>
 
 	<!-- Analyzer support: allow repo-wide custom analyzers or rulesets -->
+	<PropertyGroup>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<CodeAnalysisRuleSet>$(SolutionDir)analyzers\Zentient.ruleset</CodeAnalysisRuleSet>
+	</PropertyGroup>
+
 	<ItemGroup>
+		<AdditionalFiles Include="$(SolutionDir).editorconfig" />
+
 		<!-- Internal rulesets or config files. Use AdditionalFiles for rule sets. -->
 		<AdditionalFiles Include="$(SolutionDir)analyzers\**\*.ruleset" Condition="Exists('$(SolutionDir)analyzers')" />
 	</ItemGroup>

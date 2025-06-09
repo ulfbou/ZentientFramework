@@ -10,9 +10,8 @@
 
 		<!-- NuGet Metadata -->
 		<Authors>Ulf Bourelius</Authors>
-		<Company>Zentient</Company>
+		<Company>Zentient Framework Team</Company>
 		<Copyright>Copyright © 2025 Ulf Bourelius. All rights reserved.</Copyright>
-		<!-- Corrected symbol -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/ulfbou/Zentient.Endpoints</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/ulfbou/Zentient.Endpoints.git</RepositoryUrl>
@@ -38,16 +37,11 @@
 		<Deterministic>true</Deterministic>
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 
-		<!-- Debug and Release Configuration Overrides -->
-		<!-- OutputPath is managed by Directory.Build.targets, so remove it from here to avoid conflicts -->
-		<!-- <OutputPath>bin\$(Configuration)\</OutputPath> -->
 		<DebugType Condition="'$(Configuration)' == 'Debug'">portable</DebugType>
 		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
-		<!-- Always include for public libraries -->
 		<Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
 		<DebugSymbols Condition="'$(Configuration)' == 'Debug'">true</DebugSymbols>
 		<DebugSymbols Condition="'$(Configuration)' == 'Release'">true</DebugSymbols>
-		<!-- Always include for public libraries -->
 		<DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG;TRACE</DefineConstants>
 		<DefineConstants Condition="'$(Configuration)' == 'Release'">$(DefineConstants);TRACE</DefineConstants>
 	</PropertyGroup>
@@ -55,15 +49,14 @@
 	<!-- Common Package References (applied to all projects) -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-		<!-- Add global analyzers here -->
 		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435" PrivateAssets="All" />
+		<AdditionalFiles Include="$(SolutionDir)stylecop.json" />
 	</ItemGroup>
 
-	<!-- Conditional compilation symbols for target frameworks, if needed.
-       Often these are automatically defined by the SDK, but explicit definition can be useful. -->
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
 		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER;NET9_0_OR_GREATER</DefineConstants>
 	</PropertyGroup>
