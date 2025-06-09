@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Zentient Core Rules" Description="Core Roslyn ruleset for Zentient code quality." ToolsVersion="15.0">
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
+
+    <!-- Documentation -->
+    <Rule Id="CS1591" Action="Error" /> <!-- Missing XML comments on public members -->
+
+    <!-- Maintainability -->
+    <Rule Id="CA1506" Action="Error" /> <!-- Avoid excessive class coupling -->
+    <Rule Id="CA1502" Action="Error" /> <!-- Avoid excessive complexity -->
+    <Rule Id="CA1822" Action="Warning" /> <!-- Mark members as static -->
+
+    <!-- Naming -->
+    <Rule Id="CA1707" Action="None" /> <!-- Identifiers should not contain underscores -->
+    <Rule Id="CA1708" Action="Error" /> <!-- Identifiers should differ by more than case -->
+
+    <!-- Performance -->
+    <Rule Id="CA1825" Action="Error" /> <!-- Avoid unnecessary zero-length array allocations -->
+    <Rule Id="CA1812" Action="None" /> <!-- Avoid uninstantiated internal classes -->
+
+    <!-- Design -->
+    <Rule Id="CA1062" Action="Error" /> <!-- Validate arguments of public methods -->
+    <Rule Id="CA1014" Action="None" /> <!-- Mark assemblies with CLSCompliant -->
+
+    <!-- Usage -->
+    <Rule Id="CA2208" Action="Warning" /> <!-- Instantiate argument exceptions correctly -->
+
+  </Rules>
+
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <!-- Enforce readability and structure -->
+    <Rule Id="SA1200" Action="Error" /> <!-- Using directives must be placed correctly -->
+    <Rule Id="SA1516" Action="Warning" /> <!-- Elements should be separated by blank line -->
+    <Rule Id="SA1600" Action="Error" /> <!-- Elements must be documented -->
+    <Rule Id="SA1309" Action="None" /> <!-- Field names must not begin with underscore -->
+  </Rules>
+</RuleSet>
