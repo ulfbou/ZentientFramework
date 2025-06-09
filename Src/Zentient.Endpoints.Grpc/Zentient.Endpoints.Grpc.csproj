@@ -1,0 +1,17 @@
+﻿<!-- Zentient.Endpoints.Grpc -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>Zentient.Endpoints.Grpc</RootNamespace>
+		<Description>gRPC integration for Zentient.Endpoints.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Zentient.Endpoints\Zentient.Endpoints.csproj" />
+		<PackageReference Include="Zentient.Results" Version="[0.3.0, )" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" Condition="'$(TargetFramework)' == 'net8.0'" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="[9.0.0,)" Condition="'$(TargetFramework)' == 'net9.0'" />
+	</ItemGroup>
+
+</Project>
