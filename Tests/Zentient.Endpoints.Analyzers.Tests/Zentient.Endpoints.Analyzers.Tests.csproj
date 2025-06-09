@@ -1,0 +1,29 @@
+﻿<!-- Zentient.Endpoints..Tests -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- Analyzer test projects should usually target the same netstandard as the analyzer -->
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+
+		<!-- Consistent with analyzer project -->
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Zentient.Endpoints.Analyzers.Tests</RootNamespace>
+		<IsTestProject>true</IsTestProject>
+
+		<!-- Add this line to suppress the specific NU1701 warnings -->
+		<NoWarn>$(NoWarn);NU1701</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Correctly reference the analyzer project being tested -->
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Analyzers\Zentient.Endpoints.Analyzers.csproj" />
+
+		<!-- Reference the shared test utilities project -->
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Tests.Shared\Zentient.Endpoints.Tests.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.2" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.2" />
+	</ItemGroup>
+</Project>

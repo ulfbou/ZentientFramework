@@ -1,0 +1,22 @@
+﻿<!-- Zentient.Endpoints.Http.Tests -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Zentient.Endpoints.Http.Tests</RootNamespace>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Http\Zentient.Endpoints.Http.csproj" />
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Tests.Shared\Zentient.Endpoints.Tests.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Specific ASP.NET Core testing packages -->
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.0" />
+	</ItemGroup>
+
+</Project>

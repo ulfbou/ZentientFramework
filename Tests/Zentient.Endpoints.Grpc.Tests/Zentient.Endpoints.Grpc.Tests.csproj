@@ -1,0 +1,25 @@
+﻿<!-- Zentient.Endpoints.Grpc.Tests -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Zentient.Endpoints.Grpc.Tests</RootNamespace>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Grpc\Zentient.Endpoints.Grpc.csproj" />
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Tests.Shared\Zentient.Endpoints.Tests.Shared.csproj" />
+		<!-- Removed: Duplicated test package references and analyzer project reference -->
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Specific gRPC testing packages, if not brought in by TestHost implicitly -->
+		<PackageReference Include="Grpc.Net.ClientFactory" Version="2.62.0" />
+		<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.0" />
+		<!-- If needed for specific gRPC test server setup, otherwise Microsoft.AspNetCore.App may be pulled by TestHost -->
+		<!-- <FrameworkReference Include="Microsoft.AspNetCore.App" /> -->
+	</ItemGroup>
+
+</Project>

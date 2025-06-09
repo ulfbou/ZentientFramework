@@ -1,0 +1,16 @@
+﻿<!-- Zentient.Endpoints.Messaging.Tests -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Zentient.Endpoints.Messaging.Tests</RootNamespace>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Messaging\Zentient.Endpoints.Messaging.csproj" />
+		<ProjectReference Include="..\..\src\Zentient.Endpoints.Tests.Shared\Zentient.Endpoints.Tests.Shared.csproj" />
+	</ItemGroup>
+
+</Project>
