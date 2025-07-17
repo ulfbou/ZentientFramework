@@ -14,7 +14,7 @@ namespace Zentient.Results
     /// </summary>
     /// <remarks>
     /// Mapping to transport-specific codes (HTTP, gRPC, Messaging, etc.) should be handled externally.
-    /// The <see cref="ErrorInfo.Code"/> and <see cref="ErrorInfo.Detail"/> properties should be used
+    /// The ErrorInfo.Code and ErrorInfo.Detail properties should be used
     /// for more granular, specific error identification within these broader categories.
     /// </remarks>
     public enum ErrorCategory

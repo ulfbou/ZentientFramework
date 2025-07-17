@@ -12,7 +12,6 @@ namespace Zentient.Abstractions
         /// <summary>
         /// Creates a new <see cref="IEnvelope"/> instance with the specified success state, messages, errors, and metadata.
         /// </summary>
-        /// <param name="isSuccess">Indicates whether the operation succeeded.</param>
         /// <param name="messages">Optional informational or diagnostic messages.</param>
         /// <param name="errors">Optional collection of error details.</param>
         /// <param name="metadata">Optional metadata associated with the envelope.</param>

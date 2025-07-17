@@ -22,7 +22,7 @@ namespace Zentient.Abstractions
         /// </summary>
         /// <param name="innerPolicy">The policy to execute before this policy.</param>
         /// <returns>A new <see cref="IPolicy{T}"/> that represents the combined policies.</returns>
-        IPolicy<T> With(IPolicy<T> innerPolicy);
+        IPolicy<T> CombineWith(IPolicy<T> innerPolicy);
 
         /// <summary>
         /// Combines this policy with another policy, where the secondary policy acts as a fallback.
