@@ -32,8 +32,5 @@ namespace Zentient.Abstractions
         /// <param name="fallbackPolicy">The policy to execute as a fallback if this policy encounters an unhandled failure.</param>
         /// <returns>A new <see cref="IPolicy{T}"/> that represents this policy with a fallback.</returns>
         IPolicy<T> Fallback(IPolicy<T> fallbackPolicy);
-
-        // Additional combinators like .Wrap (for wrapping an outer policy around an inner)
-        // or .When (for conditional policy application) might be considered as extension methods.
     }
 }

@@ -3,6 +3,7 @@
 // </copyright>
 
 using Zentient.Results;
+
 namespace Zentient.Abstractions
 {
     /// <summary>
