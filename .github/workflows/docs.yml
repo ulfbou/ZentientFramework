@@ -49,8 +49,14 @@ jobs:
       # even with correct docfx.json configuration.
       - name: Generate API Metadata (Workaround)
         run: |
-          [ -d api ] && rm -rf api
-          [ -d _site ] && rm -rf _site
+          if [[ -d api ]]; then
+            echo "(DEBUG) Removing existing 'api' directory to ensure clean pack."
+            rm -rf api
+          fi
+          if [[ -d _site ]]; then
+            echo "(DEBUG) Removing existing '_site' directory to ensure clean pack."
+            rm -rf _site
+          fi
           docfx metadata
 
       - name: Build DocFX Site
