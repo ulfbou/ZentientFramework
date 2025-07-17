@@ -6,14 +6,16 @@ on:
     branches:
       - main
       - develop/*
-      - release/*
+      - feature/*
+      - bugfix/*
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
   pull_request:
+    types: [closed]
     branches:
       - main
-      - develop/*
+      - develop
       - release/*
   workflow_dispatch:
 
@@ -133,7 +135,12 @@ jobs:
     if: |
       success() && (
         startsWith(github.ref, 'refs/heads/release/') ||
-        github.ref_type == 'tag'
+        github.ref_type == 'tag' ||
+        (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && (
+          github.base_ref == 'main' ||
+          github.base_ref == 'develop' ||
+          startsWith(github.base_ref, 'release/')
+        ))
       )
 
     steps:
