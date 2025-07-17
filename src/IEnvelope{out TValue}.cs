@@ -7,7 +7,7 @@ namespace Zentient.Abstractions
     /// <summary>
     /// Represents a strongly typed envelope containing a data payload.
     /// </summary>
-    public interface IEnvelope2<out TValue> : IEnvelope
+    public interface IEnvelope<out TValue> : IEnvelope
     {
         /// <summary>
         /// The optional payload value associated with the result.
