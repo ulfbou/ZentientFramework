@@ -122,12 +122,14 @@ jobs:
           path: artifacts/packages/
 
   release:
+    name: Publish NuGet and GitHub Release
     needs: build-and-pack
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
-    
+      id-token: write
+
     if: |
       success() && (
         startsWith(github.ref, 'refs/heads/release/') ||
@@ -146,12 +148,11 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Download NuGet Packages
+      - name: Download NuGet Packages Artifact
         uses: actions/download-artifact@v4
         with:
           name: nuget-packages-${{ needs.build-and-pack.outputs.head_sha }}
           path: artifacts/packages
-
       - name: Debug NuGet Package Info (for NuGet.org push)
         run: |
           echo "Debug Info for NuGet Push:"
@@ -162,7 +163,7 @@ jobs:
           ls -R artifacts/packages || true
           echo "Attempting to find package using direct path and wildcard:"
           find artifacts/packages -name "*.${{ needs.build-and-pack.outputs.nuget_version_v2 }}.nupkg" -print || true
-          find artifacts/packages -name "*.nupkg" -print || true
+          find artifacts/packages -name "*.snupkg" -print || true
 
       - name: Push NuGet Packages to NuGet.org
         env:
@@ -170,6 +171,7 @@ jobs:
         run: |
           PACKAGE_BASE_NAME="Zentient.Abstractions"
           PACKAGE_VERSION="${{ needs.build-and-pack.outputs.nuget_version_v2 }}"
+
           PRIMARY_PACKAGE_GLOB="artifacts/packages/${PACKAGE_BASE_NAME}.${PACKAGE_VERSION}.nupkg"
           SYMBOL_PACKAGE_GLOB="artifacts/packages/${PACKAGE_BASE_NAME}.${PACKAGE_VERSION}.snupkg"
 
@@ -180,7 +182,7 @@ jobs:
               --api-key "$NUGET_API_KEY" \
               --skip-duplicate
           else
-            echo "Primary NuGet package not found. Expected: $PRIMARY_PACKAGE_GLOB. Skipping push."
+            echo "Primary NuGet package not found for '$PACKAGE_BASE_NAME'. Expected: $PRIMARY_PACKAGE_GLOB. Skipping push."
             exit 1
           fi
 
@@ -191,7 +193,7 @@ jobs:
               --api-key "$NUGET_API_KEY" \
               --skip-duplicate
           else
-            echo "Symbols NuGet package not found. Expected: $SYMBOL_PACKAGE_GLOB. Skipping symbols push."
+            echo "Symbols NuGet package not found for '$PACKAGE_BASE_NAME'. Expected: $SYMBOL_PACKAGE_GLOB. Skipping symbols push."
           fi
 
       - name: Extract Release Notes
@@ -214,9 +216,9 @@ jobs:
           sed -i '/^$/d' release-notes.md.tmp
 
           if [ ! -s release-notes.md.tmp ]; then
-            echo "WARNING: No release notes found for version ${RELEASE_VERSION} in $CHANGELOG_PATH."
+            echo "WARNING: No release notes content found for version ${RELEASE_VERSION} in $CHANGELOG_PATH."
             echo "body_path=NO_RELEASE_NOTES" >> $GITHUB_OUTPUT
-            echo "No release notes content." > release-notes.md
+            echo "No release notes content available for this version." > release-notes.md
           else
             mv release-notes.md.tmp release-notes.md
             echo "body_path=release-notes.md" >> $GITHUB_OUTPUT
