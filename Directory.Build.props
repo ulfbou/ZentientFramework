@@ -1,12 +1,8 @@
 <!-- Directory Build Properties for Zentient.Endpoints solution -->
 <Project>
 	<PropertyGroup>
-		<!-- Define SolutionDir if it's not already defined (e.g., when building a single project).
-         $(MSBuildThisFileDirectory) here refers to the directory of Directory.Build.props itself,
-         which is the solution root. This ensures SolutionDir is always set. -->
 		<SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildThisFileDirectory)</SolutionDir>
 
-		<!-- Versioning Release and Pre-Release -->
 		<Version Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</Version>
 		<InformationalVersion Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</InformationalVersion>
 		<PackageVersion Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</PackageVersion>
@@ -15,7 +11,6 @@
 		<AssemblyVersion Condition="'$(ZENTIENT_VERSION_MAJOR)' != ''">$(ZENTIENT_VERSION_MAJOR).$(ZENTIENT_VERSION_MINOR).$(ZENTIENT_VERSION_PATCH).0</AssemblyVersion>
 		<FileVersion Condition="'$(ZENTIENT_VERSION_MAJOR)' != ''">$(ZENTIENT_VERSION_MAJOR).$(ZENTIENT_VERSION_MINOR).$(ZENTIENT_VERSION_PATCH).0</FileVersion>
 
-		<!-- General metadata for the package -->
 		<Authors>Ulf Bourelius</Authors>
 		<Company>Zentient Framework Team</Company>
 		<Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
@@ -42,7 +37,7 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<GenerateDocumentationFile Condition="'$(IsTestProject)' != 'true'">true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 
 		<LangVersion>latest</LangVersion>
@@ -63,13 +58,7 @@
 		<DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG;TRACE</DefineConstants>
 		<DefineConstants Condition="'$(Configuration)' == 'Release'">$(DefineConstants);TRACE</DefineConstants>
 
-		<!-- Disable all analyzers and StyleCop -->
-		<EnableNETAnalyzers>false</EnableNETAnalyzers>
-		<RunAnalyzers>false</RunAnalyzers>
-		<AnalysisMode>None</AnalysisMode>
 	</PropertyGroup>
-
-	<!-- Removed all analyzer and StyleCop references and rulesets -->
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER</DefineConstants>
