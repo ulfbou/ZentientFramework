@@ -49,7 +49,8 @@ jobs:
       # even with correct docfx.json configuration.
       - name: Generate API Metadata (Workaround)
         run: |
-          rm -rf api _site
+          [ -d api ] && rm -rf api
+          [ -d _site ] && rm -rf _site
           docfx metadata
 
       - name: Build DocFX Site
