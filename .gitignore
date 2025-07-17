@@ -420,8 +420,3 @@ FodyWeavers.xsd
 # DocFX generated output
 _site/
 api/
-
-# Other untracked folders to ignore
-.vs/
-analyzers/
-artifacts/
