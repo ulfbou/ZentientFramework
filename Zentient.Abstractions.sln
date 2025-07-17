@@ -7,6 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Abstractions", "src\Zentient.Abstractions.csproj", "{4AC835A0-C002-4D79-A6F1-CF4A0A3D1324}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{FB9E6AC7-6813-408E-AEE4-70B4BA8DFE47}"
+	ProjectSection(SolutionItems) = preProject
+		docs.yml = docs.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,5 +42,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4AC835A0-C002-4D79-A6F1-CF4A0A3D1324} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{FB9E6AC7-6813-408E-AEE4-70B4BA8DFE47} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 EndGlobal
