@@ -4,7 +4,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Zentient.Results
+namespace Zentient.Abstractions
 {
     /// <summary>
     /// Represents semantic categories for errors, providing strong typing for common types of failures

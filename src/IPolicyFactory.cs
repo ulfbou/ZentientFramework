@@ -33,6 +33,5 @@ namespace Zentient.Abstractions
         /// <param name="fallbackOperation">A delegate representing the fallback operation to execute on failure.</param>
         /// <returns>An <see cref="IPolicy{T}"/> representing the fallback policy.</returns>
         IPolicy<T> CreateFallbackPolicy<T>(Func<CancellationToken, Task<T>> fallbackOperation);
-        // ... more specific policy builders
     }
 }
