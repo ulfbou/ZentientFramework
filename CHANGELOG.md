@@ -5,36 +5,6 @@
 
 ---
 
-## 📦 [2.0.1] — 2025-07-17 (Hotfix)
-
-💥 **Immediate Architectural Correction**
-
-> This patch release addresses an architectural oversight in the newly released v2.0.0.
-> While technically a breaking change, it is being released as a patch to immediately correct
-> the intended placement of a core abstraction prior to widespread adoption of v2.0.0.
-> Future breaking changes will strictly adhere to major version bumps.
-
----
-
-### ♻️ Changed — Core Contracts & Refinements
-
-* **`ErrorCategory`**:
-    * **Breaking Change**: Relocated from `Zentient.Results` namespace to `Zentient.Abstractions` namespace.
-        * **Impact**: Consumers must update their `using Zentient.Results;` statement to `using Zentient.Abstractions;` for `ErrorCategory`.
-        * **Rationale**: `ErrorCategory` is a fundamental, protocol-agnostic primitive intended for the core abstraction layer, not a specific result implementation. Its correct placement in `Zentient.Abstractions` aligns with the framework's design principles.
-
----
-
-### 📘 Documentation
-
-* No changes to existing wiki pages required, as they already reflect the intended namespace for `ErrorCategory`.
-
----
-
-> 🔖 This release ensures the foundational `ErrorCategory` abstraction is correctly placed within `Zentient.Abstractions`, solidifying the framework's core design.
-
----
-
 ## 📦 [2.0.0] — 2025-07-17
 
 💥 **Major Overhaul & API Refinement**
@@ -45,20 +15,20 @@
 
 ### ✨ Added — Core Contracts & Factories
 
-| Interface | Description |
-|---|---|
-| `ICode` | Universal, protocol-agnostic code for operation outcomes with symbolic name and optional numeric value. |
-| `ICodeFactory` | Factory for creating `ICode` instances. |
-| `IContextFactory` | Factory for creating root `IContext` instances and managing ambient context. |
-| `IErrorInfo` | Detailed, immutable information about an error, including category, code, message, and nested errors. |
-| `IErrorInfoFactory` | Factory for creating `IErrorInfo` instances, including from exceptions. |
-| `IEnvelopeFactory` | Factory for creating various `IEnvelope` types (generic, headered, streamable). |
-| `IHeaderedEnvelope` | Base contract for envelopes supporting arbitrary key-value headers (protocol-agnostic). |
-| `IHeaderedEnvelope<TValue>` | Strongly-typed headered envelope for carrying operation result payloads. |
-| `IMetadataFactory` | Factory for creating `IMetadata` instances. |
-| `IPolicyFactory` | Factory for creating common policy instances (retry, circuit breaker, fallback). |
-| `IStreamableEnvelope<TStream>` | Base contract for envelopes whose payload can be streamed. |
-| `IStreamableEnvelope<TStream, TValue>` | Strongly-typed streamable envelope containing both a stream payload and a value. |
+| Interface           | Description                                                                                             |
+|---------------------|---------------------------------------------------------------------------------------------------------|
+| `ICode`             | Universal, protocol-agnostic code for operation outcomes with symbolic name and optional numeric value. |
+| `ICodeFactory`      | Factory for creating `ICode` instances.                                                                 |
+| `IContextFactory`   | Factory for creating root `IContext` instances and managing ambient context.                            |
+| `IErrorInfo`        | Detailed, immutable information about an error, including category, code, message, and nested errors.   |
+| `IErrorInfoFactory` | Factory for creating `IErrorInfo` instances, including from exceptions.                                 |
+| `IEnvelopeFactory`  | Factory for creating various `IEnvelope` types (generic, headered, streamable).                         |
+| `IHeaderedEnvelope` | Base contract for envelopes supporting arbitrary key-value headers (protocol-agnostic).                 |
+| `IHeaderedEnvelope<TValue>` | Strongly-typed headered envelope for carrying operation result payloads.                        |
+| `IMetadataFactory`  | Factory for creating `IMetadata` instances.                                                             |
+| `IPolicyFactory`    | Factory for creating common policy instances (retry, circuit breaker, fallback).                        |
+| `IStreamableEnvelope<TStream>` | Base contract for envelopes whose payload can be streamed.                                      |
+| `IStreamableEnvelope<TStream, TValue>` | Strongly-typed streamable envelope containing both a stream payload and a value.        |
 
 ---
 
@@ -131,32 +101,32 @@
 
 ### ✨ Added — Core Contracts
 
-| Interface | Description |
-|---|---|
-| `IContext` | Immutable hierarchical runtime context with identity, correlation, and metadata. |
-| `IMetadata` | Immutable, strongly-typed key-value container for contextual metadata. |
-| `IEnvelope` | Base contract for operation outcome encapsulation (success, error, metadata). |
-| `IEnvelope<T>` | Strongly-typed envelope for carrying operation result payloads. |
-| `IEndpointCode` | Protocol-aware symbolic outcome code with name, numeric value, and protocol. |
+| Interface        | Description                                                                 |
+|------------------|-----------------------------------------------------------------------------|
+| `IContext`       | Immutable hierarchical runtime context with identity, correlation, and metadata. |
+| `IMetadata`      | Immutable, strongly-typed key-value container for contextual metadata.      |
+| `IEnvelope`      | Base contract for operation outcome encapsulation (success, error, metadata). |
+| `IEnvelope<T>`   | Strongly-typed envelope for carrying operation result payloads.             |
+| `IEndpointCode`  | Protocol-aware symbolic outcome code with name, numeric value, and protocol. |
 | `IFormatter<TIn, TOut>` | Transform abstraction for value formatting across layers and transports. |
-| `IPolicy<T>` | Composable policy abstraction for encapsulating cross-cutting operational logic (e.g., retry, fallback). |
+| `IPolicy<T>`     | Composable policy abstraction for encapsulating cross-cutting operational logic (e.g., retry, fallback). |
 
 ---
 
 ### 🧱 Added — Supporting Types
 
-* **`Unit`**
-    Functional unit type representing an intentional absence of value, suitable for generic APIs and void-like operations.
+- **`Unit`**  
+  Functional unit type representing an intentional absence of value, suitable for generic APIs and void-like operations.
 
-* **`UnitJsonConverter`**
-    Custom System.Text.Json converter for proper serialization and deserialization of `Unit`.
+- **`UnitJsonConverter`**  
+  Custom System.Text.Json converter for proper serialization and deserialization of `Unit`.
 
 ---
 
 ### 📘 Documentation
 
-* Full XML documentation added for all public contracts, properties, and methods.
-* Follows the Zentient Framework documentation structure and developer-first principles.
+- Full XML documentation added for all public contracts, properties, and methods.
+- Follows the Zentient Framework documentation structure and developer-first principles.
 
 ---
 
