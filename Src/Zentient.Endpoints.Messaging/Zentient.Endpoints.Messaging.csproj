@@ -1,0 +1,15 @@
+﻿<!-- Zentient Endpoints Messaging Project File -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>Zentient.Endpoints.Messaging</RootNamespace>
+		<Description>Messaging transport support (MassTransit, etc.) for Zentient.Endpoints.</Description>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Zentient.Endpoints\Zentient.Endpoints.csproj" />
+		<PackageReference Include="Zentient.Results" Version="[0.3.0, )" />
+	</ItemGroup>
+
+</Project>
