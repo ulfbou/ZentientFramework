@@ -420,3 +420,5 @@ FodyWeavers.xsd
 # DocFX generated output
 _site/
 api/
+
+.fake

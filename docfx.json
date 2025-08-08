@@ -10,17 +10,24 @@
           ]
         }
       ],
-      "output": "api"
+      "output": "api",
+      "properties": {
+        "TargetFramework": "net9.0"
+      }
     }
   ],
   "build": {
     "content": [
       {
         "files": [
-          "**/*.{md,yml}"
-        ],
-        "exclude": [
-          "_site/**"
+          "api/**.yml",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "*.md",
+          "toc.yml"
         ]
       }
     ],
@@ -38,9 +45,21 @@
     ],
     "globalMetadata": {
       "_appName": "Zentient.Abstractions",
-      "_appTitle": "Zentient.Abstractions API Reference",
+      "_appTitle": "Zentient.Abstractions 3.0 API Documentation",
+      "_appFooter": "Zentient.Abstractions 3.0 - Foundation for Modern .NET Applications",
       "_enableSearch": true,
-      "pdf": true
+      "_enableNewTab": true,
+      "pdf": false,
+      "_gitContribute": {
+        "repo": "https://github.com/ulfbou/Zentient.Abstractions",
+        "branch": "main"
+      },
+      "_gitUrlPattern": "github"
+    },
+    "fileMetadata": {
+      "_appTitle": {
+        "api/**.yml": "Zentient.Abstractions API Reference"
+      }
     }
   }
 }

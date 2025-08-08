@@ -195,6 +195,12 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "WARNING: NUGET_API_KEY secret is not set. Skipping NuGet package push."
+            echo "To enable NuGet publishing, add the NUGET_API_KEY secret to your repository."
+            exit 0
+          fi
+
           PACKAGE_BASE_NAME="Zentient.Abstractions"
           PACKAGE_VERSION="${{ needs.build-and-pack.outputs.nuget_version_v2 }}"
 
@@ -215,7 +221,7 @@ jobs:
           if find "$SYMBOL_PACKAGE_GLOB" -print -quit | grep -q .; then
             echo "Publishing symbols package: $SYMBOL_PACKAGE_GLOB..."
             dotnet nuget push "$SYMBOL_PACKAGE_GLOB" \
-              --source "${{ env.NUGET_SOURCE_URL }}/symbolpackage" \
+              --source "${{ env.NUGET_SOURCE_URL }}" \
               --api-key "$NUGET_API_KEY" \
               --skip-duplicate
           else
