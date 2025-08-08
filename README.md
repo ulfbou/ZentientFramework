@@ -1,7 +1,7 @@
 # Zentient.Abstractions
 
 [![NuGet Version](https://img.shields.io/nuget/v/Zentient.Abstractions.svg)](https://www.nuget.org/packages/Zentient.Abstractions)
-[![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%207.0%20%7C%208.0-blue.svg)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%207.0%20%7C%208.0%20%7C%209.0-blue.svg)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > ⚠️ **CRITICAL - 3.0.0 BREAKING CHANGES**  

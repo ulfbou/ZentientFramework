@@ -58,7 +58,7 @@ Zentient Framework 3.0 is built on four foundational pillars:
 
 | Component | Improvements |
 |---|---|
-| **Multi-target Support** | Enhanced .NET 6.0, 7.0, 8.0 support with optimized configurations |
+| **Multi-target Support** | Enhanced .NET 6.0, 7.0, 8.0, 9.0 support with optimized configurations |
 | **NuGet Package Metadata** | Professional package presentation with comprehensive metadata and Source Link |
 | **XML Documentation** | Enhanced documentation generation with proper symbol support |
 | **README.md** | Completely rewritten with four-pillar architecture explanation and comprehensive examples |
