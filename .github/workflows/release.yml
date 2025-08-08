@@ -13,14 +13,13 @@ on:
     branches:
       - main
       - develop
+      - release/*
   workflow_dispatch:
     inputs:
       debug_enabled:
         description: 'Enable debug logging'
         required: false
         default: 'false'
-      - release/*
-  workflow_dispatch:
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
