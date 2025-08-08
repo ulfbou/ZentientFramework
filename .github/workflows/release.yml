@@ -13,6 +13,12 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
       - release/*
   workflow_dispatch:
 
