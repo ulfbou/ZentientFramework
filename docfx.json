@@ -29,6 +29,31 @@
           "docs/*.md",
           "docs/toc.yml"
         ]
+      },
+      {
+        "files": [
+          "docs/guides/**.md"
+        ],
+        "dest": "guides"
+      },
+      {
+        "files": [
+          "docs/development/**.md"
+        ],
+        "dest": "development"
+      },
+      {
+        "files": [
+          "docs/releases/**.md"
+        ],
+        "dest": "releases"
+      },
+      {
+        "files": [
+          "README.md",
+          "CHANGELOG.md",
+          "CODE_OF_CONDUCT.md"
+        ]
       }
     ],
     "resource": [
@@ -45,7 +70,7 @@
     ],
     "globalMetadata": {
       "_appName": "Zentient.Abstractions",
-      "_appTitle": "Zentient.Abstractions 3.0 API Documentation",
+      "_appTitle": "Zentient.Abstractions 3.0 Documentation",
       "_appFooter": "Zentient.Abstractions 3.0 - Foundation for Modern .NET Applications",
       "_enableSearch": true,
       "_enableNewTab": true,
@@ -58,7 +83,10 @@
     },
     "fileMetadata": {
       "_appTitle": {
-        "api/**.yml": "Zentient.Abstractions API Reference"
+        "api/**.yml": "Zentient.Abstractions API Reference",
+        "guides/**.md": "Zentient.Abstractions User Guide",
+        "development/**.md": "Zentient.Abstractions Development Guide",
+        "releases/**.md": "Zentient.Abstractions Release Information"
       }
     }
   }
