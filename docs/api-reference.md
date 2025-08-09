@@ -262,9 +262,54 @@ public interface ICacheService
 
 ## Results & Envelopes
 
+### IResult
+
+Base result pattern for operations.
+
+```csharp
+namespace Zentient.Abstractions.Results
+{
+    /// <summary>
+    /// Represents the result of an operation, including success state, messages, and errors.
+    /// </summary>
+    public interface IResult
+    {
+        /// <summary>Gets a value indicating whether the result is successful.</summary>
+        /// <value>
+        /// <see langword="true" /> if the result is successful and contains no errors; otherwise, <see langword="false" />.
+        /// </value>
+        bool IsSuccess { get; }
+
+        /// <summary>
+        /// Gets a read-only list of messages associated with the result (success or failure).
+        /// </summary>
+        /// <value>
+        /// A read-only list of informational or diagnostic messages related to the result.
+        /// </value>
+        IReadOnlyList<string> Messages { get; }
+
+        /// <summary>Gets a collection of error messages if the result is not successful.</summary>
+        /// <value>
+        /// A collection of <see cref="IErrorInfo{IErrorDefinition}"/> instances describing
+        /// the errors for this result.
+        /// </value>
+        IEnumerable<IErrorInfo<IErrorDefinition>> Errors { get; }
+
+        /// <summary>
+        /// Gets the message of the first error if the operation failed;
+        /// otherwise, <see langword="null" />
+        /// </summary>
+        /// <value>
+        /// The message of the first error if present; otherwise, <see langword="null" />.
+        /// </value>
+        string? ErrorMessage { get; }
+    }
+}
+```
+
 ### IResult<T>
 
-Basic result pattern for operations.
+Result pattern for operations that return a value.
 
 ```csharp
 namespace Zentient.Abstractions.Results
@@ -273,27 +318,16 @@ namespace Zentient.Abstractions.Results
     /// Represents the result of an operation with a value.
     /// </summary>
     /// <typeparam name="T">The type of the result value.</typeparam>
-    public interface IResult<out T>
+    public interface IResult<out T> : IResult
     {
         /// <summary>
-        /// Gets a value indicating whether the operation was successful.
+        /// Gets the value of the result.
         /// </summary>
-        bool IsSuccess { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the operation failed.
-        /// </summary>
-        bool IsFailure { get; }
-
-        /// <summary>
-        /// Gets the result value if the operation was successful.
-        /// </summary>
+        /// <value>
+        /// The value produced by the operation if successful;
+        /// otherwise, the default value for <typeparamref name="T" />.
+        /// </value>
         T Value { get; }
-
-        /// <summary>
-        /// Gets the error information if the operation failed.
-        /// </summary>
-        string Error { get; }
 
         /// <summary>
         /// Gets additional metadata about the result.
