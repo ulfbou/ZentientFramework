@@ -46,11 +46,11 @@
 		<Summary>Production-ready abstractions enabling the four pillars of Zentient Framework: Definition-centric discovery, Universal envelopes, Fluent DI composition, and Built-in observability.</Summary>
 		
 		<!-- Version and Release Management -->
-		<Version>3.0.0</Version>
-		<AssemblyVersion>3.0.0.0</AssemblyVersion>
-		<FileVersion>3.0.0.0</FileVersion>
-		<PackageVersion>3.0.0</PackageVersion>
-		<PackageReleaseNotes>Zentient Framework 3.0.0 - Major release introducing the four-pillar architecture with comprehensive abstractions for enterprise applications. Enhanced developer experience through optimized namespace organization and convenience types.</PackageReleaseNotes>
+		<Version>3.0.1</Version>
+		<AssemblyVersion>3.0.1.0</AssemblyVersion>
+		<FileVersion>3.0.1.0</FileVersion>
+		<PackageVersion>3.0.1</PackageVersion>
+		<PackageReleaseNotes>Zentient Framework 3.0.1 - Patch release: DocFX deployment fixes, .NET 9.0 badge restoration, workflow optimizations, NUGET_API_KEY validation, and documentation improvements since 3.0.0.</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

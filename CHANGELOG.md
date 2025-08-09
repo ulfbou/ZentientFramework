@@ -5,6 +5,36 @@
 
 ---
 
+## 📦 [3.0.1] — 2025-08-08
+
+🔧 **DocFX Documentation & Workflow Improvements**
+
+> A patch release focused on fixing documentation deployment issues and optimizing CI/CD workflows discovered after the 3.0.0 release.
+
+### 🔧 Fixed
+
+- **📚 DocFX Documentation Deployment**: Fixed DocFX not deploying to expected GitHub Pages URL (`https://ulfbou.github.io/Zentient.Abstractions/api/Zentient.Abstractions.html`)
+- **📱 .NET 9.0 Badge Display**: Restored missing .NET 9.0 badge in README.md and documentation
+- **⚙️ NUGET_API_KEY Validation**: Added proper secret validation in release workflow to prevent deployment failures  
+- **🏗️ Workflow Optimization**: Specialized docs.yml to use .NET 9.0 only while maintaining .NET 6.0-9.0 support in release/docker workflows
+- **📁 DocFX Configuration**: Enhanced DocFX setup with proper GitHub Pages integration and modern schema
+
+### 🚀 Improved
+
+- **🧭 Documentation Navigation**: Added comprehensive API index page and table of contents structure
+- **🔗 URL Compatibility**: Added redirect page for expected API documentation URLs
+- **📋 Build Process**: Improved DocFX metadata generation with better error handling
+- **⚡ CI/CD Performance**: Optimized documentation workflow to use single .NET version for faster builds
+
+### 📂 Infrastructure
+
+- Enhanced `.gitignore` for DocFX generated files
+- Updated `docfx.json` with modern configuration and GitHub integration  
+- Added `index.md` and `toc.yml` for proper documentation site structure
+- Improved workflow error handling and secret management
+
+---
+
 ## 📦 [3.0.0] — 2025-01-XX
 
 🚀 **Zentient Framework 3.0 - Four-Pillar Architecture & Enhanced Developer Experience**
