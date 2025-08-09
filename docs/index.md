@@ -1,6 +1,6 @@
-# Zentient.Abstractions API Documentation
+# Zentient.Abstractions Documentation
 
-Welcome to the Zentient.Abstractions API documentation. This comprehensive library provides the foundational abstractions for the Zentient Framework 3.0.
+Welcome to the comprehensive documentation for Zentient.Abstractions 3.0 - the foundational library enabling enterprise-grade .NET applications through the Zentient Framework.
 
 ## 🏗️ Four-Pillar Architecture
 
@@ -17,6 +17,23 @@ The powerful `IContainerBuilder` serves as the composition root with fluent APIs
 
 ### 4. 🩺 Built-in Observability
 First-class diagnostic and validation systems through `IDiagnosticCheck` and `IValidator` interfaces.
+
+## 📖 Documentation Sections
+
+### 🚀 For Users
+- **[Getting Started](../README.md)** - Installation and basic usage
+- **[Migration Guide](guides/MIGRATION_GUIDE_2.x_to_3.0.md)** - Upgrading from v2.x to v3.0
+- **[API Reference](api/)** - Complete API documentation
+
+### 🔧 For Developers  
+- **[Design Principles](development/REFINED_IZENTIENT_DESIGN.md)** - Core architectural decisions
+- **[Developer Experience](development/DX_ANALYSIS.md)** - Framework usability analysis
+- **[Architecture Guide](development/DX_IMPROVEMENTS_SUMMARY.md)** - Implementation insights
+
+### 📋 Release Information
+- **[Changelog](../CHANGELOG.md)** - Version history and changes
+- **[Release Notes](releases/)** - Detailed release information
+- **[Release Process](releases/RELEASE_CHECKLIST.md)** - How releases are managed
 
 ## Quick Links
 
