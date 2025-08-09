@@ -5,7 +5,7 @@
 set -e
 
 VERSION="3.0.1"
-BRANCH="main"
+BRANCH="release/3.0.1"
 
 echo "🚀 Preparing Zentient.Abstractions $VERSION Release"
 echo "=================================================="
