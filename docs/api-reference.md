@@ -52,11 +52,11 @@ namespace Zentient.Abstractions.Common
 
 **Example Implementation:**
 ```csharp
-public class UserService : IUserService, IIdentifiable
+// Conceptual implementation example - actual implementations will vary
+public interface IUserService : IIdentifiable
 {
-    public string Id => "UserService.v2.1.0";
-    
-    // Service implementation...
+    Task<IEnvelope<UserCodeDefinition, UserErrorDefinition>> CreateUser(CreateUserRequest request);
+    Task<IEnvelope<UserCodeDefinition, UserErrorDefinition, UserDto>> GetUser(string userId);
 }
 ```
 
@@ -122,16 +122,11 @@ namespace Zentient.Abstractions.Common
 
 **Metadata Example:**
 ```csharp
-public class OrderService : IOrderService, IHasMetadata
+// Conceptual implementation example - actual implementations will vary
+public interface IOrderService : IHasMetadata
 {
-    public IMetadata Metadata => new MetadataCollection
-    {
-        ["Version"] = "2.1.0",
-        ["Owner"] = "E-commerce Team",
-        ["SLA"] = "99.95%",
-        ["MaxThroughput"] = "10000 req/min",
-        ["Dependencies"] = new[] { "PaymentService", "InventoryService" }
-    };
+    Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition>> CreateOrder(CreateOrderRequest request);
+    Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition, OrderDto>> GetOrder(string orderId);
 }
 ```
 
@@ -233,26 +228,33 @@ namespace Zentient.Abstractions.DependencyInjection.Registration
 
 **Usage Examples:**
 ```csharp
-// Simple registration
+// Conceptual service registration patterns
+// Note: Actual implementations will be provided by framework consumers
+
+// Simple registration with definition-based types
 [ServiceRegistration(ServiceLifetime.Scoped)]
-public class UserService : IUserService
+public interface IUserService
 {
-    // Implementation...
+    Task<IEnvelope<UserCodeDefinition, UserErrorDefinition>> CreateUser(CreateUserRequest request);
 }
 
-// Multiple interface registration
-[ServiceRegistration(typeof(IUserService), typeof(UserService), ServiceLifetime.Scoped)]
-[ServiceRegistration(typeof(IUserManager), typeof(UserService), ServiceLifetime.Scoped)]
-public class UserService : IUserService, IUserManager
+// Multiple interface composition example
+public interface IUserService 
 {
-    // Implementation...
+    Task<IEnvelope<UserCodeDefinition, UserErrorDefinition>> CreateUser(CreateUserRequest request);
 }
 
-// Named registration
+public interface IUserManager 
+{
+    Task<IEnvelope<UserCodeDefinition, UserErrorDefinition>> UpdateUser(UpdateUserRequest request);
+}
+
+// Named registration example
 [ServiceRegistration(ServiceLifetime.Singleton, Name = "PrimaryCache")]
-public class RedisCacheService : ICacheService
+public interface ICacheService
 {
-    // Implementation...
+    Task<IEnvelope<CacheCodeDefinition, CacheErrorDefinition>> Set<T>(ICacheKey<ICacheKeyDefinition> key, T value);
+}
 }
 ```
 
@@ -301,7 +303,7 @@ namespace Zentient.Abstractions.Results
 }
 ```
 
-### IEnvelope<TCode, TError>
+### IEnvelope<TCodeDefinition, TErrorDefinition>
 
 Advanced envelope pattern with typed codes and errors.
 
@@ -311,58 +313,35 @@ namespace Zentient.Abstractions.Envelopes
     /// <summary>
     /// Represents an envelope that wraps operation results with codes and errors.
     /// </summary>
-    /// <typeparam name="TCode">The type of success codes.</typeparam>
-    /// <typeparam name="TError">The type of error information.</typeparam>
-    public interface IEnvelope<out TCode, out TError>
+    /// <typeparam name="TCodeDefinition">The specific code type identifier for the envelope's result code.</typeparam>
+    /// <typeparam name="TErrorDefinition">The specific error type identifier for errors within the envelope.</typeparam>
+    public interface IEnvelope<out TCodeDefinition, out TErrorDefinition> : IHasMetadata
+        where TCodeDefinition : ICodeDefinition
+        where TErrorDefinition : IErrorDefinition
     {
-        /// <summary>
-        /// Gets a value indicating whether the operation was successful.
-        /// </summary>
+        /// <summary>Indicates whether the operation succeeded.</summary>
         bool IsSuccess { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether the operation failed.
-        /// </summary>
-        bool IsFailure { get; }
+        /// <summary>The result code associated with this envelope.</summary>
+        ICode<TCodeDefinition> Code { get; }
 
-        /// <summary>
-        /// Gets the success code when the operation succeeded.
-        /// </summary>
-        TCode Code { get; }
+        /// <summary>Optional informational or diagnostic messages.</summary>
+        IReadOnlyCollection<string> Messages { get; }
 
-        /// <summary>
-        /// Gets the collection of errors when the operation failed.
-        /// </summary>
-        IReadOnlyCollection<TError> Errors { get; }
-
-        /// <summary>
-        /// Gets the timestamp when the envelope was created.
-        /// </summary>
-        DateTime Timestamp { get; }
-
-        /// <summary>
-        /// Gets additional metadata about the operation.
-        /// </summary>
-        IMetadata Metadata { get; }
+        /// <summary>A domain-typed collection of errors, if any.</summary>
+        IReadOnlyList<IErrorInfo<TErrorDefinition>> Errors { get; }
     }
 
-    /// <summary>
-    /// Represents an envelope that wraps operation results with a value.
-    /// </summary>
-    /// <typeparam name="TCode">The type of success codes.</typeparam>
-    /// <typeparam name="TError">The type of error information.</typeparam>
-    /// <typeparam name="TValue">The type of the wrapped value.</typeparam>
-    public interface IEnvelope<out TCode, out TError, out TValue> : IEnvelope<TCode, TError>
+    /// <summary>Represents a strongly-typed envelope with a specific value payload.</summary>
+    /// <typeparam name="TCodeDefinition">The specific code type identifier.</typeparam>
+    /// <typeparam name="TErrorDefinition">The specific error type identifier.</typeparam>
+    /// <typeparam name="TValue">The type of the payload.</typeparam>
+    public interface IEnvelope<out TCodeDefinition, out TErrorDefinition, out TValue> : IEnvelope<TCodeDefinition, TErrorDefinition>
+        where TCodeDefinition : ICodeDefinition
+        where TErrorDefinition : IErrorDefinition
     {
-        /// <summary>
-        /// Gets the wrapped value when the operation was successful.
-        /// </summary>
-        TValue Value { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether this envelope contains a value.
-        /// </summary>
-        bool HasValue { get; }
+        /// <summary>The strongly-typed payload.</summary>
+        TValue? Value { get; }
     }
 }
 ```
@@ -370,16 +349,16 @@ namespace Zentient.Abstractions.Envelopes
 **Usage Patterns:**
 ```csharp
 // Success envelope
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
     var user = await CreateUser(request);
     return Envelope.Success(UserCode.UserCreated, user);
 }
 
 // Error envelope
-public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId)
+public async Task<IEnvelope<UserCode, UserError>> GetUser(string userId)
 {
-    var user = await _repository.GetByIdAsync(userId);
+    var user = await _repository.GetById(userId);
     if (user == null)
     {
         return Envelope.NotFound<UserCode, UserError>(
@@ -391,9 +370,9 @@ public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId)
 }
 
 // Validation errors
-public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrderRequest request)
+public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrder(ProcessOrderRequest request)
 {
-    var validationResult = await _validator.ValidateAsync(request);
+    var validationResult = await _validator.Validate(request);
     if (!validationResult.IsValid)
     {
         return Envelope.ValidationError<OrderCode, OrderError>(
@@ -540,7 +519,7 @@ public class UserRepository : IUserRepository
         _config = config;
     }
 
-    public async Task<User> GetByIdAsync(string id)
+    public async Task<User> GetById(string id)
     {
         using var connection = new SqlConnection(_config.Value.ConnectionString);
         using var command = new SqlCommand("SELECT * FROM Users WHERE Id = @Id", connection);
@@ -575,7 +554,7 @@ namespace Zentient.Abstractions.Caching
         /// <param name="key">The cache key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The cached value if found, otherwise null.</returns>
-        Task<ICacheItem<TValue>> GetAsync<TKey>(TKey key, CancellationToken cancellationToken = default)
+        Task<ICacheItem<TValue>> Get<TKey>(TKey key, CancellationToken cancellationToken = default)
             where TKey : ICacheKey<TValue>;
 
         /// <summary>
@@ -587,7 +566,7 @@ namespace Zentient.Abstractions.Caching
         /// <param name="policy">The cache policy to apply.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task SetAsync<TKey>(
+        Task Set<TKey>(
             TKey key, 
             TValue value, 
             CachePolicy policy = null,
@@ -601,7 +580,7 @@ namespace Zentient.Abstractions.Caching
         /// <param name="key">The cache key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task RemoveAsync<TKey>(TKey key, CancellationToken cancellationToken = default)
+        Task Remove<TKey>(TKey key, CancellationToken cancellationToken = default)
             where TKey : ICacheKey<TValue>;
 
         /// <summary>
@@ -611,7 +590,7 @@ namespace Zentient.Abstractions.Caching
         /// <param name="key">The cache key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task RefreshAsync<TKey>(TKey key, CancellationToken cancellationToken = default)
+        Task Refresh<TKey>(TKey key, CancellationToken cancellationToken = default)
             where TKey : ICacheKey<TValue>;
     }
 }
@@ -674,19 +653,19 @@ public class UserService : IUserService
     private readonly ICache<UserDto> _cache;
     private readonly IUserRepository _repository;
 
-    public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId)
+    public async Task<IEnvelope<UserCode, UserError>> GetUser(string userId)
     {
         var cacheKey = new UserCacheKey(userId);
         
         // Try cache first
-        var cached = await _cache.GetAsync(cacheKey);
+        var cached = await _cache.Get(cacheKey);
         if (cached.HasValue)
         {
             return Envelope.Success(UserCode.UserFound, cached.Value);
         }
 
         // Load from repository
-        var user = await _repository.GetByIdAsync(userId);
+        var user = await _repository.GetById(userId);
         if (user == null)
         {
             return Envelope.NotFound<UserCode, UserError>(
@@ -701,7 +680,7 @@ public class UserService : IUserService
             Priority = CachePriority.High
         };
         
-        await _cache.SetAsync(cacheKey, user, cachePolicy);
+        await _cache.Set(cacheKey, user, cachePolicy);
 
         return Envelope.Success(UserCode.UserFound, user);
     }
@@ -901,7 +880,7 @@ namespace Zentient.Abstractions.Validation
         /// <param name="value">The object to validate.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The validation result.</returns>
-        Task<IValidationResult> ValidateAsync(T value, CancellationToken cancellationToken = default);
+        Task<IValidationResult> Validate(T value, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Validates the specified object synchronously.
@@ -951,7 +930,7 @@ public class CreateUserCommandValidator : IValidator<CreateUserCommand>
 {
     private readonly IUserRepository _userRepository;
 
-    public async Task<IValidationResult> ValidateAsync(CreateUserCommand command, CancellationToken cancellationToken = default)
+    public async Task<IValidationResult> Validate(CreateUserCommand command, CancellationToken cancellationToken = default)
     {
         var errors = new List<IValidationError>();
 
@@ -967,7 +946,7 @@ public class CreateUserCommandValidator : IValidator<CreateUserCommand>
         else
         {
             // Check for duplicate email
-            var existingUser = await _userRepository.GetByEmailAsync(command.Email);
+            var existingUser = await _userRepository.GetByEmail(command.Email);
             if (existingUser != null)
             {
                 errors.Add(new ValidationError("Email", "Email is already registered"));
@@ -1005,10 +984,10 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, UserI
     private readonly IValidator<CreateUserCommand> _validator;
     private readonly IUserRepository _repository;
 
-    public async Task<IEnvelope<CommandCode, CommandError>> HandleAsync(CreateUserCommand command)
+    public async Task<IEnvelope<CommandCode, CommandError>> Handle(CreateUserCommand command)
     {
         // Validate command
-        var validationResult = await _validator.ValidateAsync(command);
+        var validationResult = await _validator.Validate(command);
         if (!validationResult.IsValid)
         {
             return Envelope.ValidationError<CommandCode, CommandError>(
@@ -1049,7 +1028,7 @@ namespace Zentient.Abstractions.Diagnostics
         /// <param name="context">The diagnostic context.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The diagnostic report.</returns>
-        Task<IDiagnosticReport<TCodeDefinition, TErrorDefinition>> CheckAsync(
+        Task<IDiagnosticReport<TCodeDefinition, TErrorDefinition>> Check(
             TSubject subject,
             IDiagnosticContext context,
             CancellationToken cancellationToken = default);
@@ -1088,7 +1067,7 @@ public class DatabaseHealthCheck : IDiagnosticCheck<DatabaseContext, HealthCode,
     public Priority Priority => Priority.Critical;
     public IReadOnlyCollection<string> Tags => new[] { "Database", "Infrastructure", "Critical" };
 
-    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckAsync(
+    public async Task<IDiagnosticReport<HealthCode, HealthError>> Check(
         DatabaseContext subject,
         IDiagnosticContext context,
         CancellationToken cancellationToken = default)
@@ -1098,10 +1077,10 @@ public class DatabaseHealthCheck : IDiagnosticCheck<DatabaseContext, HealthCode,
         try
         {
             // Test connectivity
-            await subject.Database.CanConnectAsync(cancellationToken);
+            await subject.Database.CanConnect(cancellationToken);
             
             // Test simple query
-            var userCount = await subject.Users.CountAsync(cancellationToken);
+            var userCount = await subject.Users.Count(cancellationToken);
             
             stopwatch.Stop();
 
@@ -1155,14 +1134,14 @@ public class PaymentGatewayHealthCheck : IDiagnosticCheck<PaymentGatewayClient, 
     public Priority Priority => Priority.High;
     public IReadOnlyCollection<string> Tags => new[] { "External", "Payment", "Business" };
 
-    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckAsync(
+    public async Task<IDiagnosticReport<HealthCode, HealthError>> Check(
         PaymentGatewayClient subject,
         IDiagnosticContext context,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var healthResult = await subject.CheckHealthAsync(cancellationToken);
+            var healthResult = await subject.CheckHealth(cancellationToken);
             
             return healthResult.IsHealthy
                 ? DiagnosticReport.Healthy(HealthCode.ServiceHealthy, "Payment gateway is operational")
@@ -1352,7 +1331,7 @@ public class OrderService : IOrderService
         _pendingOrders = meter.CreateGauge<int>("pending_orders_count", "count", "Number of pending orders");
     }
 
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrder(CreateOrderRequest request)
     {
         using var activity = _tracer.StartActivity("CreateOrder");
         activity?.SetTag("order.customer_id", request.CustomerId);
@@ -1373,7 +1352,7 @@ public class OrderService : IOrderService
                 request.CustomerId, request.Items.Count);
 
             // Validate request
-            var validationResult = await _validator.ValidateAsync(request);
+            var validationResult = await _validator.Validate(request);
             if (!validationResult.IsValid)
             {
                 activity?.SetStatus(ActivityStatusCode.Error, "Validation failed");
@@ -1386,7 +1365,7 @@ public class OrderService : IOrderService
             }
 
             // Create order
-            var order = await _repository.CreateAsync(new Order
+            var order = await _repository.Create(new Order
             {
                 Id = OrderId.NewId(),
                 CustomerId = request.CustomerId,
@@ -1508,7 +1487,7 @@ namespace Zentient.Abstractions.Policies
         /// <param name="operation">The operation to execute.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The operation result wrapped in an envelope.</returns>
-        Task<IEnvelope<PolicyCode, PolicyError>> ExecuteAsync(
+        Task<IEnvelope<PolicyCode, PolicyError>> Execute(
             Func<CancellationToken, Task<T>> operation,
             CancellationToken cancellationToken = default);
 
@@ -1519,7 +1498,7 @@ namespace Zentient.Abstractions.Policies
         /// <param name="context">The execution context.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The operation result wrapped in an envelope.</returns>
-        Task<IEnvelope<PolicyCode, PolicyError>> ExecuteAsync(
+        Task<IEnvelope<PolicyCode, PolicyError>> Execute(
             Func<Context, CancellationToken, Task<T>> operation,
             Context context,
             CancellationToken cancellationToken = default);
@@ -1553,7 +1532,7 @@ public class DatabaseRetryPolicy : IPolicy<DatabaseResult>, IRetryable
                exception is TaskCanceledException;
     }
 
-    public async Task<IEnvelope<PolicyCode, PolicyError>> ExecuteAsync(
+    public async Task<IEnvelope<PolicyCode, PolicyError>> Execute(
         Func<CancellationToken, Task<DatabaseResult>> operation,
         CancellationToken cancellationToken = default)
     {
@@ -1607,7 +1586,7 @@ public class CircuitBreakerPolicy : IPolicy<ExternalServiceResult>
     public string Id => "ExternalService.CircuitBreaker.Policy.v1";
     public string Name => "External Service Circuit Breaker";
 
-    public async Task<IEnvelope<PolicyCode, PolicyError>> ExecuteAsync(
+    public async Task<IEnvelope<PolicyCode, PolicyError>> Execute(
         Func<CancellationToken, Task<ExternalServiceResult>> operation,
         CancellationToken cancellationToken = default)
     {
@@ -1667,18 +1646,18 @@ public class PaymentService : IPaymentService
     private readonly IPolicy<PaymentResult> _circuitBreakerPolicy;
     private readonly IPaymentGateway _gateway;
 
-    public async Task<IEnvelope<PaymentCode, PaymentError>> ProcessPaymentAsync(PaymentRequest request)
+    public async Task<IEnvelope<PaymentCode, PaymentError>> ProcessPayment(PaymentRequest request)
     {
         // Combine retry and circuit breaker policies
-        var result = await _circuitBreakerPolicy.ExecuteAsync(async ct =>
+        var result = await _circuitBreakerPolicy.Execute(async ct =>
         {
-            return await _retryPolicy.ExecuteAsync(async retryToken =>
+            return await _retryPolicy.Execute(async retryToken =>
             {
-                return await _gateway.ProcessPaymentAsync(request, retryToken);
+                return await _gateway.ProcessPayment(request, retryToken);
             }, ct);
         });
 
-        if (result.IsFailure)
+        if (result!.IsSuccess)
         {
             return Envelope.Error<PaymentCode, PaymentError>(
                 PaymentError.ProcessingFailed(result.Errors.First().Message)

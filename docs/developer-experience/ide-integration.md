@@ -98,7 +98,7 @@ public class $name$Service : I$name$Service
     
     public string Id => "$name$Service.v$version$";
     
-    public async Task<IEnvelope<$name$Code, $name$Error>> ProcessAsync($name$Request request)
+    public async Task<IEnvelope<$name$Code, $name$Error>> Process($name$Request request)
     {
         try
         {
@@ -165,9 +165,9 @@ public class $COMMAND_NAME$CommandHandler : ICommandHandler<$COMMAND_NAME$Comman
     private readonly IValidator<$COMMAND_NAME$Command> _validator;
     private readonly ILogger<$COMMAND_NAME$CommandHandler> _logger;
     
-    public async Task<IEnvelope<CommandCode, CommandError>> HandleAsync($COMMAND_NAME$Command command)
+    public async Task<IEnvelope<CommandCode, CommandError>> Handle($COMMAND_NAME$Command command)
     {
-        var validationResult = await _validator.ValidateAsync(command);
+        var validationResult = await _validator.Validate(command);
         if (!validationResult.IsValid)
         {
             return Envelope.ValidationError<CommandCode, CommandError>(
@@ -352,7 +352,7 @@ public class UserService : IUserService
 // This triggers ZEN002
 public class UserService : IUserService
 {
-    public async Task<User> GetUserAsync(string id) // ❌ Should return IEnvelope
+    public async Task<User> GetUser(string id) // ❌ Should return IEnvelope
     {
     }
 }
@@ -360,7 +360,7 @@ public class UserService : IUserService
 // Fixed version
 public class UserService : IUserService
 {
-    public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string id) // ✅
+    public async Task<IEnvelope<UserCode, UserError>> GetUser(string id) // ✅
     {
     }
 }
@@ -407,7 +407,7 @@ Automatic code fixes for common issues:
 // Before (triggers analyzer)
 public class UserService : IUserService
 {
-    public async Task<User> CreateUserAsync(CreateUserRequest request)
+    public async Task<User> CreateUser(CreateUserRequest request)
     {
         // Implementation
     }
@@ -418,7 +418,7 @@ public class UserService : IUserService
 [ServiceRegistration(ServiceLifetime.Scoped)]
 public class UserService : IUserService
 {
-    public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+    public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
     {
         try
         {
@@ -446,7 +446,7 @@ Intelligent refactoring operations:
 [ServiceRegistration(ServiceLifetime.Scoped)]
 public class UserService
 {
-    public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+    public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
     {
         // Implementation
     }
@@ -455,7 +455,7 @@ public class UserService
 // After refactoring (automatically generates interface)
 public interface IUserService : IIdentifiable
 {
-    Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request);
+    Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request);
 }
 
 [ServiceDefinition("UserManagement", Version = "1.0")]
@@ -464,7 +464,7 @@ public class UserService : IUserService
 {
     public string Id => "UserService.v1.0";
     
-    public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+    public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
     {
         // Implementation
     }
@@ -474,20 +474,20 @@ public class UserService : IUserService
 #### **Convert to Envelope Pattern**
 ```csharp
 // Before refactoring
-public async Task<User> GetUserAsync(string id)
+public async Task<User> GetUser(string id)
 {
-    var user = await _repository.GetByIdAsync(id);
+    var user = await _repository.GetById(id);
     if (user == null)
         throw new UserNotFoundException(id);
     return user;
 }
 
 // After refactoring
-public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string id)
+public async Task<IEnvelope<UserCode, UserError>> GetUser(string id)
 {
     try
     {
-        var user = await _repository.GetByIdAsync(id);
+        var user = await _repository.GetById(id);
         return user != null
             ? Envelope.Success(UserCode.UserFound, user)
             : Envelope.NotFound<UserCode, UserError>(UserError.UserNotFound(id));
@@ -509,10 +509,10 @@ Generate complete implementations from interfaces:
 // Define interface
 public interface IOrderService : IIdentifiable
 {
-    Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request);
-    Task<IEnvelope<OrderCode, OrderError>> GetOrderAsync(string orderId);
-    Task<IEnvelope<OrderCode, OrderError>> UpdateOrderAsync(UpdateOrderRequest request);
-    Task<IEnvelope<OrderCode, OrderError>> CancelOrderAsync(string orderId);
+    Task<IEnvelope<OrderCode, OrderError>> CreateOrder(CreateOrderRequest request);
+    Task<IEnvelope<OrderCode, OrderError>> GetOrder(string orderId);
+    Task<IEnvelope<OrderCode, OrderError>> UpdateOrder(UpdateOrderRequest request);
+    Task<IEnvelope<OrderCode, OrderError>> CancelOrder(string orderId);
 }
 
 // Right-click -> "Generate Zentient Implementation"
@@ -540,9 +540,9 @@ public class OrderService : IOrderService
     
     public string Id => "OrderService.v1.0";
     
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrder(CreateOrderRequest request)
     {
-        var validationResult = await _createValidator.ValidateAsync(request);
+        var validationResult = await _createValidator.Validate(request);
         if (!validationResult.IsValid)
         {
             return Envelope.ValidationError<OrderCode, OrderError>(
@@ -552,7 +552,7 @@ public class OrderService : IOrderService
         
         try
         {
-            var order = await _repository.CreateAsync(request);
+            var order = await _repository.Create(request);
             _logger.LogInformation("Order {OrderId} created successfully", order.Id);
             return Envelope.Success(OrderCode.OrderCreated, order);
         }

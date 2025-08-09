@@ -67,9 +67,9 @@ All operations return consistent envelope responses with rich error context:
 
 ```csharp
 // Service operations
-public async Task<IEnvelope<UserDto, UserCode, UserError>> GetUserAsync(string id)
+public async Task<IEnvelope<UserDto, UserCode, UserError>> GetUser(string id)
 {
-    var result = await _repository.GetByIdAsync(id);
+    var result = await _repository.GetById(id);
     
     return result.IsSuccess
         ? Envelope.Success(UserCode.Retrieved, result.Value)
@@ -78,7 +78,7 @@ public async Task<IEnvelope<UserDto, UserCode, UserError>> GetUserAsync(string i
 }
 
 // Command handlers
-public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+public async Task<IEnvelope<UserCode, UserError>> Handle(
     CreateUserCommand command,
     CancellationToken cancellationToken = default)
 {
@@ -95,9 +95,9 @@ public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
 }
 
 // Cache operations
-public async Task<IEnvelope<UserDto, CacheCode, CacheError>> GetUserAsync(string id)
+public async Task<IEnvelope<UserDto, CacheCode, CacheError>> GetUser(string id)
 {
-    var result = await _cache.GetAsync(id);
+    var result = await _cache.Get(id);
     
     return result.IsSuccess
         ? Envelope.Success(CacheCode.Hit, result.Value)
@@ -134,7 +134,7 @@ services.AddZentientServices(builder =>
 Comprehensive observability at every layer with structured logging, metrics, and tracing:
 
 ```csharp
-public async Task<IEnvelope<UserCode, UserError>> ProcessUserRegistrationAsync(
+public async Task<IEnvelope<UserCode, UserError>> ProcessUserRegistration(
     CreateUserCommand command)
 {
     using var activity = Activity.StartActivity("ProcessUserRegistration");
@@ -222,7 +222,7 @@ Here's how a typical user creation request flows through the architecture:
 public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
 {
     // 1. API Request received
-    var result = await _dispatcher.DispatchAsync(command);
+    var result = await _dispatcher.Dispatch(command);
     
     // 8. Response returned as ActionResult
     return result.ToActionResult();
@@ -231,16 +231,16 @@ public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command
 // 2. Message dispatcher routes to handler
 // 3. Validation pipeline runs automatically
 // 4. Handler executes
-public async Task<IEnvelope<UserCode, UserError>> HandleAsync(CreateUserCommand command)
+public async Task<IEnvelope<UserCode, UserError>> Handle(CreateUserCommand command)
 {
     // 5. Repository persistence
-    var createResult = await _repository.CreateAsync(user);
+    var createResult = await _repository.Create(user);
     
     // 6. Cache update
-    await _cache.SetUserAsync(user.Id, userDto);
+    await _cache.SetUser(user.Id, userDto);
     
     // 7. Event publishing
-    await _eventPublisher.PublishAsync(new UserCreatedEvent { ... });
+    await _eventPublisher.Publish(new UserCreatedEvent { ... });
     
     return Envelope.Success(UserCode.Created);
 }
@@ -256,7 +256,7 @@ The architecture provides multiple extension points for customization:
 // Custom cache provider
 public class CustomCacheProvider : ICacheProvider
 {
-    public async Task<IEnvelope<T, CacheCode, CacheError>> GetAsync<T>(string key)
+    public async Task<IEnvelope<T, CacheCode, CacheError>> Get<T>(string key)
     {
         // Custom caching logic
     }
@@ -265,7 +265,7 @@ public class CustomCacheProvider : ICacheProvider
 // Custom validation rule
 public class CustomBusinessRuleValidator : IValidator<CreateOrderCommand, OrderCode, OrderError>
 {
-    public async Task<IValidationResult<OrderCode, OrderError>> ValidateAsync(
+    public async Task<IValidationResult<OrderCode, OrderError>> Validate(
         CreateOrderCommand command,
         ValidationContext context,
         CancellationToken cancellationToken)
@@ -277,7 +277,7 @@ public class CustomBusinessRuleValidator : IValidator<CreateOrderCommand, OrderC
 // Custom message behavior
 public class CustomBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
-    public async Task<TResponse> HandleAsync(
+    public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
@@ -301,11 +301,11 @@ public class ExternalPaymentService : IPaymentService
     private readonly IConfigurationService<PaymentConfiguration> _config;
     private readonly ICache<PaymentResponseDto> _cache;
     
-    public async Task<IEnvelope<PaymentCode, PaymentError>> ProcessPaymentAsync(
+    public async Task<IEnvelope<PaymentCode, PaymentError>> ProcessPayment(
         PaymentRequest request)
     {
         // Circuit breaker, retry, caching, etc.
-        return await _httpClient.PostAsJsonAsync(endpoint, request)
+        return await _httpClient.PostAsJson(endpoint, request)
             .ContinueWith(HandleResponse);
     }
 }
@@ -318,13 +318,13 @@ public class SqlUserRepository : IUserRepository
     private readonly IMapper _mapper;
     private readonly ICache<UserDto> _cache;
     
-    public async Task<IEnvelope<UserDto, RepositoryCode, RepositoryError>> GetByIdAsync(string id)
+    public async Task<IEnvelope<UserDto, RepositoryCode, RepositoryError>> GetById(string id)
     {
         // Try cache first, fallback to database
-        var cached = await _cache.GetAsync(id);
+        var cached = await _cache.Get(id);
         if (cached.IsSuccess) return cached;
         
-        var entity = await _context.Users.FindAsync(id);
+        var entity = await _context.Users.Find(id);
         // Map, cache, return...
     }
 }

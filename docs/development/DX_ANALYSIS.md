@@ -60,7 +60,7 @@ using Zentient.Abstractions;
 
 public class MyService
 {
-    public async Task<IEnvelope<MyCodeDefinition, MyErrorDefinition, string>> ProcessAsync()
+    public async Task<IEnvelope<MyCodeDefinition, MyErrorDefinition, string>> Process()
     {
         // Implementation
     }
@@ -204,7 +204,7 @@ using Zentient.Abstractions.Common.Definitions;
 public class OrderService
 {
     public async Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition, Order>> 
-        CreateOrderAsync(CreateOrderRequest request)
+        CreateOrder(CreateOrderRequest request)
     {
         // Implementation
     }
@@ -219,7 +219,7 @@ using Zentient.Abstractions.Definitions; // For all definition types
 public class OrderService
 {
     public async Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition, Order>> 
-        CreateOrderAsync(CreateOrderRequest request)
+        CreateOrder(CreateOrderRequest request)
     {
         // Implementation
     }

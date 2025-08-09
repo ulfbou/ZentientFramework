@@ -88,7 +88,7 @@ public class CreateUserCommandHandler :
         _logger = logger;
     }
     
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         CreateUserCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -98,7 +98,7 @@ public class CreateUserCommandHandler :
         try
         {
             // Check if user already exists
-            var existingUser = await _userRepository.GetByEmailAsync(command.Email);
+            var existingUser = await _userRepository.GetByEmail(command.Email);
             if (existingUser.IsSuccess)
             {
                 return Envelope.Conflict<UserCode, UserError>(
@@ -119,14 +119,14 @@ public class CreateUserCommandHandler :
                 IsActive = true
             };
             
-            var createResult = await _userRepository.CreateAsync(user);
+            var createResult = await _userRepository.Create(user);
             if (!createResult.IsSuccess)
             {
                 return createResult.ConvertError<UserCode, UserError>();
             }
             
             // Send welcome email
-            var emailResult = await _emailService.SendWelcomeEmailAsync(user.Email, user.FirstName);
+            var emailResult = await _emailService.SendWelcomeEmail(user.Email, user.FirstName);
             if (!emailResult.IsSuccess)
             {
                 _logger.LogWarning("Failed to send welcome email to {Email}: {Error}", 
@@ -156,21 +156,21 @@ public class GetUserQueryHandler :
     private readonly IMapper _mapper;
     private readonly ICache<UserDto> _cache;
     
-    public async Task<IEnvelope<UserDto, UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserDto, UserCode, UserError>> Handle(
         GetUserQuery query,
         CancellationToken cancellationToken = default)
     {
         var cacheKey = $"User:{query.UserId}";
         
         // Try cache first
-        var cached = await _cache.GetAsync(cacheKey);
+        var cached = await _cache.Get(cacheKey);
         if (cached.IsSuccess)
         {
             return Envelope.Success(UserCode.Retrieved, cached.Value);
         }
         
         // Get from repository
-        var userResult = await _userRepository.GetByIdAsync(query.UserId);
+        var userResult = await _userRepository.GetById(query.UserId);
         if (!userResult.IsSuccess)
         {
             return userResult.ConvertError<UserDto, UserCode, UserError>();
@@ -180,7 +180,7 @@ public class GetUserQueryHandler :
         var dto = _mapper.Map<UserDto>(userResult.Value);
         
         // Cache for future requests
-        await _cache.SetAsync(cacheKey, dto, TimeSpan.FromMinutes(15));
+        await _cache.Set(cacheKey, dto, TimeSpan.FromMinutes(15));
         
         return Envelope.Success(UserCode.Retrieved, dto);
     }
@@ -250,7 +250,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
     {
-        var result = await _dispatcher.DispatchAsync(command);
+        var result = await _dispatcher.Dispatch(command);
         return result.ToActionResult();
     }
     
@@ -263,14 +263,14 @@ public class UsersController : ControllerBase
             IncludeProfile = includeProfile
         };
         
-        var result = await _dispatcher.DispatchAsync(query);
+        var result = await _dispatcher.Dispatch(query);
         return result.ToActionResult();
     }
     
     [HttpGet]
     public async Task<IActionResult> SearchUsers([FromQuery] SearchUsersQuery query)
     {
-        var result = await _dispatcher.DispatchAsync(query);
+        var result = await _dispatcher.Dispatch(query);
         return result.ToActionResult();
     }
     
@@ -278,7 +278,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserCommand command)
     {
         command = command with { UserId = id };
-        var result = await _dispatcher.DispatchAsync(command);
+        var result = await _dispatcher.Dispatch(command);
         return result.ToActionResult();
     }
     
@@ -286,7 +286,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> DeleteUser(string id)
     {
         var command = new DeleteUserCommand { UserId = id };
-        var result = await _dispatcher.DispatchAsync(command);
+        var result = await _dispatcher.Dispatch(command);
         return result.ToActionResult();
     }
 }
@@ -384,11 +384,11 @@ public class UserCreatedEmailHandler : IEventHandler<UserCreatedEvent, UserCode,
 {
     private readonly IEmailService _emailService;
     
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         UserCreatedEvent @event,
         CancellationToken cancellationToken = default)
     {
-        return await _emailService.SendWelcomeEmailAsync(@event.Email, @event.FirstName);
+        return await _emailService.SendWelcomeEmail(@event.Email, @event.FirstName);
     }
 }
 
@@ -397,11 +397,11 @@ public class UserCreatedAnalyticsHandler : IEventHandler<UserCreatedEvent, UserC
 {
     private readonly IAnalyticsService _analytics;
     
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         UserCreatedEvent @event,
         CancellationToken cancellationToken = default)
     {
-        return await _analytics.TrackUserRegistrationAsync(@event.UserId, @event.Email);
+        return await _analytics.TrackUserRegistration(@event.UserId, @event.Email);
     }
 }
 
@@ -410,11 +410,11 @@ public class UserCreatedNotificationHandler : IEventHandler<UserCreatedEvent, Us
 {
     private readonly INotificationService _notifications;
     
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         UserCreatedEvent @event,
         CancellationToken cancellationToken = default)
     {
-        return await _notifications.NotifyAdministratorsAsync(
+        return await _notifications.NotifyAdministrators(
             $"New user registered: {@event.FirstName} {@event.LastName} ({@event.Email})"
         );
     }
@@ -431,7 +431,7 @@ public class CreateUserCommandHandler :
 {
     private readonly IEventPublisher _eventPublisher;
     
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         CreateUserCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -447,16 +447,16 @@ public class CreateUserCommandHandler :
         };
         
         // Immediate publishing (within same transaction)
-        await _eventPublisher.PublishAsync(@event, PublishStrategy.Immediate);
+        await _eventPublisher.Publish(@event, PublishStrategy.Immediate);
         
         // Deferred publishing (after transaction commits)
-        await _eventPublisher.PublishAsync(@event, PublishStrategy.Deferred);
+        await _eventPublisher.Publish(@event, PublishStrategy.Deferred);
         
         // Background publishing (fire and forget)
         _eventPublisher.PublishBackground(@event);
         
         // Scheduled publishing (publish at specific time)
-        await _eventPublisher.PublishScheduledAsync(@event, DateTime.UtcNow.AddMinutes(5));
+        await _eventPublisher.PublishScheduled(@event, DateTime.UtcNow.AddMinutes(5));
         
         return Envelope.Success(UserCode.Created, user);
     }
@@ -479,7 +479,7 @@ public class UserOnboardingSaga :
     public UserOnboardingData Data { get; set; } = new();
     
     // Handle UserCreatedEvent - start of saga
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         UserCreatedEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -496,11 +496,11 @@ public class UserOnboardingSaga :
             FirstName = @event.FirstName
         };
         
-        return await PublishCommandAsync(emailCommand);
+        return await PublishCommand(emailCommand);
     }
     
     // Handle EmailSentEvent - continue saga
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         EmailSentEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -515,11 +515,11 @@ public class UserOnboardingSaga :
             Email = Data.Email
         };
         
-        return await PublishCommandAsync(profileCommand);
+        return await PublishCommand(profileCommand);
     }
     
     // Handle ProfileCreatedEvent - complete saga
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         ProfileCreatedEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -536,7 +536,7 @@ public class UserOnboardingSaga :
             Duration = Data.CompletedAt.Value - Data.StartedAt
         };
         
-        await PublishEventAsync(completedEvent);
+        await PublishEvent(completedEvent);
         
         // Mark saga as complete
         Complete();
@@ -545,7 +545,7 @@ public class UserOnboardingSaga :
     }
     
     // Compensation logic if saga fails
-    public async Task<IEnvelope<UserCode, UserError>> CompensateAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Compensate(
         CancellationToken cancellationToken = default)
     {
         var compensationCommands = new List<ICommand>();
@@ -571,7 +571,7 @@ public class UserOnboardingSaga :
         
         foreach (var command in compensationCommands)
         {
-            await PublishCommandAsync(command);
+            await PublishCommand(command);
         }
         
         return Envelope.Success(UserCode.Compensated);
@@ -604,7 +604,7 @@ public class ValidationBehavior<TRequest, TResponse> :
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
     
-    public async Task<TResponse> HandleAsync(
+    public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken = default)
@@ -631,7 +631,7 @@ public class CachingBehavior<TQuery, TResponse> :
 {
     private readonly ICache _cache;
     
-    public async Task<TResponse> HandleAsync(
+    public async Task<TResponse> Handle(
         TQuery query,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken = default)
@@ -639,7 +639,7 @@ public class CachingBehavior<TQuery, TResponse> :
         var cacheKey = GenerateCacheKey(query);
         var cacheDuration = GetCacheDuration(query);
         
-        var cached = await _cache.GetAsync<TResponse>(cacheKey);
+        var cached = await _cache.Get<TResponse>(cacheKey);
         if (cached.IsSuccess)
         {
             return cached.Value;
@@ -649,7 +649,7 @@ public class CachingBehavior<TQuery, TResponse> :
         
         if (IsSuccessResponse(response))
         {
-            await _cache.SetAsync(cacheKey, response, cacheDuration);
+            await _cache.Set(cacheKey, response, cacheDuration);
         }
         
         return response;
@@ -663,7 +663,7 @@ public class PerformanceBehavior<TRequest, TResponse> :
     private readonly ILogger<PerformanceBehavior<TRequest, TResponse>> _logger;
     private readonly IMetrics _metrics;
     
-    public async Task<TResponse> HandleAsync(
+    public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken = default)
@@ -823,16 +823,16 @@ public class CreateUserCommandHandler :
     ICommandHandler<CreateUserCommandV2, UserCode, UserError>
 {
     // Handle V1 messages by converting to V2
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         CreateUserCommandV1 command,
         CancellationToken cancellationToken = default)
     {
         var v2Command = CreateUserCommandV2.FromV1(command);
-        return await HandleAsync(v2Command, cancellationToken);
+        return await Handle(v2Command, cancellationToken);
     }
     
     // Handle V2 messages directly
-    public async Task<IEnvelope<UserCode, UserError>> HandleAsync(
+    public async Task<IEnvelope<UserCode, UserError>> Handle(
         CreateUserCommandV2 command,
         CancellationToken cancellationToken = default)
     {

@@ -34,15 +34,15 @@ Use consistent result patterns throughout your application:
 
 ```csharp
 // ✅ Good: Consistent envelope usage
-public async Task<IResult<Order>> CreateOrderAsync(CreateOrderRequest request)
+public async Task<IResult<Order>> CreateOrder(CreateOrderRequest request)
 {
     try
     {
-        var validationResult = await _validator.ValidateAsync(request);
+        var validationResult = await _validator.Validate(request);
         if (!validationResult.IsValid)
             return Result.Invalid<Order>(validationResult.Errors);
 
-        var order = await _orderService.CreateAsync(request);
+        var order = await _orderService.Create(request);
         return Result.Success(order);
     }
     catch (BusinessException ex)
@@ -61,7 +61,7 @@ public async Task<Order?> CreateOrderBad(CreateOrderRequest request)
     if (!IsValid(request))
         throw new ArgumentException("Invalid request");
         
-    return await _service.CreateAsync(request); // Could return null
+    return await _service.Create(request); // Could return null
 }
 ```
 
@@ -72,7 +72,7 @@ Implement comprehensive validation at boundaries:
 ```csharp
 public class CreateOrderRequestValidator : IValidator<CreateOrderRequest, OrderValidationError>
 {
-    public async Task<IValidationResult<OrderValidationError>> ValidateAsync(
+    public async Task<IValidationResult<OrderValidationError>> Validate(
         CreateOrderRequest request, 
         IValidationContext context)
     {
@@ -89,7 +89,7 @@ public class CreateOrderRequestValidator : IValidator<CreateOrderRequest, OrderV
         // Async validation
         if (!string.IsNullOrWhiteSpace(request.CustomerId))
         {
-            var customerExists = await _customerService.ExistsAsync(request.CustomerId);
+            var customerExists = await _customerService.Exists(request.CustomerId);
             if (!customerExists)
                 errors.Add(OrderValidationError.CustomerNotFound(request.CustomerId));
         }
@@ -162,7 +162,7 @@ public class OrderServiceBad : IOrderService
         _serviceProvider = serviceProvider;
     }
 
-    public async Task ProcessAsync(Order order)
+    public async Task Process(Order order)
     {
         // Anti-pattern: asking for dependencies at runtime
         var repository = _serviceProvider.GetRequiredService<IOrderRepository>();
@@ -212,29 +212,29 @@ public enum OrderErrorCode
 ### Error Propagation Patterns
 
 ```csharp
-public async Task<IResult<Order>> ProcessOrderAsync(CreateOrderRequest request)
+public async Task<IResult<Order>> ProcessOrder(CreateOrderRequest request)
 {
     // Validate input
-    var validationResult = await _validator.ValidateAsync(request);
+    var validationResult = await _validator.Validate(request);
     if (!validationResult.IsValid)
         return Result.Invalid<Order>(validationResult.Errors.Select(e => e.Message));
 
     // Check customer
-    var customerResult = await _customerService.GetCustomerAsync(request.CustomerId);
+    var customerResult = await _customerService.GetCustomer(request.CustomerId);
     if (!customerResult.IsSuccess)
         return Result.PropagateFailure<Order>(customerResult);
 
     // Reserve inventory
-    var inventoryResult = await _inventoryService.ReserveItemsAsync(request.Items);
+    var inventoryResult = await _inventoryService.ReserveItems(request.Items);
     if (!inventoryResult.IsSuccess)
         return Result.PropagateFailure<Order>(inventoryResult);
 
     // Process payment
-    var paymentResult = await _paymentService.ProcessPaymentAsync(request.Payment);
+    var paymentResult = await _paymentService.ProcessPayment(request.Payment);
     if (!paymentResult.IsSuccess)
     {
         // Compensating action
-        await _inventoryService.ReleaseReservationAsync(inventoryResult.Value);
+        await _inventoryService.ReleaseReservation(inventoryResult.Value);
         return Result.PropagateFailure<Order>(paymentResult);
     }
 
@@ -267,13 +267,13 @@ public class OrderService : IOrderService
 {
     private readonly IExecutionScopeAccessor _scopeAccessor;
 
-    public async Task<IResult<Order>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IResult<Order>> CreateOrder(CreateOrderRequest request)
     {
         using var scope = _scopeAccessor.BeginScope(
             new OrderProcessingScope(request.CorrelationId, request.UserId));
 
         // All operations within this scope have access to the context
-        return await ProcessOrderInternalAsync(request);
+        return await ProcessOrderInternal(request);
     }
 }
 ```
@@ -304,44 +304,44 @@ public class OrderServiceTests
     }
 
     [TestMethod]
-    public async Task CreateOrderAsync_WithValidRequest_ReturnsSuccessResult()
+    public async Task CreateOrder_WithValidRequest_ReturnsSuccessResult()
     {
         // Arrange
         var request = new CreateOrderRequest { /* valid data */ };
         var expectedOrder = new Order { /* expected data */ };
         
         _mockValidator
-            .Setup(v => v.ValidateAsync(It.IsAny<Order>(), It.IsAny<IValidationContext>()))
-            .ReturnsAsync(ValidationResult.Valid<OrderValidationError>());
+            .Setup(v => v.Validate(It.IsAny<Order>(), It.IsAny<IValidationContext>()))
+            .Returns(ValidationResult.Valid<OrderValidationError>());
             
         _mockRepository
-            .Setup(r => r.CreateAsync(It.IsAny<Order>()))
-            .ReturnsAsync(expectedOrder);
+            .Setup(r => r.Create(It.IsAny<Order>()))
+            .Returns(expectedOrder);
 
         // Act
-        var result = await _orderService.CreateOrderAsync(request);
+        var result = await _orderService.CreateOrder(request);
 
         // Assert
         Assert.IsTrue(result.IsSuccess);
         Assert.AreEqual(expectedOrder, result.Value);
         
-        _mockRepository.Verify(r => r.CreateAsync(It.IsAny<Order>()), Times.Once);
-        _mockValidator.Verify(v => v.ValidateAsync(It.IsAny<Order>(), It.IsAny<IValidationContext>()), Times.Once);
+        _mockRepository.Verify(r => r.Create(It.IsAny<Order>()), Times.Once);
+        _mockValidator.Verify(v => v.Validate(It.IsAny<Order>(), It.IsAny<IValidationContext>()), Times.Once);
     }
 
     [TestMethod]
-    public async Task CreateOrderAsync_WithInvalidRequest_ReturnsFailureResult()
+    public async Task CreateOrder_WithInvalidRequest_ReturnsFailureResult()
     {
         // Arrange
         var request = new CreateOrderRequest { /* invalid data */ };
         var validationErrors = new[] { OrderValidationError.CustomerIdRequired() };
         
         _mockValidator
-            .Setup(v => v.ValidateAsync(It.IsAny<Order>(), It.IsAny<IValidationContext>()))
-            .ReturnsAsync(ValidationResult.Invalid(validationErrors));
+            .Setup(v => v.Validate(It.IsAny<Order>(), It.IsAny<IValidationContext>()))
+            .Returns(ValidationResult.Invalid(validationErrors));
 
         // Act
-        var result = await _orderService.CreateOrderAsync(request);
+        var result = await _orderService.CreateOrder(request);
 
         // Assert
         Assert.IsFalse(result.IsSuccess);
@@ -349,7 +349,7 @@ public class OrderServiceTests
         CollectionAssert.AreEqual(validationErrors.Select(e => e.Message).ToArray(), 
                                   result.ValidationErrors.ToArray());
         
-        _mockRepository.Verify(r => r.CreateAsync(It.IsAny<Order>()), Times.Never);
+        _mockRepository.Verify(r => r.Create(It.IsAny<Order>()), Times.Never);
     }
 }
 ```
@@ -360,17 +360,17 @@ public class OrderServiceTests
 
 ```csharp
 // ✅ Good: Proper async/await usage
-public async Task<IResult<IEnumerable<Order>>> GetOrdersAsync(string customerId)
+public async Task<IResult<IEnumerable<Order>>> GetOrders(string customerId)
 {
-    var orders = await _repository.GetOrdersByCustomerAsync(customerId);
+    var orders = await _repository.GetOrdersByCustomer(customerId);
     return Result.Success(orders);
 }
 
 // ✅ Good: Parallel operations when appropriate
-public async Task<IResult<OrderSummary>> GetOrderSummaryAsync(string customerId)
+public async Task<IResult<OrderSummary>> GetOrderSummary(string customerId)
 {
-    var ordersTask = _repository.GetOrdersByCustomerAsync(customerId);
-    var customerTask = _customerService.GetCustomerAsync(customerId);
+    var ordersTask = _repository.GetOrdersByCustomer(customerId);
+    var customerTask = _customerService.GetCustomer(customerId);
     
     await Task.WhenAll(ordersTask, customerTask);
     
@@ -383,7 +383,7 @@ public async Task<IResult<OrderSummary>> GetOrderSummaryAsync(string customerId)
 // ❌ Avoid: Blocking async operations
 public IResult<Order> GetOrderBad(int orderId)
 {
-    var order = _repository.GetOrderAsync(orderId).Result; // Blocks!
+    var order = _repository.GetOrder(orderId).Result; // Blocks!
     return Result.Success(order);
 }
 ```
@@ -392,23 +392,23 @@ public IResult<Order> GetOrderBad(int orderId)
 
 ```csharp
 // ✅ Good: Dispose resources properly
-public async Task<IResult<ProcessingReport>> ProcessLargeOrderBatchAsync(
+public async Task<IResult<ProcessingReport>> ProcessLargeOrderBatch(
     IEnumerable<CreateOrderRequest> requests)
 {
     using var scope = _serviceProvider.CreateScope();
     var processor = scope.ServiceProvider.GetRequiredService<IBatchOrderProcessor>();
     
-    return await processor.ProcessBatchAsync(requests);
+    return await processor.ProcessBatch(requests);
 }
 
 // ✅ Good: Use streaming for large datasets
-public async IAsyncEnumerable<IResult<Order>> ProcessOrdersStreamAsync(
+public async IAsyncEnumerable<IResult<Order>> ProcessOrdersStream(
     IAsyncEnumerable<CreateOrderRequest> requests,
     [EnumeratorCancellation] CancellationToken cancellationToken = default)
 {
     await foreach (var request in requests.WithCancellation(cancellationToken))
     {
-        var result = await ProcessOrderAsync(request);
+        var result = await ProcessOrder(request);
         yield return result;
     }
 }
@@ -421,7 +421,7 @@ public async IAsyncEnumerable<IResult<Order>> ProcessOrdersStreamAsync(
 ```csharp
 public class SecurityAwareValidator : IValidator<ApiRequest, SecurityValidationError>
 {
-    public async Task<IValidationResult<SecurityValidationError>> ValidateAsync(
+    public async Task<IValidationResult<SecurityValidationError>> Validate(
         ApiRequest request, 
         IValidationContext context)
     {
@@ -449,7 +449,7 @@ public class OrderService : IOrderService
 {
     private readonly ILogger<OrderService> _logger;
 
-    public async Task<IResult<Order>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IResult<Order>> CreateOrder(CreateOrderRequest request)
     {
         using var activity = OrderServiceActivity.CreateOrder(request.CorrelationId);
         
@@ -460,7 +460,7 @@ public class OrderService : IOrderService
 
         try
         {
-            var result = await ProcessOrderInternalAsync(request);
+            var result = await ProcessOrderInternal(request);
             
             if (result.IsSuccess)
             {

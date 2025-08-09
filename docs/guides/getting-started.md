@@ -51,11 +51,11 @@ All operations return standardized results:
 using Zentient.Abstractions.Envelopes;
 using Zentient.Abstractions.Results;
 
-public async Task<IResult<User>> GetUserAsync(int id)
+public async Task<IResult<User>> GetUser(int id)
 {
     try
     {
-        var user = await _repository.FindAsync(id);
+        var user = await _repository.Find(id);
         return user != null 
             ? Result.Success(user)
             : Result.Failure<User>("User not found");
@@ -95,7 +95,7 @@ using Zentient.Abstractions.Validation;
 
 public class UserValidator : IValidator<User, UserValidationError>
 {
-    public Task<IValidationResult<UserValidationError>> ValidateAsync(
+    public Task<IValidationResult<UserValidationError>> Validate(
         User user, 
         IValidationContext context)
     {
@@ -124,7 +124,7 @@ using Zentient.Abstractions.Results;
 // 1. Define your service contract
 public interface IWeatherService : IHasName, IHasDescription
 {
-    Task<IResult<Weather>> GetWeatherAsync(string city);
+    Task<IResult<Weather>> GetWeather(string city);
 }
 
 // 2. Implement with definition-centric approach
@@ -133,7 +133,7 @@ public class WeatherService : IWeatherService
     public string Name => "Weather Service";
     public string Description => "Provides weather information for cities";
     
-    public async Task<IResult<Weather>> GetWeatherAsync(string city)
+    public async Task<IResult<Weather>> GetWeather(string city)
     {
         // Simulate weather API call
         if (string.IsNullOrWhiteSpace(city))
@@ -172,7 +172,7 @@ public class Program
 
         // 4. Use with built-in observability
         var weatherService = host.Services.GetRequiredService<IWeatherService>();
-        var result = await weatherService.GetWeatherAsync("London");
+        var result = await weatherService.GetWeather("London");
         
         if (result.IsSuccess)
         {

@@ -184,20 +184,21 @@ Traditional error handling approaches have significant issues:
 The **Universal Envelope** provides a consistent structure for all operation results:
 
 ```csharp
-public interface IEnvelope<out TCode, out TError>
+public interface IEnvelope<out TCodeDefinition, out TErrorDefinition> : IHasMetadata
+    where TCodeDefinition : ICodeDefinition
+    where TErrorDefinition : IErrorDefinition
 {
     bool IsSuccess { get; }
-    bool IsFailure { get; }
-    TCode Code { get; }
-    IReadOnlyCollection<TError> Errors { get; }
-    DateTime Timestamp { get; }
-    IMetadata Metadata { get; }
+    ICode<TCodeDefinition> Code { get; }
+    IReadOnlyCollection<string> Messages { get; }
+    IReadOnlyList<IErrorInfo<TErrorDefinition>> Errors { get; }
 }
 
-public interface IEnvelope<out TCode, out TError, out TValue> : IEnvelope<TCode, TError>
+public interface IEnvelope<out TCodeDefinition, out TErrorDefinition, out TValue> : IEnvelope<TCodeDefinition, TErrorDefinition>
+    where TCodeDefinition : ICodeDefinition
+    where TErrorDefinition : IErrorDefinition
 {
-    TValue Value { get; }
-    bool HasValue { get; }
+    TValue? Value { get; }
 }
 ```
 
@@ -205,9 +206,9 @@ public interface IEnvelope<out TCode, out TError, out TValue> : IEnvelope<TCode,
 
 #### **Success Envelopes**
 ```csharp
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
-    var user = await _repository.CreateAsync(request);
+    var user = await _repository.Create(request);
     
     return Envelope.Success(UserCode.UserCreated, user, metadata: new MetadataCollection
     {
@@ -221,9 +222,9 @@ public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequ
 
 #### **Validation Error Envelopes**
 ```csharp
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
-    var validationResult = await _validator.ValidateAsync(request);
+    var validationResult = await _validator.Validate(request);
     if (!validationResult.IsValid)
     {
         return Envelope.ValidationError<UserCode, UserError>(
@@ -237,11 +238,11 @@ public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequ
 
 #### **Business Error Envelopes**
 ```csharp
-public async Task<IEnvelope<OrderCode, OrderError>> ProcessPaymentAsync(ProcessPaymentRequest request)
+public async Task<IEnvelope<OrderCode, OrderError>> ProcessPayment(ProcessPaymentRequest request)
 {
     try
     {
-        var payment = await _paymentService.ProcessAsync(request);
+        var payment = await _paymentService.Process(request);
         return Envelope.Success(OrderCode.PaymentProcessed, payment);
     }
     catch (InsufficientFundsException ex)
@@ -261,9 +262,9 @@ public async Task<IEnvelope<OrderCode, OrderError>> ProcessPaymentAsync(ProcessP
 
 #### **Not Found Envelopes**
 ```csharp
-public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId)
+public async Task<IEnvelope<UserCode, UserError>> GetUser(string userId)
 {
-    var user = await _repository.GetByIdAsync(userId);
+    var user = await _repository.GetById(userId);
     
     return user != null
         ? Envelope.Success(UserCode.UserFound, user)
@@ -283,30 +284,30 @@ public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId)
 Envelopes can be composed and transformed, enabling powerful functional programming patterns:
 
 ```csharp
-public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+public async Task<IEnvelope<OrderCode, OrderError>> CreateOrder(CreateOrderRequest request)
 {
-    return await ValidateCustomerAsync(request.CustomerId)
+    return await ValidateCustomer(request.CustomerId)
         .ContinueWith(customerResult =>
             customerResult.IsSuccess
-                ? ValidateInventoryAsync(request.Items)
+                ? ValidateInventory(request.Items)
                 : Task.FromResult(customerResult.MapError<OrderCode, OrderError>())
         )
         .ContinueWith(inventoryResult =>
             inventoryResult.Result.IsSuccess
-                ? ProcessOrderAsync(request)
+                ? ProcessOrder(request)
                 : Task.FromResult(inventoryResult.Result)
         );
 }
 
 // Functional composition with monadic operations
-public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderFunctionalAsync(CreateOrderRequest request)
+public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderFunctional(CreateOrderRequest request)
 {
-    return await ValidateCustomerAsync(request.CustomerId)
-        .BindAsync(customer => ValidateInventoryAsync(request.Items))
-        .BindAsync(inventory => CalculatePricingAsync(request))
-        .BindAsync(pricing => ProcessPaymentAsync(request))
-        .BindAsync(payment => CreateOrderRecordAsync(request))
-        .MapAsync(order => EnrichOrderDataAsync(order));
+    return await ValidateCustomer(request.CustomerId)
+        .Bind(customer => ValidateInventory(request.Items))
+        .Bind(inventory => CalculatePricing(request))
+        .Bind(pricing => ProcessPayment(request))
+        .Bind(payment => CreateOrderRecord(request))
+        .Map(order => EnrichOrderData(order));
 }
 ```
 
@@ -414,13 +415,14 @@ public class ProductionUserService : IUserService
 
 #### **Fluent API Registration**
 ```csharp
-public void ConfigureServices(IServiceCollection services)
+// Conceptual service configuration - implementations provided by consumers
+public void ConfigureAbstractions(IServiceRegistry registry)
 {
-    services.AddZentientServices(builder =>
+    registry.AddZentientServices(builder =>
     {
         // Service registration with cross-cutting concerns
         builder
-            .RegisterScoped<IUserService, UserService>()
+            .RegisterScoped<IUserService>(/* implementation */)
             .AddValidation<CreateUserRequestValidator>()
             .AddCaching(TimeSpan.FromMinutes(30))
             .AddRetryPolicy(maxAttempts: 3)
@@ -431,22 +433,22 @@ public void ConfigureServices(IServiceCollection services)
             
         // Decorated service registration
         builder
-            .RegisterScoped<IOrderService, OrderService>()
+            .RegisterScoped<IOrderService>(/* implementation */)
             .DecorateWith<OrderServiceLogger>()
             .DecorateWith<OrderServiceMetrics>()
             .DecorateWith<OrderServiceCache>()
             .DecorateWith<OrderServiceRetry>();
             
-        // Factory registration
+        // Factory registration pattern
         builder
             .RegisterFactory<IEmailService>(provider =>
             {
                 var config = provider.GetRequiredService<IConfiguration>();
                 return config["EmailProvider"] switch
                 {
-                    "SendGrid" => new SendGridEmailService(config["SendGrid:ApiKey"]),
-                    "SMTP" => new SmtpEmailService(config.GetConnectionString("SMTP")),
-                    _ => new MockEmailService()
+                    "Provider1" => /* EmailImplementation1 */,
+                    "Provider2" => /* EmailImplementation2 */,
+                    _ => /* DefaultEmailImplementation */
                 };
             })
             .AsSingleton()
@@ -457,13 +459,14 @@ public void ConfigureServices(IServiceCollection services)
 
 #### **Automatic Discovery and Validation**
 ```csharp
-public void ConfigureServices(IServiceCollection services)
+// Conceptual automatic registration patterns
+public void ConfigureAbstractions(IServiceRegistry registry)
 {
-    services.AddZentientServices(builder =>
+    registry.AddZentientServices(builder =>
     {
         // Automatic registration scanning
         builder
-            .ScanAssembly(typeof(UserService).Assembly)
+            .ScanAssembly(/* target assembly */)
             .RegisterServicesWithAttribute<ServiceRegistrationAttribute>()
             .RegisterValidatorsWithAttribute<ValidatorAttribute>()
             .RegisterRepositoriesWithInterface<IRepository>()
@@ -585,7 +588,7 @@ public class OrderService : IOrderService
 {
     private readonly ILogger<OrderService> _logger;
     
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition>> CreateOrder(CreateOrderRequest request)
     {
         // Automatic structured logging scope
         using var scope = _logger.BeginScope(new Dictionary<string, object>
@@ -601,7 +604,7 @@ public class OrderService : IOrderService
         
         try
         {
-            var order = await ProcessOrderAsync(request);
+            var order = await ProcessOrder(request);
             
             // Automatic success logging with context
             _logger.LogInformation("Order {OrderId} created successfully", order.Id);
@@ -647,13 +650,13 @@ public class OrderService : IOrderService
         "Number of orders pending processing"
     );
     
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition>> CreateOrder(CreateOrderRequest request)
     {
         var stopwatch = Stopwatch.StartNew();
         
         try
         {
-            var order = await ProcessOrderAsync(request);
+            var order = await ProcessOrder(request);
             
             // Automatic success metrics
             _ordersCreated.Add(1, new TagList
@@ -697,7 +700,7 @@ public class OrderService : IOrderService
 {
     private readonly ITracer<OrderService> _tracer;
     
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCodeDefinition, OrderErrorDefinition>> CreateOrder(CreateOrderRequest request)
     {
         // Automatic trace creation and management
         using var activity = _tracer.StartActivity("CreateOrder");
@@ -711,7 +714,7 @@ public class OrderService : IOrderService
         try
         {
             // Child operations automatically inherit trace context
-            var validationResult = await _validator.ValidateAsync(request);
+            var validationResult = await _validator.Validate(request);
             if (!validationResult.IsValid)
             {
                 activity?.SetStatus(ActivityStatusCode.Error, "Validation failed");
@@ -722,7 +725,7 @@ public class OrderService : IOrderService
                 );
             }
             
-            var order = await _repository.CreateAsync(request);
+            var order = await _repository.Create(request);
             
             // Automatic success tracking
             activity?.SetStatus(ActivityStatusCode.Ok);
@@ -755,7 +758,7 @@ public class OrderDatabaseHealthCheck : IDiagnosticCheck<DbContext, HealthCode, 
     public TimeSpan Timeout => TimeSpan.FromSeconds(30);
     public Priority Priority => Priority.Critical;
     
-    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckHealthAsync(
+    public async Task<IDiagnosticReport<HealthCodeDefinition, HealthErrorDefinition>> CheckHealth(
         DbContext context,
         IDiagnosticContext diagnosticContext,
         CancellationToken cancellationToken = default)
@@ -764,11 +767,11 @@ public class OrderDatabaseHealthCheck : IDiagnosticCheck<DbContext, HealthCode, 
         
         try
         {
-            // Test database connectivity
-            await context.Database.CanConnectAsync(cancellationToken);
+            // Test database connectivity  
+            await context.Database.CanConnect(cancellationToken);
             
             // Test query performance
-            var orderCount = await context.Set<Order>().CountAsync(cancellationToken);
+            var orderCount = await context.Set<Order>().Count(cancellationToken);
             
             stopwatch.Stop();
             
@@ -824,7 +827,7 @@ The four pillars are designed to work synergistically:
 public interface IPaymentService : IIdentifiable
 {
     // Definitions describe what envelopes to expect
-    Task<IEnvelope<PaymentCode, PaymentError>> ProcessPaymentAsync(PaymentRequest request);
+    Task<IEnvelope<PaymentCodeDefinition, PaymentErrorDefinition>> ProcessPayment(PaymentRequest request);
 }
 ```
 
@@ -860,13 +863,13 @@ services.AddZentientServices(builder =>
 [DiagnosticCheck("UserService.Database")]                       // Observability
 public class UserService : IUserService
 {
-    public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request) // Envelopes
+    public async Task<IEnvelope<UserCodeDefinition, UserErrorDefinition>> CreateUser(CreateUserRequest request) // Envelopes
     {
         // All four pillars working together automatically
         using var activity = _tracer.StartActivity("CreateUser");     // Observability
         using var scope = _logger.BeginScope(request.CorrelationId); // Observability
         
-        var validationResult = await _validator.ValidateAsync(request);
+        var validationResult = await _validator.Validate(request);
         if (!validationResult.IsValid)
         {
             return Envelope.ValidationError<UserCode, UserError>(     // Envelopes

@@ -14,7 +14,7 @@ Zentient.Abstractions follows the principle that powerful functionality should b
 
 ```csharp
 // Simple API surface
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
     // Complex infrastructure handled automatically:
     // - Validation
@@ -63,11 +63,11 @@ public interface IRepository<TEntity, TKey>
 }
 
 // Rich runtime context
-public async Task<IEnvelope<EntityCode, EntityError>> GetByIdAsync(TKey id)
+public async Task<IEnvelope<EntityCode, EntityError>> GetById<TKey>(TKey id)
 {
     try
     {
-        var entity = await _context.FindAsync(id);
+        var entity = await _context.Find(id);
         return entity != null
             ? Envelope.Success(EntityCode.Found, entity)
             : Envelope.NotFound<EntityCode, EntityError>(
@@ -140,10 +140,10 @@ Every operation returns an envelope that contains success codes, error informati
 #### **Implementation**:
 ```csharp
 // Service operations return envelopes
-public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrderRequest request)
+public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrder(ProcessOrderRequest request)
 {
     // Validation envelope
-    var validationResult = await _validator.ValidateAsync(request);
+    var validationResult = await _validator.Validate(request);
     if (!validationResult.IsValid)
     {
         return Envelope.ValidationError<OrderCode, OrderError>(
@@ -154,7 +154,7 @@ public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrd
     // Business logic envelope
     try
     {
-        var order = await _orderProcessor.ProcessAsync(request);
+        var order = await _orderProcessor.Process(request);
         return Envelope.Success(OrderCode.OrderProcessed, order, metadata: new MetadataCollection
         {
             ["ProcessingTime"] = stopwatch.ElapsedMilliseconds,
@@ -232,7 +232,7 @@ public class OrderService : IOrderService
     private readonly Counter<long> _orderProcessed = _meter.CreateCounter<long>("orders_processed_total");
     private readonly Histogram<double> _processingTime = _meter.CreateHistogram<double>("order_processing_duration");
 
-    public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrderRequest request)
+    public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrder(ProcessOrderRequest request)
     {
         // Automatic tracing
         using var activity = _tracer.StartActivity("ProcessOrder");
@@ -249,7 +249,7 @@ public class OrderService : IOrderService
         
         try
         {
-            var order = await ProcessOrderInternalAsync(request);
+            var order = await ProcessOrderInternal(request);
             
             // Automatic success metrics
             _orderProcessed.Add(1, new TagList { ["success"] = "true", ["type"] = request.OrderType });
@@ -336,7 +336,7 @@ public class UserService : IUserService
 // ❌ Hidden dependencies
 public class UserService : IUserService
 {
-    public async Task CreateUserAsync(CreateUserRequest request)
+    public async Task CreateUser(CreateUserRequest request)
     {
         var repository = ServiceLocator.Get<IUserRepository>(); // Hidden!
         var logger = Logger.Current; // Global state!
@@ -356,7 +356,9 @@ public record CreateUserRequest(string Email, string FirstName, string LastName)
 }
 
 // Immutable envelopes
-public interface IEnvelope<out TCode, out TError>
+public interface IEnvelope<out TCodeDefinition, out TErrorDefinition> : IHasMetadata
+    where TCodeDefinition : ICodeDefinition
+    where TErrorDefinition : IErrorDefinition
 {
     // All properties are read-only
     bool IsSuccess { get; }
@@ -373,16 +375,16 @@ All I/O operations should be asynchronous by default, with synchronous versions 
 // Async by default
 public interface IUserService
 {
-    Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request);
-    Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId);
-    Task<IEnvelope<UserCode, UserError>> UpdateUserAsync(UpdateUserRequest request);
+    Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request);
+    Task<IEnvelope<UserCode, UserError>> GetUser(string userId);
+    Task<IEnvelope<UserCode, UserError>> UpdateUser(UpdateUserRequest request);
 }
 
 // Synchronous versions only when needed
 public interface IUserValidator
 {
     IValidationResult Validate(CreateUserRequest request); // Sync validation
-    Task<IValidationResult> ValidateAsync(CreateUserRequest request); // Async for DB checks
+    Task<IValidationResult> Validate(CreateUserRequest request); // Async for DB checks
 }
 ```
 

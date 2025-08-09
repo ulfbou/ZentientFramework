@@ -46,7 +46,7 @@ public class CreateUserValidator :
         ["Dependencies"] = new[] { "IUserRepository", "IConfigurationService" }
     };
     
-    public async Task<IValidationResult<UserCode, UserError>> ValidateAsync(
+    public async Task<IValidationResult<UserCode, UserError>> Validate(
         CreateUserCommand command,
         ValidationContext context = default,
         CancellationToken cancellationToken = default)
@@ -54,7 +54,7 @@ public class CreateUserValidator :
         var result = new ValidationResultBuilder<UserCode, UserError>();
         
         // Email validation
-        await ValidateEmailAsync(command.Email, result, cancellationToken);
+        await ValidateEmail(command.Email, result, cancellationToken);
         
         // Name validation
         ValidateName(command.FirstName, command.LastName, result);
@@ -66,12 +66,12 @@ public class CreateUserValidator :
         ValidatePhoneNumber(command.PhoneNumber, result);
         
         // Business rule validation
-        await ValidateBusinessRulesAsync(command, result, cancellationToken);
+        await ValidateBusinessRules(command, result, cancellationToken);
         
         return result.Build();
     }
     
-    private async Task ValidateEmailAsync(
+    private async Task ValidateEmail(
         string email, 
         ValidationResultBuilder<UserCode, UserError> result,
         CancellationToken cancellationToken)
@@ -97,14 +97,14 @@ public class CreateUserValidator :
         }
         
         // Uniqueness validation
-        var existingUser = await _userRepository.GetByEmailAsync(email);
+        var existingUser = await _userRepository.GetByEmail(email);
         if (existingUser.IsSuccess)
         {
             result.AddError(UserError.EmailAlreadyExists(email), "Email");
         }
         
         // Domain whitelist validation
-        var allowedDomains = await _config.GetAllowedEmailDomainsAsync();
+        var allowedDomains = await _config.GetAllowedEmailDomains();
         if (allowedDomains.Any() && !allowedDomains.Contains(GetEmailDomain(email)))
         {
             result.AddError(UserError.EmailDomainNotAllowed(email), "Email");
@@ -168,13 +168,13 @@ public class CreateUserValidator :
         }
     }
     
-    private async Task ValidateBusinessRulesAsync(
+    private async Task ValidateBusinessRules(
         CreateUserCommand command,
         ValidationResultBuilder<UserCode, UserError> result,
         CancellationToken cancellationToken)
     {
         // Rate limiting validation
-        var recentRegistrations = await _userRepository.GetRecentRegistrationCountAsync(
+        var recentRegistrations = await _userRepository.GetRecentRegistrationCount(
             TimeSpan.FromHours(1), cancellationToken);
             
         var maxRegistrationsPerHour = _config.GetMaxRegistrationsPerHour();
@@ -186,7 +186,7 @@ public class CreateUserValidator :
         
         // Geographic restrictions
         var clientIP = GetClientIP();
-        var isAllowedRegion = await _config.IsAllowedRegionAsync(clientIP);
+        var isAllowedRegion = await _config.IsAllowedRegion(clientIP);
         if (!isAllowedRegion)
         {
             result.AddError(UserError.RegistrationNotAllowedInRegion(clientIP), "General");
@@ -305,7 +305,7 @@ public class CreateProductFluentValidator : FluentValidator<CreateProductCommand
             .NotEmpty().WithError(ProductError.NameRequired())
             .Length(2, 100).WithError(cmd => ProductError.NameLength(cmd.Name.Length, 2, 100))
             .Matches(@"^[a-zA-Z0-9\s\-\.]+$").WithError(cmd => ProductError.NameInvalidFormat(cmd.Name))
-            .MustAsync(BeUniqueNameAsync).WithError(cmd => ProductError.NameAlreadyExists(cmd.Name));
+            .Must(BeUniqueNameAsync).WithError(cmd => ProductError.NameAlreadyExists(cmd.Name));
             
         RuleFor(x => x.Description)
             .NotEmpty().WithError(ProductError.DescriptionRequired())
@@ -318,13 +318,13 @@ public class CreateProductFluentValidator : FluentValidator<CreateProductCommand
             
         RuleFor(x => x.Category)
             .NotEmpty().WithError(ProductError.CategoryRequired())
-            .MustAsync(BeValidCategoryAsync).WithError(cmd => ProductError.CategoryInvalid(cmd.Category));
+            .Must(BeValidCategoryAsync).WithError(cmd => ProductError.CategoryInvalid(cmd.Category));
             
         RuleFor(x => x.SKU)
             .NotEmpty().When(x => _config.GetRequireSKU()).WithError(ProductError.SKURequired())
             .Matches(@"^[A-Z]{3}-\d{5}-[A-Z]{3}$").When(x => !string.IsNullOrEmpty(x.SKU))
                 .WithError(cmd => ProductError.SKUInvalidFormat(cmd.SKU))
-            .MustAsync(BeUniqueSKUAsync).When(x => !string.IsNullOrEmpty(x.SKU))
+            .Must(BeUniqueSKUAsync).When(x => !string.IsNullOrEmpty(x.SKU))
                 .WithError(cmd => ProductError.SKUAlreadyExists(cmd.SKU));
                 
         RuleFor(x => x.StockQuantity)
@@ -336,7 +336,7 @@ public class CreateProductFluentValidator : FluentValidator<CreateProductCommand
                 
         // Complex validation rules
         RuleFor(x => x)
-            .MustAsync(PassBusinessRulesAsync).WithError(cmd => ProductError.BusinessRulesViolation())
+            .Must(PassBusinessRulesAsync).WithError(cmd => ProductError.BusinessRulesViolation())
             .Must(BeValidForCategory).WithError(cmd => ProductError.InvalidForCategory(cmd.Category));
             
         // Conditional validation
@@ -356,21 +356,21 @@ public class CreateProductFluentValidator : FluentValidator<CreateProductCommand
         });
     }
     
-    private async Task<bool> BeUniqueNameAsync(string name, CancellationToken cancellationToken)
+    private async Task<bool> BeUniqueName(string name, CancellationToken cancellationToken)
     {
-        var existing = await _productRepository.GetByNameAsync(name);
+        var existing = await _productRepository.GetByName(name);
         return !existing.IsSuccess;
     }
     
-    private async Task<bool> BeValidCategoryAsync(string category, CancellationToken cancellationToken)
+    private async Task<bool> BeValidCategory(string category, CancellationToken cancellationToken)
     {
-        var categories = await _categoryService.GetValidCategoriesAsync();
+        var categories = await _categoryService.GetValidCategories();
         return categories.Contains(category, StringComparer.OrdinalIgnoreCase);
     }
     
-    private async Task<bool> BeUniqueSKUAsync(string sku, CancellationToken cancellationToken)
+    private async Task<bool> BeUniqueSKU(string sku, CancellationToken cancellationToken)
     {
-        var existing = await _productRepository.GetBySKUAsync(sku);
+        var existing = await _productRepository.GetBySKU(sku);
         return !existing.IsSuccess;
     }
     
@@ -380,14 +380,14 @@ public class CreateProductFluentValidator : FluentValidator<CreateProductCommand
         return price % increment == 0;
     }
     
-    private async Task<bool> PassBusinessRulesAsync(CreateProductCommand command, CancellationToken cancellationToken)
+    private async Task<bool> PassBusinessRules(CreateProductCommand command, CancellationToken cancellationToken)
     {
         // Complex business rules that span multiple properties
-        var rules = await _config.GetBusinessRulesAsync();
+        var rules = await _config.GetBusinessRules();
         
         foreach (var rule in rules)
         {
-            if (!await rule.ValidateAsync(command, cancellationToken))
+            if (!await rule.Validate(command, cancellationToken))
                 return false;
         }
         
@@ -425,7 +425,7 @@ public enum ValidationLevel
 [ValidatorRegistration(ServiceLifetime.Scoped)]
 public class UpdateUserValidator : IValidator<UpdateUserCommand, UserCode, UserError>
 {
-    public async Task<IValidationResult<UserCode, UserError>> ValidateAsync(
+    public async Task<IValidationResult<UserCode, UserError>> Validate(
         UpdateUserCommand command,
         ValidationContext context = default,
         CancellationToken cancellationToken = default)
@@ -436,46 +436,46 @@ public class UpdateUserValidator : IValidator<UpdateUserCommand, UserCode, UserE
         switch (context.Scenario)
         {
             case "SelfUpdate":
-                await ValidateSelfUpdateAsync(command, result, context, cancellationToken);
+                await ValidateSelfUpdate(command, result, context, cancellationToken);
                 break;
                 
             case "AdminUpdate":
-                await ValidateAdminUpdateAsync(command, result, context, cancellationToken);
+                await ValidateAdminUpdate(command, result, context, cancellationToken);
                 break;
                 
             case "SystemUpdate":
-                await ValidateSystemUpdateAsync(command, result, context, cancellationToken);
+                await ValidateSystemUpdate(command, result, context, cancellationToken);
                 break;
                 
             case "BulkUpdate":
-                await ValidateBulkUpdateAsync(command, result, context, cancellationToken);
+                await ValidateBulkUpdate(command, result, context, cancellationToken);
                 break;
                 
             default:
-                await ValidateDefaultUpdateAsync(command, result, context, cancellationToken);
+                await ValidateDefaultUpdate(command, result, context, cancellationToken);
                 break;
         }
         
         // Level-based validation
         if (context.Level >= ValidationLevel.Standard)
         {
-            await ValidateBusinessRulesAsync(command, result, context, cancellationToken);
+            await ValidateBusinessRules(command, result, context, cancellationToken);
         }
         
         if (context.Level >= ValidationLevel.Strict)
         {
-            await ValidateSecurityRulesAsync(command, result, context, cancellationToken);
+            await ValidateSecurityRules(command, result, context, cancellationToken);
         }
         
         if (context.Level >= ValidationLevel.Paranoid)
         {
-            await ValidateParanoidRulesAsync(command, result, context, cancellationToken);
+            await ValidateParanoidRules(command, result, context, cancellationToken);
         }
         
         return result.Build();
     }
     
-    private async Task ValidateSelfUpdateAsync(
+    private async Task ValidateSelfUpdate(
         UpdateUserCommand command,
         ValidationResultBuilder<UserCode, UserError> result,
         ValidationContext context,
@@ -499,14 +499,14 @@ public class UpdateUserValidator : IValidator<UpdateUserCommand, UserCode, UserE
         }
     }
     
-    private async Task ValidateAdminUpdateAsync(
+    private async Task ValidateAdminUpdate(
         UpdateUserCommand command,
         ValidationResultBuilder<UserCode, UserError> result,
         ValidationContext context,
         CancellationToken cancellationToken)
     {
         // Verify admin permissions
-        var hasAdminPermission = await _permissionService.HasPermissionAsync(
+        var hasAdminPermission = await _permissionService.HasPermission(
             context.UserId!, "Users.Admin", cancellationToken);
             
         if (!hasAdminPermission)
@@ -516,7 +516,7 @@ public class UpdateUserValidator : IValidator<UpdateUserCommand, UserCode, UserE
         }
         
         // Admins cannot modify super admin accounts
-        var targetUser = await _userRepository.GetByIdAsync(command.UserId);
+        var targetUser = await _userRepository.GetById(command.UserId);
         if (targetUser.IsSuccess && targetUser.Value.Role == "SuperAdmin")
         {
             result.AddError(UserError.CannotModifySuperAdmin(command.UserId), "UserId");
@@ -539,7 +539,7 @@ public class UserController : ControllerBase
             Level = ValidationLevel.Standard
         };
         
-        var validationResult = await _validator.ValidateAsync(command, context);
+        var validationResult = await _validator.Validate(command, context);
         
         if (!validationResult.IsValid)
         {
@@ -562,7 +562,7 @@ public class UserController : ControllerBase
         };
         
         command = command with { UserId = userId };
-        var validationResult = await _validator.ValidateAsync(command, context);
+        var validationResult = await _validator.Validate(command, context);
         
         if (!validationResult.IsValid)
         {
@@ -589,7 +589,7 @@ public class ValidationBehavior<TRequest, TResponse> :
     private readonly IEnumerable<IValidator<TRequest>> _validators;
     private readonly IValidationContextFactory _contextFactory;
     
-    public async Task<TResponse> HandleAsync(
+    public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken = default)
@@ -599,8 +599,8 @@ public class ValidationBehavior<TRequest, TResponse> :
             return await next();
         }
         
-        var context = await _contextFactory.CreateContextAsync(request);
-        var validationTasks = _validators.Select(v => v.ValidateAsync(request, context, cancellationToken));
+        var context = await _contextFactory.CreateContext(request);
+        var validationTasks = _validators.Select(v => v.Validate(request, context, cancellationToken));
         var validationResults = await Task.WhenAll(validationTasks);
         
         var failures = validationResults
@@ -636,7 +636,7 @@ public class ValidationContextFactory : IValidationContextFactory
     private readonly IUserService _userService;
     private readonly ITenantService _tenantService;
     
-    public async Task<ValidationContext> CreateContextAsync<T>(T request)
+    public async Task<ValidationContext> CreateContext<T>(T request)
     {
         var httpContext = _httpContextAccessor.HttpContext;
         var scenario = DetermineScenario(request, httpContext);
@@ -714,13 +714,13 @@ public class ConditionalOrderValidator : FluentValidator<CreateOrderCommand, Ord
         When(x => _features.IsEnabled("StrictInventoryValidation"), () =>
         {
             RuleFor(x => x.Items)
-                .MustAsync(AllItemsInStockAsync).WithError(cmd => OrderError.ItemsNotInStock());
+                .Must(AllItemsInStockAsync).WithError(cmd => OrderError.ItemsNotInStock());
         });
         
         When(x => _features.IsEnabled("PremiumCustomerValidation"), () =>
         {
             RuleFor(x => x)
-                .MustAsync(ValidatePremiumCustomerRulesAsync)
+                .Must(ValidatePremiumCustomerRulesAsync)
                 .WithError(cmd => OrderError.PremiumCustomerRulesViolation());
         });
         
@@ -728,7 +728,7 @@ public class ConditionalOrderValidator : FluentValidator<CreateOrderCommand, Ord
         When(x => _config.GetValue<bool>("EnableFraudDetection"), () =>
         {
             RuleFor(x => x)
-                .MustAsync(PassFraudDetectionAsync)
+                .Must(PassFraudDetectionAsync)
                 .WithError(cmd => OrderError.FraudDetected());
         });
         
@@ -773,7 +773,7 @@ Optimize validation performance for complex scenarios:
 [ValidatorRegistration(ServiceLifetime.Scoped)]
 public class HighPerformanceUserValidator : IValidator<CreateUserCommand, UserCode, UserError>
 {
-    public async Task<IValidationResult<UserCode, UserError>> ValidateAsync(
+    public async Task<IValidationResult<UserCode, UserError>> Validate(
         CreateUserCommand command,
         ValidationContext context = default,
         CancellationToken cancellationToken = default)
@@ -783,11 +783,11 @@ public class HighPerformanceUserValidator : IValidator<CreateUserCommand, UserCo
         // Create validation tasks that can run in parallel
         var validationTasks = new[]
         {
-            ValidateEmailAsync(command.Email, result, cancellationToken),
-            ValidatePhoneAsync(command.PhoneNumber, result, cancellationToken),
-            ValidateBusinessRulesAsync(command, result, cancellationToken),
-            ValidateSecurityRulesAsync(command, result, cancellationToken),
-            ValidateComplianceRulesAsync(command, result, cancellationToken)
+            ValidateEmail(command.Email, result, cancellationToken),
+            ValidatePhone(command.PhoneNumber, result, cancellationToken),
+            ValidateBusinessRules(command, result, cancellationToken),
+            ValidateSecurityRules(command, result, cancellationToken),
+            ValidateComplianceRules(command, result, cancellationToken)
         };
         
         // Execute all validation tasks in parallel
@@ -796,13 +796,13 @@ public class HighPerformanceUserValidator : IValidator<CreateUserCommand, UserCo
         // Perform sequential validation that depends on parallel results
         if (result.HasErrors)
         {
-            await ValidateDependentRulesAsync(command, result, cancellationToken);
+            await ValidateDependentRules(command, result, cancellationToken);
         }
         
         return result.Build();
     }
     
-    private async Task ValidateEmailAsync(
+    private async Task ValidateEmail(
         string email,
         ValidationResultBuilder<UserCode, UserError> result,
         CancellationToken cancellationToken)
@@ -817,9 +817,9 @@ public class HighPerformanceUserValidator : IValidator<CreateUserCommand, UserCo
         // Parallel external validations
         var tasks = new[]
         {
-            CheckEmailUniquenessAsync(email, cancellationToken),
-            CheckEmailDomainAsync(email, cancellationToken),
-            CheckEmailReputationAsync(email, cancellationToken)
+            CheckEmailUniqueness(email, cancellationToken),
+            CheckEmailDomain(email, cancellationToken),
+            CheckEmailReputation(email, cancellationToken)
         };
         
         var results = await Task.WhenAll(tasks);
@@ -844,14 +844,14 @@ public class CachedEmailValidator : IValidator<string, UserCode, UserError>
     private readonly ICache<ValidationResult<UserCode, UserError>> _cache;
     private readonly IEmailValidationService _emailService;
     
-    public async Task<IValidationResult<UserCode, UserError>> ValidateAsync(
+    public async Task<IValidationResult<UserCode, UserError>> Validate(
         string email,
         ValidationContext context = default,
         CancellationToken cancellationToken = default)
     {
         // Try cache first
         var cacheKey = $"EmailValidation:{email.ToLowerInvariant()}";
-        var cached = await _cache.GetAsync(cacheKey);
+        var cached = await _cache.Get(cacheKey);
         
         if (cached.IsSuccess && !cached.Value.IsExpired)
         {
@@ -859,14 +859,14 @@ public class CachedEmailValidator : IValidator<string, UserCode, UserError>
         }
         
         // Perform validation
-        var result = await _emailService.ValidateAsync(email, cancellationToken);
+        var result = await _emailService.Validate(email, cancellationToken);
         
         // Cache successful results for longer, failures for shorter duration
         var cacheDuration = result.IsValid 
             ? TimeSpan.FromHours(24)   // Valid emails cached for 24 hours
             : TimeSpan.FromMinutes(5);  // Invalid emails cached for 5 minutes
             
-        await _cache.SetAsync(cacheKey, result, cacheDuration);
+        await _cache.Set(cacheKey, result, cacheDuration);
         
         return result;
     }

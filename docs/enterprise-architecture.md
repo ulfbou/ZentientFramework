@@ -75,7 +75,7 @@ public class UserService : IUserService
     private readonly IDiagnosticContext _diagnostics;
     private readonly ILogger<UserService> _logger;
 
-    public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(UserId userId)
+    public async Task<IEnvelope<UserCode, UserError>> GetUser(UserId userId)
     {
         using var activity = _diagnostics.StartActivity("GetUser");
         activity.SetTag("UserId", userId.Value);
@@ -83,7 +83,7 @@ public class UserService : IUserService
         try
         {
             // Check cache first
-            var cached = await _cache.GetAsync(new UserCacheKey(userId));
+            var cached = await _cache.Get(new UserCacheKey(userId));
             if (cached.HasValue)
             {
                 activity.SetTag("CacheHit", true);
@@ -91,14 +91,14 @@ public class UserService : IUserService
             }
 
             // Load from repository
-            var user = await _repository.GetByIdAsync(userId);
+            var user = await _repository.GetById(userId);
             if (user == null)
             {
                 return Envelope.NotFound<UserCode, UserError>(UserError.UserNotFound(userId));
             }
 
             // Cache the result
-            await _cache.SetAsync(new UserCacheKey(userId), user, TimeSpan.FromMinutes(30));
+            await _cache.Set(new UserCacheKey(userId), user, TimeSpan.FromMinutes(30));
 
             return Envelope.Success(UserCode.UserFound, user);
         }
@@ -147,15 +147,15 @@ public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
     private readonly IEmailService _emailService;
     private readonly IAuditService _auditService;
 
-    public async Task<IEnvelope<EventCode, EventError>> HandleAsync(UserCreatedEvent @event)
+    public async Task<IEnvelope<EventCode, EventError>> Handle(UserCreatedEvent @event)
     {
         try
         {
             // Send welcome email
-            await _emailService.SendWelcomeEmailAsync(@event.Email);
+            await _emailService.SendWelcomeEmail(@event.Email);
             
             // Log audit event
-            await _auditService.LogEventAsync(new AuditEvent
+            await _auditService.LogEvent(new AuditEvent
             {
                 Type = "UserCreated",
                 UserId = @event.UserId,
@@ -201,10 +201,10 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
     private readonly IEventBus _eventBus;
     private readonly IValidator<CreateUserCommand> _validator;
 
-    public async Task<IEnvelope<CommandCode, CommandError>> HandleAsync(CreateUserCommand command)
+    public async Task<IEnvelope<CommandCode, CommandError>> Handle(CreateUserCommand command)
     {
         // Validate command
-        var validationResult = await _validator.ValidateAsync(command);
+        var validationResult = await _validator.Validate(command);
         if (!validationResult.IsValid)
         {
             return Envelope.ValidationError<CommandCode, CommandError>(
@@ -225,7 +225,7 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repository.CreateAsync(user);
+            await _repository.Create(user);
 
             // Publish event
             var @event = new UserCreatedEvent
@@ -236,7 +236,7 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
                 CorrelationId = command.CorrelationId
             };
 
-            await _eventBus.PublishAsync(@event);
+            await _eventBus.Publish(@event);
 
             return Envelope.Success(CommandCode.UserCreated, user.Id);
         }
@@ -277,13 +277,13 @@ public class GetUserByEmailQueryHandler : IQueryHandler<GetUserByEmailQuery, Use
     private readonly IUserReadRepository _repository;
     private readonly ICache<UserDto> _cache;
 
-    public async Task<IEnvelope<QueryCode, QueryError>> HandleAsync(GetUserByEmailQuery query)
+    public async Task<IEnvelope<QueryCode, QueryError>> Handle(GetUserByEmailQuery query)
     {
         try
         {
             // Try cache first
             var cacheKey = new UserEmailCacheKey(query.Email);
-            var cached = await _cache.GetAsync(cacheKey);
+            var cached = await _cache.Get(cacheKey);
             
             if (cached.HasValue)
             {
@@ -291,7 +291,7 @@ public class GetUserByEmailQueryHandler : IQueryHandler<GetUserByEmailQuery, Use
             }
 
             // Query from read model
-            var user = await _repository.GetByEmailAsync(
+            var user = await _repository.GetByEmail(
                 query.Email,
                 includeRoles: query.IncludeRoles,
                 includeMetadata: query.IncludeMetadata
@@ -305,7 +305,7 @@ public class GetUserByEmailQueryHandler : IQueryHandler<GetUserByEmailQuery, Use
             }
 
             // Cache the result
-            await _cache.SetAsync(cacheKey, user, TimeSpan.FromHours(1));
+            await _cache.Set(cacheKey, user, TimeSpan.FromHours(1));
 
             return Envelope.Success(QueryCode.UserFound, user);
         }
@@ -328,7 +328,7 @@ public class GetUserByEmailQueryHandler : IQueryHandler<GetUserByEmailQuery, Use
 [SecurityPolicy("JwtValidation")]
 public class JwtValidationPolicy : ISecurityPolicy
 {
-    public async Task<IEnvelope<SecurityCode, SecurityError>> ValidateAsync(ISecurityContext context)
+    public async Task<IEnvelope<SecurityCode, SecurityError>> Validate(ISecurityContext context)
     {
         try
         {
@@ -340,7 +340,7 @@ public class JwtValidationPolicy : ISecurityPolicy
                 );
             }
 
-            var validationResult = await _tokenValidator.ValidateAsync(token);
+            var validationResult = await _tokenValidator.Validate(token);
             if (!validationResult.IsValid)
             {
                 return Envelope.Unauthorized<SecurityCode, SecurityError>(
@@ -371,7 +371,7 @@ public class PersonalDataService : IPersonalDataService
     private readonly IDataProtector _protector;
     private readonly IAuditLogger _auditLogger;
 
-    public async Task<IEnvelope<DataCode, DataError>> ProtectAsync<T>(T sensitiveData) 
+    public async Task<IEnvelope<DataCode, DataError>> Protect<T>(T sensitiveData) 
         where T : ISensitiveData
     {
         try
@@ -379,7 +379,7 @@ public class PersonalDataService : IPersonalDataService
             var serialized = JsonSerializer.Serialize(sensitiveData);
             var protected = _protector.Protect(serialized);
             
-            await _auditLogger.LogDataAccessAsync(new DataAccessEvent
+            await _auditLogger.LogDataAccess(new DataAccessEvent
             {
                 Type = "DataProtection",
                 DataType = typeof(T).Name,
@@ -411,17 +411,17 @@ public class DatabaseHealthCheck : IDiagnosticCheck<DatabaseContext, HealthCode,
     private readonly DatabaseContext _context;
     private readonly ILogger<DatabaseHealthCheck> _logger;
 
-    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckHealthAsync()
+    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckHealth()
     {
         try
         {
             var stopwatch = Stopwatch.StartNew();
             
             // Test database connectivity
-            await _context.Database.CanConnectAsync();
+            await _context.Database.CanConnect();
             
             // Test query performance
-            var count = await _context.Users.CountAsync();
+            var count = await _context.Users.Count();
             
             stopwatch.Stop();
 
@@ -518,7 +518,7 @@ public class UserCacheService : ICacheService<UserDto>
     private readonly IDistributedCache _l2Cache;
     private readonly ILogger<UserCacheService> _logger;
 
-    public async Task<IEnvelope<CacheCode, CacheError>> GetAsync<TKey>(TKey key) 
+    public async Task<IEnvelope<CacheCode, CacheError>> Get<TKey>(TKey key) 
         where TKey : ICacheKey<UserDto>
     {
         try
@@ -530,7 +530,7 @@ public class UserCacheService : ICacheService<UserDto>
             }
 
             // L2 Cache (Distributed)
-            var l2Data = await _l2Cache.GetStringAsync(key.ToString());
+            var l2Data = await _l2Cache.GetString(key.ToString());
             if (!string.IsNullOrEmpty(l2Data))
             {
                 var l2Value = JsonSerializer.Deserialize<UserDto>(l2Data);
@@ -567,7 +567,7 @@ public class UserRepository : IUserRepository
     private readonly IMetricsCollector _metrics;
     private readonly ILogger<UserRepository> _logger;
 
-    public async Task<IEnvelope<RepositoryCode, RepositoryError>> GetByIdAsync(UserId id)
+    public async Task<IEnvelope<RepositoryCode, RepositoryError>> GetById(UserId id)
     {
         using var activity = Activity.StartActivity("UserRepository.GetById");
         var stopwatch = Stopwatch.StartNew();
@@ -577,7 +577,7 @@ public class UserRepository : IUserRepository
             var user = await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == id.Value)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             stopwatch.Stop();
             _metrics.RecordQueryTime("GetById", stopwatch.ElapsedMilliseconds);

@@ -118,46 +118,28 @@ public class UserCacheService : ICacheService<UserDto>
         _metrics = metrics;
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> SetUserAsync(
-        string userId, 
+    public Task<IResult> SetUser(
+        ICacheKey<UserCacheKeyDefinition> key, 
         UserDto user,
-        TimeSpan? ttl = null,
+        DateTimeOffset? expiration = null,
         CancellationToken cancellationToken = default)
     {
         using var activity = Activity.StartActivity("SetUser");
-        activity?.SetTag("user.id", userId);
+        activity?.SetTag("cache.key", key.ToString());
         
         try
         {
-            var key = _cache.Definition.GenerateKey(userId);
-            var effectiveTtl = ttl ?? _cache.Definition.DefaultTtl;
-            
             // Validate the user data before caching
-            var validation = _cache.Definition.ValidateValue(user);
+            var validation = _userValidator.ValidateForCaching(user);
             if (!validation.IsValid)
             {
                 _logger.LogWarning("Invalid user data for caching: {Errors}", 
                     string.Join(", ", validation.Errors));
-                return Envelope.ValidationError<CacheCode, CacheError>(
-                    CacheError.InvalidValue(validation.Errors));
+                return Result.ValidationError(validation.Errors);
             }
             
-            // Set with metadata for tracking
-            var cacheItem = new CacheItem<UserDto>
-            {
-                Key = key,
-                Value = user,
-                Ttl = effectiveTtl,
-                Metadata = new MetadataCollection
-                {
-                    ["UserId"] = userId,
-                    ["CachedAt"] = DateTime.UtcNow,
-                    ["Source"] = "UserService",
-                    ["Version"] = user.Version?.ToString() ?? "1.0"
-                }
-            };
-            
-            var result = await _cache.SetAsync(cacheItem, cancellationToken);
+            // Set cache item
+            var result = await _cache.Set(key, user, expiration, cancellationToken);
             
             if (result.IsSuccess)
             {
@@ -167,7 +149,7 @@ public class UserCacheService : ICacheService<UserDto>
                     ["operation"] = "SetUser"
                 });
                 
-                _logger.LogDebug("Cached user {UserId} with TTL {TTL}", userId, effectiveTtl);
+                _logger.LogDebug("Cached user with key {Key}", key);
             }
             else
             {
@@ -175,7 +157,7 @@ public class UserCacheService : ICacheService<UserDto>
                 {
                     ["cache"] = "UserCache",
                     ["operation"] = "SetUser",
-                    ["error"] = result.Error?.Code
+                    ["errors"] = string.Join(", ", result.Errors.Select(e => e.Message))
                 });
             }
             
@@ -183,25 +165,23 @@ public class UserCacheService : ICacheService<UserDto>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error caching user {UserId}", userId);
-            return Envelope.Error<CacheCode, CacheError>(
-                CacheError.OperationFailed($"Failed to cache user: {ex.Message}"));
+            _logger.LogError(ex, "Error caching user with key {Key}", key);
+            return Result.Error($"Failed to cache user: {ex.Message}");
         }
     }
     
-    public async Task<IEnvelope<UserDto, CacheCode, CacheError>> GetUserAsync(
-        string userId,
+    public Task<IResult<ICacheItem<UserDto>?>> GetUser(
+        ICacheKey<UserCacheKeyDefinition> key,
         CancellationToken cancellationToken = default)
     {
         using var activity = Activity.StartActivity("GetUser");
-        activity?.SetTag("user.id", userId);
+        activity?.SetTag("cache.key", key.ToString());
         
         var stopwatch = Stopwatch.StartNew();
         
         try
         {
-            var key = _cache.Definition.GenerateKey(userId);
-            var result = await _cache.GetAsync(key, cancellationToken);
+            var result = await _cache.Get(key, cancellationToken);
             
             stopwatch.Stop();
             var duration = stopwatch.ElapsedMilliseconds;
@@ -265,25 +245,26 @@ public class UserCacheService : ICacheService<UserDto>
         }
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> InvalidateUserAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> InvalidateUser(
         string userId,
         CancellationToken cancellationToken = default)
     {
-        var key = _cache.Definition.GenerateKey(userId);
-        var result = await _cache.RemoveAsync(key, cancellationToken);
+        var cacheKey = _keyFactory.CreateKey<UserCacheKeyDefinition>(userId);
+        var key = cacheKey.Definition.GenerateKey(userId);
+        var result = await _cache.Remove(key, cancellationToken);
         
         if (result.IsSuccess)
         {
             _logger.LogInformation("Invalidated cache for user {UserId}", userId);
             
             // Trigger invalidation event for dependent caches
-            await PublishInvalidationEventAsync(userId, cancellationToken);
+            await PublishInvalidationEvent(userId, cancellationToken);
         }
         
         return result;
     }
     
-    private async Task PublishInvalidationEventAsync(string userId, CancellationToken cancellationToken)
+    private async Task PublishInvalidationEvent(string userId, CancellationToken cancellationToken)
     {
         var @event = new CacheInvalidatedEvent
         {
@@ -293,7 +274,7 @@ public class UserCacheService : ICacheService<UserDto>
             Timestamp = DateTime.UtcNow
         };
         
-        await _eventPublisher.PublishAsync(@event, cancellationToken);
+        await _eventPublisher.Publish(@event, cancellationToken);
     }
 }
 ```
@@ -312,19 +293,19 @@ public class UserService : IUserService
     private readonly ICacheService<UserDto> _cache;
     private readonly IMapper _mapper;
     
-    public async Task<IEnvelope<UserDto, UserCode, UserError>> GetUserAsync(
+    public async Task<IEnvelope<UserDto, UserCode, UserError>> GetUser(
         string userId,
         CancellationToken cancellationToken = default)
     {
         // Try cache first
-        var cacheResult = await _cache.GetUserAsync(userId, cancellationToken);
+        var cacheResult = await _cache.GetUser(userId, cancellationToken);
         if (cacheResult.IsSuccess)
         {
             return cacheResult.ConvertTo<UserDto, UserCode, UserError>(UserCode.Retrieved);
         }
         
         // Cache miss - get from repository
-        var repositoryResult = await _repository.GetByIdAsync(userId);
+        var repositoryResult = await _repository.GetById(userId);
         if (!repositoryResult.IsSuccess)
         {
             return repositoryResult.ConvertError<UserDto, UserCode, UserError>();
@@ -338,7 +319,7 @@ public class UserService : IUserService
         {
             try
             {
-                await _cache.SetUserAsync(userId, userDto);
+                await _cache.SetUser(userId, userDto);
             }
             catch (Exception ex)
             {
@@ -349,24 +330,24 @@ public class UserService : IUserService
         return Envelope.Success(UserCode.Retrieved, userDto);
     }
     
-    public async Task<IEnvelope<UserCode, UserError>> UpdateUserAsync(
+    public async Task<IEnvelope<UserCode, UserError>> UpdateUser(
         string userId,
         UpdateUserCommand command,
         CancellationToken cancellationToken = default)
     {
         // Update in repository
-        var updateResult = await _repository.UpdateAsync(userId, command);
+        var updateResult = await _repository.Update(userId, command);
         if (!updateResult.IsSuccess)
         {
             return updateResult.ConvertError<UserCode, UserError>();
         }
         
         // Invalidate cache immediately
-        await _cache.InvalidateUserAsync(userId, cancellationToken);
+        await _cache.InvalidateUser(userId, cancellationToken);
         
         // Optionally warm cache with new data
         var updatedUser = _mapper.Map<UserDto>(updateResult.Value);
-        await _cache.SetUserAsync(userId, updatedUser, cancellationToken);
+        await _cache.SetUser(userId, updatedUser, cancellationToken);
         
         return Envelope.Success(UserCode.Updated);
     }
@@ -384,16 +365,16 @@ public class WriteThroughUserService : IUserService
     private readonly IUserRepository _repository;
     private readonly ICacheService<UserDto> _cache;
     
-    public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(
+    public async Task<IEnvelope<UserCode, UserError>> CreateUser(
         CreateUserCommand command,
         CancellationToken cancellationToken = default)
     {
-        using var transaction = await _unitOfWork.BeginTransactionAsync();
+        using var transaction = await _unitOfWork.BeginTransaction();
         
         try
         {
             // Create in repository
-            var createResult = await _repository.CreateAsync(command);
+            var createResult = await _repository.Create(command);
             if (!createResult.IsSuccess)
             {
                 return createResult.ConvertError<UserCode, UserError>();
@@ -403,7 +384,7 @@ public class WriteThroughUserService : IUserService
             var userDto = _mapper.Map<UserDto>(user);
             
             // Write to cache immediately
-            var cacheResult = await _cache.SetUserAsync(user.Id, userDto, cancellationToken);
+            var cacheResult = await _cache.SetUser(user.Id, userDto, cancellationToken);
             if (!cacheResult.IsSuccess)
             {
                 // Cache failure shouldn't fail the operation, but log it
@@ -411,13 +392,13 @@ public class WriteThroughUserService : IUserService
                     user.Id, cacheResult.Error?.Message);
             }
             
-            await transaction.CommitAsync();
+            await transaction.Commit();
             
             return Envelope.Success(UserCode.Created);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await transaction.Rollback();
             _logger.LogError(ex, "Error creating user with write-through cache");
             return Envelope.Error<UserCode, UserError>(
                 UserError.CreationFailed($"Failed to create user: {ex.Message}"));
@@ -439,13 +420,13 @@ public class WriteBehindCacheService : IWriteBehindCacheService<UserDto>
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ConcurrentDictionary<string, WriteBehindEntry<UserDto>> _pendingWrites;
     
-    public async Task<IEnvelope<CacheCode, CacheError>> SetAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Set(
         string key,
         UserDto value,
         CancellationToken cancellationToken = default)
     {
         // Update cache immediately
-        var cacheResult = await _cache.SetUserAsync(key, value, cancellationToken);
+        var cacheResult = await _cache.SetUser(key, value, cancellationToken);
         if (!cacheResult.IsSuccess)
         {
             return cacheResult;
@@ -465,13 +446,13 @@ public class WriteBehindCacheService : IWriteBehindCacheService<UserDto>
         // Schedule background write
         _taskQueue.QueueBackgroundWorkItem(async token =>
         {
-            await WriteToStorageAsync(entry, token);
+            await WriteToStorage(entry, token);
         });
         
         return cacheResult;
     }
     
-    private async Task WriteToStorageAsync(
+    private async Task WriteToStorage(
         WriteBehindEntry<UserDto> entry,
         CancellationToken cancellationToken)
     {
@@ -482,7 +463,7 @@ public class WriteBehindCacheService : IWriteBehindCacheService<UserDto>
             var userId = ExtractUserIdFromKey(entry.Key);
             var updateCommand = _mapper.Map<UpdateUserCommand>(entry.Value);
             
-            var result = await _repository.UpdateAsync(userId, updateCommand);
+            var result = await _repository.Update(userId, updateCommand);
             
             if (result.IsSuccess)
             {
@@ -491,17 +472,17 @@ public class WriteBehindCacheService : IWriteBehindCacheService<UserDto>
             }
             else
             {
-                await HandleWriteFailureAsync(entry, result.Error);
+                await HandleWriteFailure(entry, result.Error);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error writing cache entry {Key} to storage", entry.Key);
-            await HandleWriteFailureAsync(entry, ex);
+            await HandleWriteFailure(entry, ex);
         }
     }
     
-    private async Task HandleWriteFailureAsync(WriteBehindEntry<UserDto> entry, object error)
+    private async Task HandleWriteFailure(WriteBehindEntry<UserDto> entry, object error)
     {
         entry.RetryCount++;
         entry.LastError = error;
@@ -514,13 +495,13 @@ public class WriteBehindCacheService : IWriteBehindCacheService<UserDto>
             _taskQueue.QueueBackgroundWorkItem(async token =>
             {
                 await Task.Delay(delay, token);
-                await WriteToStorageAsync(entry, token);
+                await WriteToStorage(entry, token);
             });
         }
         else
         {
             // Move to dead letter queue for manual intervention
-            await _deadLetterQueue.EnqueueAsync(entry);
+            await _deadLetterQueue.Enqueue(entry);
             _pendingWrites.TryRemove(entry.Key, out _);
             
             _logger.LogError("Failed to write cache entry {Key} after {RetryCount} attempts", 
@@ -545,7 +526,7 @@ public class CacheInvalidationEventHandler :
 {
     private readonly ICacheInvalidationService _invalidationService;
     
-    public async Task<IEnvelope<CacheCode, CacheError>> HandleAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Handle(
         UserUpdatedEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -558,10 +539,10 @@ public class CacheInvalidationEventHandler :
             InvalidationReason = "UserUpdated"
         };
         
-        return await _invalidationService.InvalidateAsync(invalidationStrategy, cancellationToken);
+        return await _invalidationService.Invalidate(invalidationStrategy, cancellationToken);
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> HandleAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Handle(
         UserDeletedEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -580,10 +561,10 @@ public class CacheInvalidationEventHandler :
             PurgeRelatedData = true
         };
         
-        return await _invalidationService.InvalidateAsync(invalidationStrategy, cancellationToken);
+        return await _invalidationService.Invalidate(invalidationStrategy, cancellationToken);
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> HandleAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Handle(
         PermissionsChangedEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -601,7 +582,7 @@ public class CacheInvalidationEventHandler :
             InvalidationReason = "PermissionsChanged"
         };
         
-        return await _invalidationService.InvalidateAsync(invalidationStrategy, cancellationToken);
+        return await _invalidationService.Invalidate(invalidationStrategy, cancellationToken);
     }
 }
 
@@ -612,7 +593,7 @@ public class CacheInvalidationService : ICacheInvalidationService
     private readonly ILogger<CacheInvalidationService> _logger;
     private readonly IMetrics _metrics;
     
-    public async Task<IEnvelope<CacheCode, CacheError>> InvalidateAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Invalidate(
         InvalidationStrategy strategy,
         CancellationToken cancellationToken = default)
     {
@@ -624,7 +605,7 @@ public class CacheInvalidationService : ICacheInvalidationService
             // Invalidate primary keys
             foreach (var key in strategy.PrimaryKeys)
             {
-                var result = await _cacheProvider.RemoveAsync(key, cancellationToken);
+                var result = await _cacheProvider.Remove(key, cancellationToken);
                 if (result.IsSuccess)
                 {
                     invalidatedKeys.Add(key);
@@ -638,10 +619,10 @@ public class CacheInvalidationService : ICacheInvalidationService
             // Invalidate pattern-based keys
             foreach (var pattern in strategy.PatternKeys)
             {
-                var keys = await _cacheProvider.GetKeysAsync(pattern, cancellationToken);
+                var keys = await _cacheProvider.GetKeys(pattern, cancellationToken);
                 foreach (var key in keys)
                 {
-                    var result = await _cacheProvider.RemoveAsync(key, cancellationToken);
+                    var result = await _cacheProvider.Remove(key, cancellationToken);
                     if (result.IsSuccess)
                     {
                         invalidatedKeys.Add(key);
@@ -656,7 +637,7 @@ public class CacheInvalidationService : ICacheInvalidationService
             // Cascade invalidation to dependent caches
             if (strategy.CascadeInvalidation)
             {
-                await CascadeInvalidationAsync(strategy.DependentCaches, strategy.InvalidationReason, cancellationToken);
+                await CascadeInvalidation(strategy.DependentCaches, strategy.InvalidationReason, cancellationToken);
             }
             
             // Record metrics
@@ -705,7 +686,7 @@ public class TimeBasedCacheManager : ITimeBasedCacheManager
         _cleanupTimer = new Timer(PerformCleanup, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> SetWithSlidingExpirationAsync<T>(
+    public async Task<IEnvelope<CacheCode, CacheError>> SetWithSlidingExpiration<T>(
         string key,
         T value,
         TimeSpan slidingExpiration,
@@ -720,19 +701,19 @@ public class TimeBasedCacheManager : ITimeBasedCacheManager
             CreatedAt = DateTime.UtcNow
         };
         
-        return await _cacheProvider.SetAsync(cacheItem, cancellationToken);
+        return await _cacheProvider.Set(cacheItem, cancellationToken);
     }
     
-    public async Task<IEnvelope<T, CacheCode, CacheError>> GetWithSlidingExpirationAsync<T>(
+    public async Task<IEnvelope<T, CacheCode, CacheError>> GetWithSlidingExpiration<T>(
         string key,
         CancellationToken cancellationToken = default)
     {
-        var result = await _cacheProvider.GetAsync<T>(key, cancellationToken);
+        var result = await _cacheProvider.Get<T>(key, cancellationToken);
         
         if (result.IsSuccess)
         {
             // Update last accessed time for sliding expiration
-            await UpdateLastAccessedAsync(key, cancellationToken);
+            await UpdateLastAccessed(key, cancellationToken);
         }
         
         return result;
@@ -742,8 +723,8 @@ public class TimeBasedCacheManager : ITimeBasedCacheManager
     {
         try
         {
-            var expiredKeys = await _cacheProvider.GetExpiredKeysAsync();
-            var cleanupTasks = expiredKeys.Select(key => _cacheProvider.RemoveAsync(key));
+            var expiredKeys = await _cacheProvider.GetExpiredKeys();
+            var cleanupTasks = expiredKeys.Select(key => _cacheProvider.Remove(key));
             
             await Task.WhenAll(cleanupTasks);
             
@@ -774,12 +755,12 @@ public class MultiLevelCacheService : ICacheService<UserDto>
     private readonly IRedisCache _l2Cache;      // Distributed Redis cache
     private readonly ILogger<MultiLevelCacheService> _logger;
     
-    public async Task<IEnvelope<UserDto, CacheCode, CacheError>> GetAsync(
+    public async Task<IEnvelope<UserDto, CacheCode, CacheError>> Get(
         string key,
         CancellationToken cancellationToken = default)
     {
         // Try L1 cache first (fastest)
-        var l1Result = await _l1Cache.GetAsync<UserDto>(key);
+        var l1Result = await _l1Cache.Get<UserDto>(key);
         if (l1Result.IsSuccess)
         {
             _metrics.IncrementCounter("cache.l1.hit");
@@ -787,13 +768,13 @@ public class MultiLevelCacheService : ICacheService<UserDto>
         }
         
         // Try L2 cache (distributed)
-        var l2Result = await _l2Cache.GetAsync<UserDto>(key, cancellationToken);
+        var l2Result = await _l2Cache.Get<UserDto>(key, cancellationToken);
         if (l2Result.IsSuccess)
         {
             _metrics.IncrementCounter("cache.l2.hit");
             
             // Promote to L1 cache for faster access
-            await _l1Cache.SetAsync(key, l2Result.Value, TimeSpan.FromMinutes(5));
+            await _l1Cache.Set(key, l2Result.Value, TimeSpan.FromMinutes(5));
             
             return Envelope.Success(CacheCode.L2Hit, l2Result.Value);
         }
@@ -803,7 +784,7 @@ public class MultiLevelCacheService : ICacheService<UserDto>
             CacheError.KeyNotFound(key));
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> SetAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Set(
         string key,
         UserDto value,
         TimeSpan? ttl = null,
@@ -813,7 +794,7 @@ public class MultiLevelCacheService : ICacheService<UserDto>
         var errors = new List<CacheError>();
         
         // Set in L2 cache first (persistent)
-        var l2Result = await _l2Cache.SetAsync(key, value, effectiveTtl, cancellationToken);
+        var l2Result = await _l2Cache.Set(key, value, effectiveTtl, cancellationToken);
         if (!l2Result.IsSuccess)
         {
             errors.Add(l2Result.Error);
@@ -821,7 +802,7 @@ public class MultiLevelCacheService : ICacheService<UserDto>
         
         // Set in L1 cache (shorter TTL for memory efficiency)
         var l1Ttl = TimeSpan.FromMinutes(Math.Min(effectiveTtl.TotalMinutes, 10));
-        var l1Result = await _l1Cache.SetAsync(key, value, l1Ttl);
+        var l1Result = await _l1Cache.Set(key, value, l1Ttl);
         if (!l1Result.IsSuccess)
         {
             errors.Add(l1Result.Error);
@@ -839,12 +820,12 @@ public class MultiLevelCacheService : ICacheService<UserDto>
         return Envelope.Success(CacheCode.Set);
     }
     
-    public async Task<IEnvelope<CacheCode, CacheError>> InvalidateAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> Invalidate(
         string key,
         CancellationToken cancellationToken = default)
     {
-        var l1Task = _l1Cache.RemoveAsync(key);
-        var l2Task = _l2Cache.RemoveAsync(key, cancellationToken);
+        var l1Task = _l1Cache.Remove(key);
+        var l2Task = _l2Cache.Remove(key, cancellationToken);
         
         var results = await Task.WhenAll(l1Task, l2Task);
         
@@ -872,13 +853,13 @@ public class CacheSynchronizationService : ICacheSynchronizationService
     private readonly ICacheProvider _cacheProvider;
     private readonly ILogger<CacheSynchronizationService> _logger;
     
-    public async Task<IEnvelope<CacheCode, CacheError>> InvalidateAcrossClusterAsync(
+    public async Task<IEnvelope<CacheCode, CacheError>> InvalidateAcrossCluster(
         string key,
         string reason,
         CancellationToken cancellationToken = default)
     {
         // Invalidate locally first
-        await _cacheProvider.RemoveAsync(key, cancellationToken);
+        await _cacheProvider.Remove(key, cancellationToken);
         
         // Broadcast invalidation message to other nodes
         var invalidationMessage = new CacheInvalidationMessage
@@ -889,13 +870,13 @@ public class CacheSynchronizationService : ICacheSynchronizationService
             Timestamp = DateTime.UtcNow
         };
         
-        await _messageBus.PublishAsync("cache.invalidation", invalidationMessage, cancellationToken);
+        await _messageBus.Publish("cache.invalidation", invalidationMessage, cancellationToken);
         
         return Envelope.Success(CacheCode.InvalidatedAcrossCluster);
     }
     
     [MessageHandler("cache.invalidation")]
-    public async Task HandleCacheInvalidationAsync(CacheInvalidationMessage message)
+    public async Task HandleCacheInvalidation(CacheInvalidationMessage message)
     {
         // Don't process our own invalidation messages
         if (message.NodeId == Environment.MachineName)
@@ -904,7 +885,7 @@ public class CacheSynchronizationService : ICacheSynchronizationService
         _logger.LogDebug("Received cache invalidation for key {Key} from node {NodeId}", 
             message.Key, message.NodeId);
             
-        await _cacheProvider.RemoveAsync(message.Key);
+        await _cacheProvider.Remove(message.Key);
         
         _metrics.IncrementCounter("cache.remote_invalidation", new()
         {

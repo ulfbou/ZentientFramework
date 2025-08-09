@@ -385,10 +385,10 @@ services.AddZentientServices(builder =>
 #### Error Handling Patterns
 ```csharp
 // ✅ Recommended: Comprehensive envelope usage
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
     // Validation
-    var validationResult = await _validator.ValidateAsync(request);
+    var validationResult = await _validator.Validate(request);
     if (!validationResult.IsValid)
     {
         return Envelope.ValidationError<UserCode, UserError>(
@@ -399,7 +399,7 @@ public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequ
     try
     {
         // Business logic
-        var user = await _userRepository.CreateAsync(request);
+        var user = await _userRepository.Create(request);
         
         // Success envelope
         return Envelope.Success<UserCode, UserError>(

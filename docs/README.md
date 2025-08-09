@@ -96,9 +96,9 @@ public record UserServiceDefinition : IServiceDefinition
 Consistent result handling across all operations with rich error information and metadata.
 
 ```csharp
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
-    var user = await _repository.CreateAsync(request);
+    var user = await _repository.Create(request);
     return Envelope.Success(UserCode.UserCreated, user, metadata: new MetadataCollection
     {
         ["CreatedAt"] = DateTime.UtcNow,
@@ -126,7 +126,7 @@ Comprehensive diagnostics, logging, metrics, and health checks built into the co
 [DiagnosticCheck("Database.Users")]
 public class UserDatabaseHealthCheck : IDiagnosticCheck<DatabaseContext, HealthCode, HealthError>
 {
-    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckHealthAsync(
+    public async Task<IDiagnosticReport<HealthCode, HealthError>> CheckHealth(
         DatabaseContext context, IDiagnosticContext diagnosticContext, CancellationToken cancellationToken)
     {
         // Built-in health monitoring with rich reporting
@@ -232,7 +232,7 @@ Here's a complete example showing the power of Zentient.Abstractions:
 [ServiceDefinition("WeatherForecast", Version = "1.0")]
 public interface IWeatherService : IIdentifiable
 {
-    Task<IEnvelope<WeatherCode, WeatherError>> GetForecastAsync(string city);
+    Task<IEnvelope<WeatherCode, WeatherError>> GetForecast(string city);
 }
 
 // 2. Implement with automatic registration
@@ -245,7 +245,7 @@ public class WeatherService : IWeatherService
 
     public string Id => "WeatherService.v1.0";
 
-    public async Task<IEnvelope<WeatherCode, WeatherError>> GetForecastAsync(string city)
+    public async Task<IEnvelope<WeatherCode, WeatherError>> GetForecast(string city)
     {
         using var activity = _tracer.StartActivity("GetForecast");
         activity?.SetTag("city", city);
@@ -254,7 +254,7 @@ public class WeatherService : IWeatherService
         {
             // Check cache first
             var cacheKey = new WeatherCacheKey(city);
-            var cached = await _cache.GetAsync(cacheKey);
+            var cached = await _cache.Get(cacheKey);
             
             if (cached.HasValue)
             {
@@ -263,10 +263,10 @@ public class WeatherService : IWeatherService
             }
 
             // Fetch from external service
-            var forecast = await _weatherApi.GetForecastAsync(city);
+            var forecast = await _weatherApi.GetForecast(city);
             
             // Cache the result
-            await _cache.SetAsync(cacheKey, forecast, TimeSpan.FromMinutes(30));
+            await _cache.Set(cacheKey, forecast, TimeSpan.FromMinutes(30));
 
             return Envelope.Success(WeatherCode.ForecastFound, forecast);
         }
@@ -296,7 +296,7 @@ public class WeatherController : ControllerBase
     [HttpGet("{city}")]
     public async Task<IActionResult> GetWeather(string city)
     {
-        var result = await _weatherService.GetForecastAsync(city);
+        var result = await _weatherService.GetForecast(city);
         
         return result.IsSuccess 
             ? Ok(result.Value)

@@ -195,7 +195,7 @@ public class TypedConfigurationService : ITypedConfigurationService
         _configurationCache = new ConcurrentDictionary<Type, object>();
     }
     
-    public async Task<IEnvelope<T, ConfigurationCode, ConfigurationError>> GetConfigurationAsync<T>()
+    public async Task<IEnvelope<T, ConfigurationCode, ConfigurationError>> GetConfiguration<T>()
         where T : class, IConfigurationDefinition<T>, new()
     {
         try
@@ -227,7 +227,7 @@ public class TypedConfigurationService : ITypedConfigurationService
             }
             
             // Validate configuration
-            var validationResult = await _validator.ValidateAsync(config);
+            var validationResult = await _validator.Validate(config);
             if (!validationResult.IsValid)
             {
                 var errors = string.Join("; ", validationResult.Errors);
@@ -257,7 +257,7 @@ public class TypedConfigurationService : ITypedConfigurationService
         }
     }
     
-    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> UpdateConfigurationAsync<T>(
+    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> UpdateConfiguration<T>(
         T configuration,
         ConfigurationScope scope = ConfigurationScope.Application)
         where T : class, IConfigurationDefinition<T>
@@ -265,7 +265,7 @@ public class TypedConfigurationService : ITypedConfigurationService
         try
         {
             // Validate before updating
-            var validationResult = await _validator.ValidateAsync(configuration);
+            var validationResult = await _validator.Validate(configuration);
             if (!validationResult.IsValid)
             {
                 return Envelope.ValidationError<ConfigurationCode, ConfigurationError>(
@@ -276,7 +276,7 @@ public class TypedConfigurationService : ITypedConfigurationService
             var configProvider = GetConfigurationProvider(scope);
             
             // Update configuration
-            await configProvider.SetAsync(sectionName, configuration);
+            await configProvider.Set(sectionName, configuration);
             
             // Invalidate cache
             InvalidateCache(typeof(T));
@@ -292,7 +292,7 @@ public class TypedConfigurationService : ITypedConfigurationService
                 ChangeReason = "Manual Update"
             };
             
-            await _eventPublisher.PublishAsync(changeEvent);
+            await _eventPublisher.Publish(changeEvent);
             
             _logger.LogInformation("Successfully updated configuration for {ConfigType} in scope {Scope}", 
                 typeof(T).Name, scope);
@@ -344,7 +344,7 @@ public class ScopedConfigurationService : IScopedConfigurationService
     private readonly IConfigurationHierarchy _hierarchy;
     private readonly ILogger<ScopedConfigurationService> _logger;
     
-    public async Task<IEnvelope<T, ConfigurationCode, ConfigurationError>> GetScopedConfigurationAsync<T>(
+    public async Task<IEnvelope<T, ConfigurationCode, ConfigurationError>> GetScopedConfiguration<T>(
         ConfigurationScope requestedScope = ConfigurationScope.Application,
         string? scopeId = null)
         where T : class, IConfigurationDefinition<T>, new()
@@ -444,7 +444,7 @@ public class TenantConfigurationController : ControllerBase
     {
         var tenantId = GetCurrentTenantId();
         
-        var config = await _configService.GetScopedConfigurationAsync<DatabaseConfiguration>(
+        var config = await _configService.GetScopedConfiguration<DatabaseConfiguration>(
             ConfigurationScope.Tenant, tenantId);
             
         return config.ToActionResult();
@@ -455,7 +455,7 @@ public class TenantConfigurationController : ControllerBase
     {
         var tenantId = GetCurrentTenantId();
         
-        var result = await _configService.UpdateScopedConfigurationAsync(
+        var result = await _configService.UpdateScopedConfiguration(
             config, ConfigurationScope.Tenant, tenantId);
             
         return result.ToActionResult();
@@ -507,7 +507,7 @@ public class DynamicConfigurationService : IDynamicConfigurationService
             _configuration.Reload();
             
             // Notify all configuration-dependent services
-            await NotifyConfigurationChangeAsync();
+            await NotifyConfigurationChange();
             
             // Re-register for next change
             SetupChangeMonitoring();
@@ -518,7 +518,7 @@ public class DynamicConfigurationService : IDynamicConfigurationService
         }
     }
     
-    private async Task NotifyConfigurationChangeAsync()
+    private async Task NotifyConfigurationChange()
     {
         var changeEvent = new ConfigurationReloadedEvent
         {
@@ -527,10 +527,10 @@ public class DynamicConfigurationService : IDynamicConfigurationService
             AffectedSections = GetChangedSections()
         };
         
-        await _eventPublisher.PublishAsync(changeEvent);
+        await _eventPublisher.Publish(changeEvent);
     }
     
-    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> ReloadConfigurationAsync()
+    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> ReloadConfiguration()
     {
         try
         {
@@ -550,7 +550,7 @@ public class DynamicConfigurationService : IDynamicConfigurationService
                     ConfigurationError.ReloadValidationFailed(errorMessages));
             }
             
-            await NotifyConfigurationChangeAsync();
+            await NotifyConfigurationChange();
             
             return Envelope.Success(ConfigurationCode.Reloaded);
         }
@@ -561,7 +561,7 @@ public class DynamicConfigurationService : IDynamicConfigurationService
         }
     }
     
-    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> UpdateConfigurationSectionAsync(
+    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> UpdateConfigurationSection(
         string sectionName,
         object configuration,
         bool validateOnly = false)
@@ -593,7 +593,7 @@ public class DynamicConfigurationService : IDynamicConfigurationService
                 ValidationResult = validationResult
             };
             
-            await _eventPublisher.PublishAsync(changeEvent);
+            await _eventPublisher.Publish(changeEvent);
             
             return Envelope.Success(ConfigurationCode.Updated);
         }
@@ -613,7 +613,7 @@ public class DatabaseConfigurationChangeHandler :
     private readonly IDbConnectionFactory _connectionFactory;
     private readonly ILogger<DatabaseConfigurationChangeHandler> _logger;
     
-    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> HandleAsync(
+    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> Handle(
         ConfigurationSectionUpdatedEvent @event,
         CancellationToken cancellationToken = default)
     {
@@ -623,7 +623,7 @@ public class DatabaseConfigurationChangeHandler :
         try
         {
             // Update database connection settings
-            await _connectionFactory.ReloadConnectionsAsync();
+            await _connectionFactory.ReloadConnections();
             
             _logger.LogInformation("Database configuration updated successfully");
             
@@ -653,12 +653,12 @@ public class SecureConfigurationService : ISecureConfigurationService
     private readonly IConfigurationAuditing _auditing;
     private readonly ILogger<SecureConfigurationService> _logger;
     
-    public async Task<IEnvelope<T, ConfigurationCode, ConfigurationError>> GetSecureConfigurationAsync<T>()
+    public async Task<IEnvelope<T, ConfigurationCode, ConfigurationError>> GetSecureConfiguration<T>()
         where T : class, IConfigurationDefinition<T>, new()
     {
         try
         {
-            var config = await LoadRawConfigurationAsync<T>();
+            var config = await LoadRawConfiguration<T>();
             if (!config.IsSuccess)
                 return config;
                 
@@ -666,7 +666,7 @@ public class SecureConfigurationService : ISecureConfigurationService
             var decryptedConfig = await DecryptSensitiveProperties(config.Value);
             
             // Audit configuration access
-            await _auditing.LogConfigurationAccessAsync(typeof(T).Name, GetCurrentUser());
+            await _auditing.LogConfigurationAccess(typeof(T).Name, GetCurrentUser());
             
             return Envelope.Success(ConfigurationCode.Retrieved, decryptedConfig);
         }
@@ -678,7 +678,7 @@ public class SecureConfigurationService : ISecureConfigurationService
         }
     }
     
-    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> SetSecureConfigurationAsync<T>(
+    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> SetSecureConfiguration<T>(
         T configuration)
         where T : class, IConfigurationDefinition<T>
     {
@@ -688,12 +688,12 @@ public class SecureConfigurationService : ISecureConfigurationService
             var encryptedConfig = await EncryptSensitiveProperties(configuration);
             
             // Store encrypted configuration
-            var result = await StoreConfigurationAsync(encryptedConfig);
+            var result = await StoreConfiguration(encryptedConfig);
             if (!result.IsSuccess)
                 return result;
                 
             // Audit configuration change
-            await _auditing.LogConfigurationChangeAsync(
+            await _auditing.LogConfigurationChange(
                 typeof(T).Name, 
                 GetCurrentUser(), 
                 "Updated",
@@ -718,7 +718,7 @@ public class SecureConfigurationService : ISecureConfigurationService
             var encryptedValue = property.GetValue(configuration) as string;
             if (!string.IsNullOrEmpty(encryptedValue))
             {
-                var decryptedValue = await _encryption.DecryptAsync(encryptedValue);
+                var decryptedValue = await _encryption.Decrypt(encryptedValue);
                 property.SetValue(configuration, decryptedValue);
             }
         }
@@ -769,7 +769,7 @@ public class ConfigurationAuditingService : IConfigurationAuditing
     private readonly IComplianceService _complianceService;
     private readonly ILogger<ConfigurationAuditingService> _logger;
     
-    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> LogConfigurationChangeAsync(
+    public async Task<IEnvelope<ConfigurationCode, ConfigurationError>> LogConfigurationChange(
         string configurationType,
         string changedBy,
         string changeType,
@@ -792,7 +792,7 @@ public class ConfigurationAuditingService : IConfigurationAuditing
             };
             
             // Store audit entry
-            await _auditRepository.CreateAsync(auditEntry);
+            await _auditRepository.Create(auditEntry);
             
             // Check compliance requirements
             await CheckComplianceRequirements(auditEntry);
@@ -813,11 +813,11 @@ public class ConfigurationAuditingService : IConfigurationAuditing
     
     private async Task CheckComplianceRequirements(ConfigurationAuditEntry auditEntry)
     {
-        var complianceChecks = await _complianceService.GetRequiredChecksAsync(auditEntry.ConfigurationType);
+        var complianceChecks = await _complianceService.GetRequiredChecks(auditEntry.ConfigurationType);
         
         foreach (var check in complianceChecks)
         {
-            var result = await check.ValidateAsync(auditEntry);
+            var result = await check.Validate(auditEntry);
             if (!result.IsCompliant)
             {
                 await HandleComplianceViolation(auditEntry, check, result);
@@ -840,11 +840,11 @@ public class ConfigurationAuditingService : IConfigurationAuditing
             RequiresImmediateAction = result.RequiresImmediateAction
         };
         
-        await _complianceService.ReportViolationAsync(violation);
+        await _complianceService.ReportViolation(violation);
         
         if (result.RequiresImmediateAction)
         {
-            await _notificationService.SendUrgentNotificationAsync(
+            await _notificationService.SendUrgentNotification(
                 "Compliance Violation",
                 $"Configuration change for {auditEntry.ConfigurationType} violates {check.RuleName}",
                 GetComplianceOfficers());

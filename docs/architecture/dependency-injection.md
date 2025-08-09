@@ -189,11 +189,11 @@ public class Repository<TEntity> : IRepository<TEntity>
         _context = context;
     }
     
-    public async Task<IEnvelope<RepositoryCode, RepositoryError>> GetByIdAsync(string id)
+    public async Task<IEnvelope<RepositoryCode, RepositoryError>> GetById(string id)
     {
         try
         {
-            var entity = await _context.Set<TEntity>().FindAsync(id);
+            var entity = await _context.Set<TEntity>().Find(id);
             return entity != null
                 ? Envelope.Success(RepositoryCode.Found, entity)
                 : Envelope.NotFound<RepositoryCode, RepositoryError>(
@@ -237,7 +237,7 @@ Apply cross-cutting concerns through decoration:
 public class OrderService : IOrderService
 {
     // Core business logic only
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrder(CreateOrderRequest request)
     {
         // Implementation focuses on business logic
         // Logging, validation, caching, and metrics are handled by decorators
@@ -256,7 +256,7 @@ public class LoggingDecorator<T> : IDecorator<T> where T : class
         _logger = logger;
     }
     
-    public async Task<TResult> InterceptAsync<TResult>(
+    public async Task<TResult> Intercept<TResult>(
         Func<Task<TResult>> operation,
         string methodName,
         object[] parameters)
@@ -382,7 +382,7 @@ public class ServiceDiscoveryController : ControllerBase
     [HttpGet("services/health")]
     public async Task<IActionResult> GetServiceHealth()
     {
-        var healthChecks = await _discovery.RunHealthChecksAsync();
+        var healthChecks = await _discovery.RunHealthChecks();
         return Ok(healthChecks);
     }
 }
@@ -522,7 +522,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUser(string id)
     {
         // Automatically uses the correct tenant's user service
-        var result = await _userService.Current.GetUserAsync(id);
+        var result = await _userService.Current.GetUser(id);
         return result.ToActionResult();
     }
 }
@@ -582,11 +582,11 @@ public class OrderService : IOrderService
 {
     private readonly IServiceFactory<IPaymentProcessor> _paymentFactory;
     
-    public async Task<IEnvelope<OrderCode, OrderError>> ProcessPaymentAsync(
+    public async Task<IEnvelope<OrderCode, OrderError>> ProcessPayment(
         ProcessPaymentRequest request)
     {
         var processor = _paymentFactory.Create(request.PaymentMethod);
-        return await processor.ProcessAsync(request);
+        return await processor.Process(request);
     }
 }
 ```
@@ -642,19 +642,19 @@ public class OrderService : IOrderService
         _emailService = emailService;
     }
     
-    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<IEnvelope<OrderCode, OrderError>> CreateOrder(CreateOrderRequest request)
     {
         // Services are only created when accessed
-        var inventoryResult = await _inventoryService.Value.CheckAvailabilityAsync(request.Items);
+        var inventoryResult = await _inventoryService.Value.CheckAvailability(request.Items);
         
         if (inventoryResult.IsSuccess)
         {
-            var paymentResult = await _paymentService.Value.ProcessPaymentAsync(request.Payment);
+            var paymentResult = await _paymentService.Value.ProcessPayment(request.Payment);
             
             if (paymentResult.IsSuccess)
             {
                 // Email service only created if order is successful
-                await _emailService.Value.SendOrderConfirmationAsync(request.CustomerId);
+                await _emailService.Value.SendOrderConfirmation(request.CustomerId);
             }
         }
         

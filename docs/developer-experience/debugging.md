@@ -95,9 +95,9 @@ Rich debugging support for envelope operations:
 
 ```csharp
 // Enable envelope debugging
-public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
 {
-    var envelope = await _userService.CreateUserAsync(request);
+    var envelope = await _userService.CreateUser(request);
     
     // Debug envelope content in debugger
     // Envelope visualizer shows:
@@ -127,13 +127,15 @@ public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequ
 ```csharp
 public static class EnvelopeDebuggingExtensions
 {
-    public static IEnvelope<TCode, TError> Debug<TCode, TError>(
-        this IEnvelope<TCode, TError> envelope,
+    public static IEnvelope<TCodeDefinition, TErrorDefinition> Debug<TCodeDefinition, TErrorDefinition>(
+        this IEnvelope<TCodeDefinition, TErrorDefinition> envelope,
         [CallerMemberName] string callerName = null,
         [CallerFilePath] string callerFile = null,
         [CallerLineNumber] int callerLine = 0)
+        where TCodeDefinition : ICodeDefinition
+        where TErrorDefinition : IErrorDefinition
     {
-        if (envelope.IsFailure)
+        if (!envelope.IsSuccess)
         {
             var debugInfo = new
             {
@@ -152,7 +154,7 @@ public static class EnvelopeDebuggingExtensions
 }
 
 // Usage
-var result = await _userService.CreateUserAsync(request)
+var result = await _userService.CreateUser(request)
     .Debug(); // Automatically logs detailed error information
 ```
 
@@ -164,7 +166,7 @@ Comprehensive validation debugging support:
 [Validator(typeof(CreateUserRequest))]
 public class CreateUserRequestValidator : IValidator<CreateUserRequest>
 {
-    public async Task<IValidationResult> ValidateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<IValidationResult> Validate(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
         var errors = new List<IValidationError>();
         
@@ -186,7 +188,7 @@ public class CreateUserRequestValidator : IValidator<CreateUserRequest>
         }
         
         // Database validation with debugging
-        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        var existingUser = await _userRepository.GetByEmail(request.Email);
         if (existingUser != null)
         {
             var error = ValidationError.Duplicate(nameof(request.Email), "Email already exists");
@@ -223,14 +225,14 @@ public class UserService : IUserService
     private readonly ICache<UserDto> _cache;
     private readonly ICacheDebugger _cacheDebugger; // Injected debugging helper
     
-    public async Task<IEnvelope<UserCode, UserError>> GetUserAsync(string userId)
+    public async Task<IEnvelope<UserCode, UserError>> GetUser(string userId)
     {
         var cacheKey = new UserCacheKey(userId);
         
         // Debug cache operations
         using var cacheScope = _cacheDebugger.BeginScope("GetUser", cacheKey);
         
-        var cached = await _cache.GetAsync(cacheKey);
+        var cached = await _cache.Get(cacheKey);
         if (cached.HasValue)
         {
             cacheScope.RecordHit(cached.Value);
@@ -251,14 +253,14 @@ public class UserService : IUserService
         // 💡 Reason: Key not found
         // 🔄 Loading from source...
         
-        var user = await _repository.GetByIdAsync(userId);
+        var user = await _repository.GetById(userId);
         if (user == null)
         {
             return Envelope.NotFound<UserCode, UserError>(UserError.UserNotFound(userId));
         }
         
         // Cache the result with debugging
-        await _cache.SetAsync(cacheKey, user, TimeSpan.FromHours(1));
+        await _cache.Set(cacheKey, user, TimeSpan.FromHours(1));
         cacheScope.RecordSet(user);
         // Debugger shows:
         // ✅ Cached value for key: User:12345
@@ -303,7 +305,7 @@ Use conditional compilation for debug-only features:
 ```csharp
 public class UserService : IUserService
 {
-    public async Task<IEnvelope<UserCode, UserError>> CreateUserAsync(CreateUserRequest request)
+    public async Task<IEnvelope<UserCode, UserError>> CreateUser(CreateUserRequest request)
     {
 #if DEBUG
         // Debug-only validation
@@ -325,7 +327,7 @@ public class UserService : IUserService
 #endif
         
         // Normal implementation
-        return await CreateUserInternalAsync(request);
+        return await CreateUserInternal(request);
     }
 }
 ```
@@ -339,7 +341,7 @@ public class OrderService : IOrderService
 {
     private readonly ILogger<OrderService> _logger;
     
-    public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrderRequest request)
+    public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrder(ProcessOrderRequest request)
     {
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
@@ -354,7 +356,7 @@ public class OrderService : IOrderService
         
         // Validation step
         _logger.LogDebug("Validating order request");
-        var validationResult = await _validator.ValidateAsync(request);
+        var validationResult = await _validator.Validate(request);
         if (!validationResult.IsValid)
         {
             _logger.LogWarning("Order validation failed: {Errors}", 
@@ -368,8 +370,8 @@ public class OrderService : IOrderService
         
         // Inventory check
         _logger.LogDebug("Checking inventory for {ItemCount} items", request.Items.Count);
-        var inventoryResult = await _inventoryService.CheckAvailabilityAsync(request.Items);
-        if (inventoryResult.IsFailure)
+        var inventoryResult = await _inventoryService.CheckAvailability(request.Items);
+        if (!inventoryResult.IsSuccess)
         {
             _logger.LogWarning("Inventory check failed: {Errors}", 
                 string.Join(", ", inventoryResult.Errors.Select(e => e.Message)));
@@ -380,8 +382,8 @@ public class OrderService : IOrderService
         
         // Payment processing
         _logger.LogDebug("Processing payment of {Amount}", request.TotalAmount);
-        var paymentResult = await _paymentService.ProcessPaymentAsync(request.PaymentInfo);
-        if (paymentResult.IsFailure)
+        var paymentResult = await _paymentService.ProcessPayment(request.PaymentInfo);
+        if (paymentResult!.IsSuccess)
         {
             _logger.LogError("Payment processing failed: {Errors}", 
                 string.Join(", ", paymentResult.Errors.Select(e => e.Message)));
@@ -392,7 +394,7 @@ public class OrderService : IOrderService
         
         // Order creation
         _logger.LogDebug("Creating order record");
-        var order = await _repository.CreateOrderAsync(request, paymentResult.Value);
+        var order = await _repository.CreateOrder(request, paymentResult.Value);
         _logger.LogInformation("Order {OrderId} created successfully", order.Id);
         
         return Envelope.Success(OrderCode.OrderProcessed, order);
@@ -447,21 +449,21 @@ public class MyService : IMyService
 
 **Symptoms:**
 ```csharp
-var result = await service.DoSomethingAsync();
-// result.IsFailure is always true
+var result = await service.DoSomething();
+// result!.IsSuccess is always true
 ```
 
 **Debug Steps:**
 1. Add envelope debugging:
 ```csharp
-var result = await service.DoSomethingAsync()
+var result = await service.DoSomething()
     .Debug(); // Logs detailed error information
 ```
 
 2. Check validation logic:
 ```csharp
 // Add breakpoints in validator
-public async Task<IValidationResult> ValidateAsync(MyRequest request)
+public async Task<IValidationResult> Validate(MyRequest request)
 {
     var errors = new List<IValidationError>();
     
@@ -533,24 +535,24 @@ services.AddZentientServices(builder =>
 
 2. Use performance scopes:
 ```csharp
-public async Task<IEnvelope<MyCode, MyError>> MyOperationAsync()
+public async Task<IEnvelope<MyCode, MyError>> MyOperation()
 {
     using var perfScope = _profiler.BeginScope("MyOperation");
     
     // Measure each step
     using (perfScope.BeginStep("Validation"))
     {
-        await ValidateAsync();
+        await Validate();
     }
     
     using (perfScope.BeginStep("DatabaseQuery"))
     {
-        await QueryDatabaseAsync();
+        await QueryDatabase();
     }
     
     using (perfScope.BeginStep("Processing"))
     {
-        await ProcessDataAsync();
+        await ProcessData();
     }
     
     // Performance report automatically generated
@@ -595,13 +597,13 @@ return Envelope.Error<OrderCode, OrderError>(
 
 ### **3. Use Correlation IDs**
 ```csharp
-public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrderRequest request)
+public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrder(ProcessOrderRequest request)
 {
     // Ensure correlation ID flows through all operations
     using var scope = _logger.BeginScope(new { CorrelationId = request.CorrelationId });
     
-    var inventoryResult = await _inventoryService.CheckAvailabilityAsync(request.Items, request.CorrelationId);
-    var paymentResult = await _paymentService.ProcessPaymentAsync(request.Payment, request.CorrelationId);
+    var inventoryResult = await _inventoryService.CheckAvailability(request.Items, request.CorrelationId);
+    var paymentResult = await _paymentService.ProcessPayment(request.Payment, request.CorrelationId);
     
     // All operations can be correlated in logs
 }
@@ -611,7 +613,9 @@ public async Task<IEnvelope<OrderCode, OrderError>> ProcessOrderAsync(ProcessOrd
 ```csharp
 // Configure debug visualizers for complex types
 [DebuggerDisplay("Envelope: {IsSuccess ? \"Success\" : \"Failed\"} - {Code}")]
-public class Envelope<TCode, TError> : IEnvelope<TCode, TError>
+public class Envelope<TCodeDefinition, TErrorDefinition> : IEnvelope<TCodeDefinition, TErrorDefinition>
+    where TCodeDefinition : ICodeDefinition
+    where TErrorDefinition : IErrorDefinition
 {
     // Implementation
 }

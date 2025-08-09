@@ -9,13 +9,13 @@
 
 ### **2. Correct Generic Handling**
 - `GetDiagnosticRunner<TCodeDefinition, TErrorDefinition>()` method provides type-safe access
-- `PerformHealthCheckAsync<TCodeDefinition, TErrorDefinition>()` for comprehensive health checks
+- `PerformHealthCheck<TCodeDefinition, TErrorDefinition>()` for comprehensive health checks
 - Proper constraint enforcement with `where` clauses
 
 ### **3. Four-Pillar Integration**
 - **Definition-Centric Core**: Through service discovery and type safety
 - **Universal Envelope**: Through standardized result handling in health checks
-- **Fluent DI & Application Builder**: Through `BuildZentientAsync()` method
+- **Fluent DI & Application Builder**: Through `BuildZentient()` method
 - **Built-in Observability**: Through integrated validation and diagnostics
 
 ## 🚀 **Usage Examples**
@@ -30,7 +30,7 @@ var zentient = await new ContainerBuilder()
     .RegisterFromAssemblies(Assembly.GetExecutingAssembly())
     .AddModule<MyApplicationModule>()
     .ConfigureValidationOnRegistration(true)
-    .BuildZentientAsync();
+    .BuildZentient();
 
 // Now you have access to all framework systems through a single interface
 ```
@@ -51,7 +51,7 @@ var diagnosticRunner = zentient.GetDiagnosticRunner<
     SystemHealthErrorDefinition>();
 
 // Comprehensive Health Check
-var healthReport = await zentient.PerformHealthCheckAsync<
+var healthReport = await zentient.PerformHealthCheck<
     SystemHealthCodeDefinition,
     SystemHealthErrorDefinition>();
 ```
@@ -65,7 +65,7 @@ var orderDiagnostics = zentient.GetDiagnosticRunner<
 
 // Run diagnostics on the order service
 var orderService = zentient.Services.Resolve<IOrderService>();
-var diagnosticResult = await orderDiagnostics.RunAsync(orderService);
+var diagnosticResult = await orderDiagnostics.Run(orderService);
 
 // Result follows the Universal Envelope pattern
 if (diagnosticResult.IsSuccess)
@@ -104,10 +104,10 @@ var zentient = await new ContainerBuilder()
     .Intercept<IPaymentService, AuditInterceptor>()
     
     // Build the complete framework
-    .BuildZentientAsync();
+    .BuildZentient();
 
 // Validate the entire system
-var healthCheck = await zentient.PerformHealthCheckAsync<
+var healthCheck = await zentient.PerformHealthCheck<
     FrameworkHealthCodeDefinition,
     FrameworkHealthErrorDefinition>();
 
@@ -133,7 +133,7 @@ services.AddSingleton<IZentient>(provider =>
         .PopulateFromServiceCollection(services)
         .AddModule<ApplicationModule>();
         
-    return await builder.BuildZentientAsync();
+    return await builder.BuildZentient();
 });
 
 // Or use extension method (if provided by implementation)
@@ -170,7 +170,7 @@ public class OrderController : ControllerBase
         
         // Process using resolved service
         var orderService = _zentient.Services.Resolve<IOrderService>();
-        var result = await orderService.CreateOrderAsync(validationResult.Value);
+        var result = await orderService.CreateOrder(validationResult.Value);
         
         return Ok(result);
     }
@@ -178,7 +178,7 @@ public class OrderController : ControllerBase
     [HttpGet("health")]
     public async Task<IActionResult> HealthCheck()
     {
-        var healthReport = await _zentient.PerformHealthCheckAsync<
+        var healthReport = await _zentient.PerformHealthCheck<
             SystemHealthCodeDefinition,
             SystemHealthErrorDefinition>();
             
