@@ -7,7 +7,7 @@ using System.Xml.Linq;
 using Zentient.Abstractions.Common;
 using Zentient.Abstractions.Configuration;
 
-namespace Zentient.NewLibrary;
+namespace Zentient.Core;
 
 /// <summary>
 /// Example configuration builder demonstrating Zentient.Abstractions usage.

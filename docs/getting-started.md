@@ -1,4 +1,4 @@
-# Getting Started with Zentient.NewLibrary
+# Getting Started with Zentient.Core
 
 This guide will help you get up and running with your new Zentient library project.
 
@@ -150,7 +150,7 @@ dotnet clean
 
 ### Replacing Example Code
 
-1. **Update Project Names**: Replace `Zentient.NewLibrary` with your actual library name
+1. **Update Project Names**: Replace `Zentient.Core` with your actual library name
 2. **Replace ExampleService**: Implement your actual library functionality
 3. **Update Tests**: Replace example tests with your actual test cases
 4. **Update Documentation**: Modify README.md and docs/ with your library-specific information
