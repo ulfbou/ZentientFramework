@@ -37,7 +37,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          key: >-
+            ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json',
+            '**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -46,7 +48,8 @@ jobs:
 
       - name: Build solution
         run: >
-          dotnet build --configuration ${{ matrix.configuration }} --no-restore -v diag
+          dotnet build --configuration ${{ matrix.configuration }}
+          --no-restore -v diag
 
       - name: Run tests
         run: >
@@ -92,7 +95,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          key: >-
+            ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json',
+            '**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -100,10 +105,13 @@ jobs:
         run: dotnet restore
 
       - name: Run code analysis
-        run: dotnet build --configuration Release -p:RunCodeAnalysis=true -v diag
+        run: >
+          dotnet build --configuration Release -p:RunCodeAnalysis=true -v diag
 
       - name: Run security scan
-        run: dotnet build --configuration Release -p:RunSecurityCodeAnalysis=true -v diag
+        run: >
+          dotnet build --configuration Release -p:RunSecurityCodeAnalysis=true
+          -v diag
 
       - name: Format check
         run: dotnet format --verify-no-changes --verbosity diagnostic
@@ -128,7 +136,8 @@ jobs:
 
       - name: Run dependency audit
         run: >
-          dotnet restore --verbosity normal 2>&1 | grep -i "vulnerability\|security" || true
+          dotnet restore --verbosity normal 2>&1 |
+          grep -i "vulnerability\|security" || true
 
   benchmarks:
     name: Performance Benchmarks
@@ -147,7 +156,9 @@ jobs:
         run: dotnet restore -v diag
 
       - name: Run benchmarks
-        run: dotnet build --configuration Release -p:PerformanceBenchmarkingEnabled=true -v diag
+        run: >
+          dotnet build --configuration Release
+          -p:PerformanceBenchmarkingEnabled=true -v diag
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v3
@@ -159,7 +170,9 @@ jobs:
     name: Create Package
     runs-on: ubuntu-latest
     needs: [build-and-test, code-quality, security]
-    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' &&
+      (startsWith(github.ref, 'refs/tags/v') ||
+      github.ref == 'refs/heads/main')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -175,7 +188,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          key: >-
+            ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json',
+            '**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -243,7 +258,9 @@ jobs:
         run: dotnet restore -v diag
 
       - name: Generate documentation
-        run: dotnet build --configuration Release -p:GenerateDocumentation=true -v diag
+        run: >
+          dotnet build --configuration Release
+          -p:GenerateDocumentation=true -v diag
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -277,7 +294,8 @@ jobs:
         id: release_notes
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | head -n -1 > release_notes.md
+          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md |
+            head -n -1 > release_notes.md
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release

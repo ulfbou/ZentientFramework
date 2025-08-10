@@ -33,10 +33,12 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore NuGet Packages
-        run: dotnet restore src/MyTestProject.csproj
+        run: >
+          dotnet restore src/MyTestProject.csproj
 
       - name: Build Project for XML Documentation
-        run: dotnet build src/MyTestProject.csproj --configuration Release
+        run: >
+          dotnet build src/MyTestProject.csproj --configuration Release
 
       - name: Install DocFX Global Tool
         run: dotnet tool install -g docfx
@@ -44,11 +46,13 @@ jobs:
       - name: Generate API Metadata (Workaround)
         run: |
           if [[ -d api ]]; then
-            echo "(DEBUG) Removing existing 'api' directory to ensure clean pack."
+            echo "(DEBUG) Removing existing 'api' directory to ensure clean"
+            echo "pack."
             rm -rf api
           fi
           if [[ -d _site ]]; then
-            echo "(DEBUG) Removing existing '_site' directory to ensure clean pack."
+            echo "(DEBUG) Removing existing '_site' directory to ensure clean"
+            echo "pack."
             rm -rf _site
           fi
           docfx metadata

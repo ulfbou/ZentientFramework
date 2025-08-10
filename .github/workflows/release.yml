@@ -41,7 +41,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ matrix.dotnet-version }}-${{ hashFiles('**/*.csproj') }}
+          key: >-
+            ${{ runner.os }}-nuget-${{ matrix.dotnet-version }}-${{
+            hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -76,11 +78,17 @@ jobs:
           set -e
           if [ -d "tests" ]; then
             for proj in tests/**/*.csproj; do
-              dotnet test "$proj" --configuration Release --no-build --logger trx
+              dotnet test "$proj" \
+                --configuration Release \
+                --no-build \
+                --logger trx
             done
           elif ls *.Tests.csproj 1> /dev/null 2>&1; then
             for proj in *.Tests.csproj; do
-              dotnet test "$proj" --configuration Release --no-build --logger trx
+              dotnet test "$proj" \
+                --configuration Release \
+                --no-build \
+                --logger trx
             done
           else
             echo "No test projects found in template output."
@@ -94,10 +102,14 @@ jobs:
           path: '**/*.trx'
 
       - name: Clean up template install
-        run: dotnet new uninstall ./templates/zentient-library-template
+        run: >
+          dotnet new uninstall
+          ./templates/zentient-library-template
 
       - name: Display success message
-        run: echo "✔ Zentient library template validated for .NET SDK ${{ matrix.dotnet-version }}"
+        run: >
+          echo "✔ Zentient library template validated for .NET SDK
+          ${{ matrix.dotnet-version }}"
 
   lint-workflow:
     name: Lint Workflow YAML
