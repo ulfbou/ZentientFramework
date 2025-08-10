@@ -1,3 +1,4 @@
+---
 name: CI/CD Pipeline
 
 on:
@@ -44,18 +45,19 @@ jobs:
         run: dotnet restore
 
       - name: Build solution
-        run: dotnet build --configuration ${{ matrix.configuration }} --no-restore -v diag
+        run: >
+          dotnet build --configuration ${{ matrix.configuration }} --no-restore -v diag
 
       - name: Run tests
-        run: |
-          dotnet test \
-            --configuration ${{ matrix.configuration }} \
-            --no-build \
-            --verbosity diag \
-            --logger trx \
-            --logger "console;verbosity=detailed" \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults/
+        run: >
+          dotnet test
+          --configuration ${{ matrix.configuration }}
+          --no-build
+          --verbosity diag
+          --logger trx
+          --logger "console;verbosity=detailed"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults/
 
       - name: Upload test results
         uses: actions/upload-artifact@v3
@@ -125,7 +127,8 @@ jobs:
         run: dotnet list package --vulnerable --include-transitive
 
       - name: Run dependency audit
-        run: dotnet restore --verbosity normal 2>&1 | grep -i "vulnerability\|security" || true
+        run: >
+          dotnet restore --verbosity normal 2>&1 | grep -i "vulnerability\|security" || true
 
   benchmarks:
     name: Performance Benchmarks
@@ -193,15 +196,15 @@ jobs:
           fi
 
       - name: Create package
-        run: |
-          dotnet pack \
-            --configuration Release \
-            --no-restore \
-            -p:PackageVersion=${{ steps.version.outputs.version }} \
-            -p:IncludeSymbols=true \
-            -p:SymbolPackageFormat=snupkg \
-            --output ./artifacts/ \
-            -v diag
+        run: >
+          dotnet pack
+          --configuration Release
+          --no-restore
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+          -p:IncludeSymbols=true
+          -p:SymbolPackageFormat=snupkg
+          --output ./artifacts/
+          -v diag
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v3

@@ -1,14 +1,11 @@
-# Path: .github/workflows/docs.yml
+---
 name: Build and Deploy Documentation
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: write
@@ -44,9 +41,6 @@ jobs:
       - name: Install DocFX Global Tool
         run: dotnet tool install -g docfx
 
-      # Workaround Step: Explicitly generate API metadata
-      # This addresses the observed behavior where 'docfx build' sometimes skips metadata generation
-      # even with correct docfx.json configuration.
       - name: Generate API Metadata (Workaround)
         run: |
           if [[ -d api ]]; then
