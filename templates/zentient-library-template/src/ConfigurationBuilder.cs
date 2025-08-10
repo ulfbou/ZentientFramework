@@ -23,9 +23,7 @@ public class ConfigurationBuilder : IHasName, IHasDescription
     /// <inheritdoc />
     public string Description { get; private set; } = string.Empty;
 
-    /// <summary>
-    /// Gets the metadata dictionary for this configuration.
-    /// </summary>
+    /// <summary>Gets the metadata dictionary for this configuration.</summary>
     public IReadOnlyDictionary<string, object> Metadata => _metadata;
 
     /// <summary>
