@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Project Identity -->
+    <AssemblyName>Zentient.Core</AssemblyName>
+    <RootNamespace>Zentient.Core</RootNamespace>
+    <ProjectName>Zentient.Core</ProjectName>
+
+    <!-- Framework and Language -->
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Assembly Properties -->
+    <AssemblyTitle>Zentient Core Library</AssemblyTitle>
+    <AssemblyDescription>A core Zentient framework library that provides implementations of Zentient.Abstractions.</AssemblyDescription>
+    <AssemblyProduct>Zentient Framework</AssemblyProduct>
+    <AssemblyCompany>Zentient</AssemblyCompany>
+    <AssemblyCopyright>© Zentient. All rights reserved.</AssemblyCopyright>
+
+    <!-- NuGet Package Properties -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Zentient.Core</PackageId>
+    <PackageDescription>A core Zentient framework library that provides implementations of Zentient.Abstractions.</PackageDescription>
+    <PackageAuthors>Ulf Bourelius</PackageAuthors>
+    <PackageTags>zentient;framework;core;abstractions</PackageTags>
+    <PackageProjectUrl>https://github.com/Zentient/Core</PackageProjectUrl>
+    <PackageRepositoryUrl>https://github.com/Zentient/Core</PackageRepositoryUrl>
+    <PackageRepositoryType>git</PackageRepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Documentation -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Remove explicit DocumentationFile path to avoid file lock issues -->
+    <!-- <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile> -->
+
+    <!-- Build Configuration -->
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors />
+
+    <!-- Code Analysis (relaxed for template) -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <!-- Assembly Metadata -->
+    <Authors>Ulf Bourelius</Authors>
+    <Description>A core Zentient framework library that provides implementations of Zentient.Abstractions.</Description>
+
+    <!-- Disable strict style rules for template simplicity -->
+    <NoWarn>$(NoWarn);SA1200;SA1101;SA1633;SA1636;SA1609;RS0016;RS0037;SA1600;SA1649;SA1028;S1118;S1135;S125;RCS1102</NoWarn>
+
+    <!-- Suppress analyzer upgrade warning -->
+    <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
+  </PropertyGroup>
+  <!-- Framework Dependencies -->
+  <ItemGroup>
+    <!-- Core Zentient Abstractions -->
+    <PackageReference Include="Zentient.Abstractions" Version="3.0.1" />
+  </ItemGroup>
+
+  <!-- Embedded Resources -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/*.json" />
+    <EmbeddedResource Include="Resources/*.xml" />
+  </ItemGroup>
+
+  <!-- Assembly Attributes -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Zentient.Core.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.CLSCompliantAttribute">
+      <_Parameter1>true</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="4.14.0" />
+    <PackageReference Update="Roslynator.Analyzers" Version="4.14.0" />
+    <PackageReference Update="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
+  </ItemGroup>
+</Project>
