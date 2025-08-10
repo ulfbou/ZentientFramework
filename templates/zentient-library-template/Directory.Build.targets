@@ -27,16 +27,16 @@
 
   <Target Name="ValidateConfiguration" BeforeTargets="Build">
     <!-- Validate required properties -->
-    <Error Text="TargetFramework must be specified" Condition="'$(TargetFramework)' == ''" />
+    <Error Text="TargetFramework must be specified" Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''" />
     <Error Text="Configuration must be specified" Condition="'$(Configuration)' == ''" />
-    
+
     <!-- Validate version information -->
     <Error Text="VersionPrefix must be specified" Condition="'$(VersionPrefix)' == ''" />
-    
+
     <!-- Validate metadata -->
-    <Warning Text="Description should be specified for packable projects" 
+    <Warning Text="Description should be specified for packable projects"
              Condition="'$(Description)' == 'LIBRARY_DESCRIPTION' AND '$(IsPackable)' == 'true'" />
-    <Warning Text="Author should be specified for packable projects" 
+    <Warning Text="Author should be specified for packable projects"
              Condition="'$(Authors)' == 'LIBRARY_AUTHOR' AND '$(IsPackable)' == 'true'" />
   </Target>
 
