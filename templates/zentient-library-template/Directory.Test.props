@@ -72,5 +72,4 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.13.10" Condition="'$(IncludeBenchmarks)' == 'true'" />
     <PackageReference Include="BenchmarkDotNet.Annotations" Version="0.13.10" Condition="'$(IncludeBenchmarks)' == 'true'" />
   </ItemGroup>
-
 </Project>

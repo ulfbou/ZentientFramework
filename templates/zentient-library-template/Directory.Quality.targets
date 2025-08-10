@@ -16,13 +16,14 @@
       <DocumentationErrors>CS1591</DocumentationErrors>
     </PropertyGroup>
 
+    <Message Text="DEBUG: MSBuildProjectFile=$(MSBuildProjectFile), MSBuildProjectName=$(MSBuildProjectName), Configuration=$(Configuration), IsTestProject=$(IsTestProject)" Importance="high" />
+
     <Message Text="Validating XML documentation completeness..." Importance="high" />
 
-    <!-- This will be enforced by compiler warnings -->
     <Warning Text="Ensure all public APIs have XML documentation comments"
-             Condition="'$(Configuration)' == 'Release'" />
+             Condition="'$(Configuration)' == 'Release' and '$(IsTestProject)' != 'true'" />
   </Target>
-
+  
   <Target Name="RunStyleCopAnalysis" BeforeTargets="Build" Condition="'$(EnableStyleCopAnalyzers)' == 'true'">
     <Message Text="Running StyleCop analysis..." Importance="high" />
 

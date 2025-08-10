@@ -34,7 +34,8 @@
 
     <!-- Documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+    <!-- Remove explicit DocumentationFile path to avoid file lock issues -->
+    <!-- <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile> -->
 
     <!-- Build Configuration -->
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
@@ -43,13 +44,13 @@
 
     <!-- Code Analysis (relaxed for template) -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisLevel>latest</AnalysisLevel> 
     <AnalysisMode>Default</AnalysisMode>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 
     <!-- Assembly Metadata -->
     <Authors>Ulf Bourelius</Authors>
-    <Description>A concise description of what your library does.</Description>
+        <Description>A concise description of what your library does.</Description>
 
     <!-- Disable strict style rules for template simplicity -->
     <NoWarn>$(NoWarn);SA1200;SA1101;SA1633;SA1636;SA1609;RS0016;RS0037;SA1600;SA1649;SA1028;S1118;S1135;S125;RCS1102</NoWarn>
@@ -58,7 +59,8 @@
 
     <!-- Suppress analyzer upgrade warning -->
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
-  </PropertyGroup>  <!-- Framework Dependencies -->
+  </PropertyGroup>
+  <!-- Framework Dependencies -->
   <ItemGroup>
     <!-- Core Zentient Abstractions -->
     <PackageReference Include="Zentient.Abstractions" Version="3.0.1" />
@@ -92,5 +94,4 @@
     <PackageReference Update="Roslynator.Analyzers" Version="4.14.0" />
     <PackageReference Update="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
   </ItemGroup>
-
 </Project>
