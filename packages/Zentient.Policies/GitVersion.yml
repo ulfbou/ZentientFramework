@@ -1,0 +1,40 @@
+# GitVersion configuration for the Zentient.Endpoints project
+
+mode: ContinuousDelivery
+increment: Inherit
+tag-prefix: '[vV]'
+major-version-bump-message: '\+semver:\s?(major)'
+minor-version-bump-message: '\+semver:\s?(minor)'
+patch-version-bump-message: '\+semver:\s?(patch)'
+commit-message-incrementing: Enabled
+
+branches:
+  main:
+    mode: ContinuousDelivery
+    tag: ''
+    increment: Patch
+    is-release-branch: true
+    prevent-increment-of-merged-branch-version: true
+  develop:
+    mode: ContinuousDelivery
+    tag: beta
+    increment: Minor
+    is-release-branch: false
+
+  release:
+    regex: ^release[/-]v(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)$
+    mode: ContinuousDelivery
+    increment: Patch
+    is-release-branch: true
+    tag: ''
+    source-branches: ['main']
+
+  specific-package-release:
+    regex: ^release/(?!v\d+\.\d+\.\d+)(?<BranchName>.+)$
+    mode: ContinuousDelivery
+    increment: Patch
+    tag: 'rc'
+    source-branches: ['main']
+
+ignore:
+  sha: []
