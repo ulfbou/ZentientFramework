@@ -2,8 +2,11 @@
 // Copyright © 2025 Zentient. All rights reserved.
 // </copyright>
 
-using Xunit;
 using FluentAssertions;
+
+using Xunit;
+
+using Zentient.Core;
 
 namespace Zentient.NewLibrary.Tests;
 
