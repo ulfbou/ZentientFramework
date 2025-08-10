@@ -51,7 +51,9 @@ jobs:
         run: dotnet new install ./templates/zentient-library-template
 
       - name: Verify template registration
-        run: dotnet new --list | grep 'zentient-library' || (echo "Template not registered" && exit 1)
+        run: \
+          dotnet new --list | grep 'zentient-library' || \
+              (echo "Template not registered" && exit 1)
 
       - name: Create temp directory for template test
         run: mkdir template-test
