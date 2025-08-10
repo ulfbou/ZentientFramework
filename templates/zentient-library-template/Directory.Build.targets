@@ -56,14 +56,14 @@
 
   <Target Name="ValidatePostBuild" AfterTargets="Build">
     <Message Text="Post-build validation..." Importance="normal" />
-    
+
     <!-- Validate output -->
-    <Error Text="Expected output file not found: $(TargetPath)" 
-           Condition="'$(OutputType)' != '' AND !Exists('$(TargetPath)')" />
-    
+    <Error Text="Expected output file not found: $(TargetPath)"
+           Condition="'$(OutputType)' != '' AND '$(TargetPath)' != '' AND !Exists('$(TargetPath)')" />
+
     <!-- Success message -->
-    <Message Text="✅ Build completed successfully: $(TargetFileName)" 
-             Importance="high" 
+    <Message Text="✅ Build completed successfully: $(TargetFileName)"
+             Importance="high"
              Condition="Exists('$(TargetPath)')" />
   </Target>
 
