@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <!-- Target only .NET 9.0 for dev container environment -->
-    <!-- In production, use: <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks> -->
-    <TargetFramework>net9.0</TargetFramework>
+    <!-- In production, use: <TargetFrameworks>net6.0;net7.0;net8.0;net8.0</TargetFrameworks> -->
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>

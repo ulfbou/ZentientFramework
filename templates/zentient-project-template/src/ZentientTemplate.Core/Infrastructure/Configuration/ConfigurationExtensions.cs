@@ -1,3 +1,7 @@
+// <copyright file="ConfigurationExtensions.cs" company="LIBRARY_COMPANY">
+// Copyright © LIBRARY_COPYRIGHT. All rights reserved.
+// </copyright>
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

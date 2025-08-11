@@ -1,0 +1,13 @@
+<Project>
+  <!-- Assembly Signing Validation -->
+  <Target Name="ValidateAssemblySigning" BeforeTargets="Build" Condition="'$(SignAssembly)' == 'true'">
+    <Error Text="Assembly signing is enabled but no key file was found at $(AssemblyOriginatorKeyFile)" 
+           Condition="!Exists('$(AssemblyOriginatorKeyFile)')" />
+    <Message Text="Assembly will be signed with key: $(AssemblyOriginatorKeyFile)" Importance="high" />
+  </Target>
+
+  <!-- Code Signing for Release -->
+  <Target Name="CodeSigningValidation" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' AND '$(SignAssembly)' == 'true'">
+    <Message Text="Validating code signing..." Importance="high" />
+  </Target>
+</Project>

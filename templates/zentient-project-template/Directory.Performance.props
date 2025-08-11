@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <!-- Performance Optimization -->
+    <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+    <DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
+    <DebugSymbols Condition="'$(Configuration)' == 'Release'">true</DebugSymbols>
+    
+    <!-- Trimming Support -->
+    <IsTrimmable>true</IsTrimmable>
+    <TrimMode>link</TrimMode>
+    
+    <!-- AOT Support -->
+    <PublishAot>false</PublishAot>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <Optimize>false</Optimize>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+  </ItemGroup>
+</Project>
