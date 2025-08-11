@@ -60,14 +60,14 @@
   <!-- Package Content Files -->
   <ItemGroup Condition="'$(IsPackable)' == 'true'">
     <!-- Include README in package -->
-    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+    <None Include="../README.md" Pack="true" PackagePath="\" Condition="Exists('../README.md')" />
 
     <!-- Include changelog in package -->
-    <None Include="CHANGELOG.md" Pack="true" PackagePath="\" Condition="Exists('CHANGELOG.md')" />
+    <None Include="../CHANGELOG.md" Pack="true" PackagePath="\" Condition="Exists('../CHANGELOG.md')" />
 
     <!-- Include license in package -->
-    <None Include="LICENSE" Pack="true" PackagePath="\" Condition="Exists('LICENSE')" />
-    <None Include="LICENSE.txt" Pack="true" PackagePath="\" Condition="Exists('LICENSE.txt')" />
+    <None Include="../LICENSE" Pack="true" PackagePath="\" Condition="Exists('../LICENSE')" />
+    <None Include="../LICENSE.txt" Pack="true" PackagePath="\" Condition="Exists('../LICENSE.txt')" />
     <None Include="LICENSE.md" Pack="true" PackagePath="\" Condition="Exists('LICENSE.md')" />
 
     <!-- Include documentation files -->

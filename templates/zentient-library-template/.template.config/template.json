@@ -109,7 +109,7 @@
       "type": "parameter",
       "dataType": "string",
       "description": "Repository URL",
-      "defaultValue": "https://github.com/Zentient/REPO_NAME",
+      "defaultValue": "https://github.com/YourUsername/YourRepository",
       "replaces": "REPOSITORY_URL",
       "forms": {
         "global": ["identity"]
