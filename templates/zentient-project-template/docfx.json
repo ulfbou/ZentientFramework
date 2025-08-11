@@ -102,8 +102,8 @@
     "cleanupCacheHistory": false,
     "disableGitFeatures": false,
     "globalMetadata": {
-      "_appTitle": "LIBRARY_NAME Documentation",
-      "_appName": "LIBRARY_NAME",
+      "_appTitle": "PROJECT_NAME Documentation",
+      "_appName": "PROJECT_NAME",
       "_appFooter": "LIBRARY_COPYRIGHT",
       "_enableSearch": true,
       "_enableNewTab": true,

@@ -9,9 +9,19 @@
     <Error Text="PackageVersion must be specified for packable projects" 
            Condition="'$(PackageVersion)' == ''" />
     <Error Text="PackageDescription must be specified for packable projects" 
-           Condition="'$(PackageDescription)' == '' OR '$(PackageDescription)' == 'LIBRARY_DESCRIPTION'" />
+           Condition="'$(PackageDescription)' == '' OR $(PackageDescription.StartsWith('A Zentient framework'))" />
     <Error Text="PackageAuthors must be specified for packable projects" 
-           Condition="'$(PackageAuthors)' == '' OR '$(PackageAuthors)' == 'LIBRARY_AUTHOR'" />
+           Condition="'$(PackageAuthors)' == '' OR '$(PackageAuthors)' == 'Zentient'" />
+    
+    <!-- Validate template placeholders are replaced -->
+    <Error Text="Template placeholder found - please provide a proper package description (current: '$(PackageDescription)')" 
+           Condition="$(PackageDescription.Contains('Zentient framework library'))" />
+    <Error Text="Template placeholder found - please provide a proper author name (current: '$(PackageAuthors)')" 
+           Condition="'$(PackageAuthors)' == 'Zentient'" />
+    <Error Text="Template placeholder found - please provide a proper company name (current: '$(PackageCompany)')" 
+           Condition="'$(PackageCompany)' == 'Zentient'" />
+    <Error Text="Template placeholder found - please provide a proper repository URL (current: '$(PackageRepositoryUrl)')" 
+           Condition="$(PackageRepositoryUrl.Contains('github.com/Zentient/REPO_NAME'))" />
     
     <!-- Validate licensing -->
     <Warning Text="Package license should be specified (PackageLicenseExpression or PackageLicenseFile)" 

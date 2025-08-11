@@ -1,4 +1,13 @@
 <Project>
+  <!-- Import modular build configuration -->
+  <Import Project="Directory.Pack.targets" Condition="Exists('Directory.Pack.targets')" />
+  <Import Project="Directory.Quality.targets" Condition="Exists('Directory.Quality.targets')" />
+  <Import Project="Directory.Security.targets" Condition="Exists('Directory.Security.targets')" />
+  <Import Project="Directory.Documentation.targets" Condition="Exists('Directory.Documentation.targets')" />
+  <Import Project="Directory.Performance.targets" Condition="Exists('Directory.Performance.targets')" />
+  <Import Project="Directory.Sign.targets" Condition="Exists('Directory.Sign.targets')" />
+  <Import Project="Directory.Test.targets" Condition="'$(IsTestProject)' == 'true' AND Exists('Directory.Test.targets')" />
+
   <!-- Custom Build Targets -->
   
   <!-- Code Coverage -->

@@ -10,12 +10,12 @@
     <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
     
     <!-- Package Properties -->
-    <Authors>Ulf Bourelius</Authors>
-    <Company>ZentientTemplate</Company>
-    <Product>ZentientTemplate</Product>
-    <Copyright>Copyright © 2025 ZentientTemplate</Copyright>
-    <PackageProjectUrl>https://github.com/your-org/ZentientTemplate</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/your-org/ZentientTemplate</RepositoryUrl>
+    <Authors>LIBRARY_AUTHOR</Authors>
+    <Company>LIBRARY_COMPANY</Company>
+    <Product>PROJECT_NAME</Product>
+    <Copyright>LIBRARY_COPYRIGHT</Copyright>
+    <PackageProjectUrl>REPOSITORY_URL</PackageProjectUrl>
+    <RepositoryUrl>REPOSITORY_URL</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     
     <!-- Version Properties -->

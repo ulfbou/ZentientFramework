@@ -1,0 +1,14 @@
+<Project>
+  <!-- Performance Benchmarks -->
+  <Target Name="RunBenchmarks" Condition="'$(RunBenchmarks)' == 'true'">
+    <Message Text="Running performance benchmarks..." Importance="high" />
+    <Exec Command="dotnet run -c Release --project $(MSBuildProjectDirectory)/tests/$(MSBuildProjectName).Benchmarks/$(MSBuildProjectName).Benchmarks.csproj" 
+          ContinueOnError="true" 
+          Condition="Exists('$(MSBuildProjectDirectory)/tests/$(MSBuildProjectName).Benchmarks')" />
+  </Target>
+
+  <!-- Performance Analysis -->
+  <Target Name="PerformanceAnalysis" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' AND '$(AnalyzePerformance)' == 'true'">
+    <Message Text="Running performance analysis..." Importance="high" />
+  </Target>
+</Project>

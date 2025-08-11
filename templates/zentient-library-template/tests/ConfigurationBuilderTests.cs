@@ -144,4 +144,58 @@ public class ConfigurationBuilderTests
         // Assert
         builder.GetScope().Should().Be(expectedScope);
     }
+
+    [Fact(DisplayName = "Multiple metadata entries can be added")]
+    [Trait("Scenario", "Metadata")]
+    public void WithMetadata_ShouldAllowMultipleEntries()
+    {
+        // Arrange
+        var builder = new ConfigurationBuilder();
+
+        // Act
+        builder
+            .WithMetadata("key1", "value1")
+            .WithMetadata("key2", 42)
+            .WithMetadata("key3", true);
+
+        // Assert
+        builder.Metadata.Should().HaveCount(3);
+        builder.Metadata["key1"].Should().Be("value1");
+        builder.Metadata["key2"].Should().Be(42);
+        builder.Metadata["key3"].Should().Be(true);
+    }
+
+    [Theory(DisplayName = "WithMetadata throws for null values")]
+    [InlineData(null)]
+    [Trait("Scenario", "Error Handling")]
+    public void WithMetadata_ShouldThrowArgumentNullException_WhenValueIsNull(object? value)
+    {
+        // Arrange
+        var builder = new ConfigurationBuilder();
+
+        // Act & Assert
+        var act = () => builder.WithMetadata("key", value!);
+        act.Should().Throw<ArgumentNullException>()
+           .WithParameterName("value");
+    }
+
+    [Fact(DisplayName = "Builder chain preserves all values")]
+    [Trait("Scenario", "Integration")]
+    public void BuilderChain_ShouldPreserveAllValues()
+    {
+        // Arrange & Act
+        var builder = new ConfigurationBuilder()
+            .WithName("Test Configuration")
+            .WithDescription("A test configuration for validation")
+            .WithMetadata("environment", "development")
+            .WithMetadata("version", "1.0.0");
+
+        // Assert
+        builder.Name.Should().Be("Test Configuration");
+        builder.Description.Should().Be("A test configuration for validation");
+        builder.Metadata.Should().HaveCount(2);
+        builder.Metadata["environment"].Should().Be("development");
+        builder.Metadata["version"].Should().Be("1.0.0");
+        builder.IsValid().Should().BeTrue();
+    }
 }

@@ -1,0 +1,17 @@
+<Project>
+  <!-- Test Setup -->
+  <Target Name="SetupIntegrationTests" BeforeTargets="VSTest" Condition="'$(RunIntegrationTests)' == 'true'">
+    <Message Text="Setting up integration test environment..." Importance="high" />
+  </Target>
+
+  <!-- Test Cleanup -->
+  <Target Name="CleanupIntegrationTests" AfterTargets="VSTest" Condition="'$(RunIntegrationTests)' == 'true'">
+    <Message Text="Cleaning up integration test environment..." Importance="high" />
+  </Target>
+
+  <!-- Test Results Processing -->
+  <Target Name="ProcessTestResults" AfterTargets="VSTest">
+    <Message Text="Processing test results..." Importance="normal" />
+    <MakeDir Directories="$(TestResultsDirectory)" />
+  </Target>
+</Project>

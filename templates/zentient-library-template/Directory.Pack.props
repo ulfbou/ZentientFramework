@@ -24,7 +24,7 @@
     <PackageReleaseNotes Condition="'$(PackageReleaseNotes)' == ''">See CHANGELOG.md for release notes.</PackageReleaseNotes>
 
     <!-- Package tags and categorization -->
-    <PackageTags Condition="'$(PackageTags)' == ''">zentient;framework;library;abstractions</PackageTags>
+    <PackageTags Condition="'$(PackageTags)' == ''">LIBRARY_TAGS</PackageTags>
     <DevelopmentDependency Condition="'$(DevelopmentDependency)' == ''">false</DevelopmentDependency>
 
     <!-- Package output configuration -->
@@ -47,7 +47,6 @@
 
     <!-- Documentation generation for package -->
     <GenerateDocumentationFile Condition="'$(GenerateDocumentationFile)' == ''">true</GenerateDocumentationFile>
-    <NoWarn Condition="'$(Configuration)' == 'Debug'">$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <!-- Source Link Support -->

@@ -5,3 +5,10 @@
 /.vs
 /templates/zentient-project-template/.vscode
 /templates/zentient-project-template/src/ZentientTemplate.Core/obj
+
+# Internal tools (secured in /tmp/internal)
+scripts/local-template-validation.sh
+scripts/test-cicd-pipeline.sh
+scripts/commit-and-validate.sh
+cicd-readiness-report.md
+*.log

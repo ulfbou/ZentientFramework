@@ -22,18 +22,15 @@
     }
   },
   "symbols": {
-    "ProjectName": {
-      "type": "parameter",
-      "dataType": "string",
-      "description": "The name of the library project",
-      "defaultValue": "Zentient.NewLibrary",
-      "replaces": "Zentient.LibraryTemplate"
-    },
     "Framework": {
       "type": "parameter",
       "description": "The target framework for the project",
       "datatype": "choice",
       "choices": [
+        {
+          "choice": "net9.0",
+          "description": ".NET 9.0"
+        },
         {
           "choice": "net8.0",
           "description": ".NET 8.0"
@@ -61,37 +58,62 @@
     "Description": {
       "type": "parameter",
       "dataType": "string",
-      "description": "Description of the library",
+      "description": "Description of the library (required for NuGet packaging)",
       "defaultValue": "A Zentient framework library",
-      "replaces": "LIBRARY_DESCRIPTION"
+      "replaces": "LIBRARY_DESCRIPTION",
+      "forms": {
+        "global": ["identity"]
+      }
+    },
+    "Tags": {
+      "type": "parameter",
+      "dataType": "string",
+      "description": "Semicolon-separated tags for NuGet package discovery",
+      "defaultValue": "zentient;framework;library",
+      "replaces": "LIBRARY_TAGS",
+      "forms": {
+        "global": ["identity"]
+      }
     },
     "Author": {
       "type": "parameter",
       "dataType": "string", 
-      "description": "The author of the library",
+      "description": "The author of the library (required for NuGet packaging)",
       "defaultValue": "Zentient",
-      "replaces": "LIBRARY_AUTHOR"
+      "replaces": "LIBRARY_AUTHOR",
+      "forms": {
+        "global": ["identity"]
+      }
     },
     "Company": {
       "type": "parameter",
       "dataType": "string",
       "description": "The company name",
       "defaultValue": "Zentient",
-      "replaces": "LIBRARY_COMPANY"
+      "replaces": "LIBRARY_COMPANY",
+      "forms": {
+        "global": ["identity"]
+      }
     },
     "Copyright": {
       "type": "parameter",
       "dataType": "string",
       "description": "Copyright information",
       "defaultValue": "© Zentient. All rights reserved.",
-      "replaces": "LIBRARY_COPYRIGHT"
+      "replaces": "LIBRARY_COPYRIGHT",
+      "forms": {
+        "global": ["identity"]
+      }
     },
     "RepositoryUrl": {
       "type": "parameter",
       "dataType": "string",
       "description": "Repository URL",
       "defaultValue": "https://github.com/Zentient/REPO_NAME",
-      "replaces": "REPOSITORY_URL"
+      "replaces": "REPOSITORY_URL",
+      "forms": {
+        "global": ["identity"]
+      }
     },
     "EnableSigning": {
       "type": "parameter",

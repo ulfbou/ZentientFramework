@@ -12,21 +12,65 @@
   },
   "sourceName": "ZentientTemplate",
   "preferNameDirectory": true,
-  "description": "Complete infrastructure template for Zentient.Abstractions projects with zero-setup development experience",
+  "description": "Complete infrastructure template for Zentient projects with zero-setup development experience and modular MSBuild automation",
   "symbols": {
     "ProjectName": {
       "type": "parameter",
       "datatype": "string",
       "defaultValue": "MyZentientProject",
       "replaces": "ZentientTemplate",
-      "description": "The name of the project"
+      "description": "The name of the project",
+      "forms": {
+        "global": ["identity", "namespace", "safe_name", "lower"]
+      }
     },
-    "Namespace": {
-      "type": "parameter", 
+    "PROJECT_NAME": {
+      "type": "derived",
+      "valueSource": "ProjectName",
+      "valueTransform": "identity",
+      "replaces": "PROJECT_NAME"
+    },
+    "LIBRARY_AUTHOR": {
+      "type": "parameter",
       "datatype": "string",
-      "defaultValue": "MyZentientProject",
-      "replaces": "ZentientTemplate",
-      "description": "The root namespace for the project"
+      "defaultValue": "Your Name",
+      "replaces": "LIBRARY_AUTHOR",
+      "description": "The author of the project"
+    },
+    "LIBRARY_COMPANY": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "Your Company",
+      "replaces": "LIBRARY_COMPANY",
+      "description": "The company name"
+    },
+    "LIBRARY_COPYRIGHT": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "Copyright © 2025 Your Company",
+      "replaces": "LIBRARY_COPYRIGHT",
+      "description": "Copyright notice"
+    },
+    "REPOSITORY_URL": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "https://github.com/your-org/your-project",
+      "replaces": "REPOSITORY_URL",
+      "description": "Repository URL"
+    },
+    "PROJECT_DESCRIPTION": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "A new Zentient project",
+      "replaces": "PROJECT_DESCRIPTION",
+      "description": "Brief description of the project"
+    },
+    "LIBRARY_TAGS": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "zentient;framework",
+      "replaces": "LIBRARY_TAGS",
+      "description": "Semicolon-separated tags for NuGet package"
     },
     "UseDocker": {
       "type": "parameter",
@@ -51,6 +95,31 @@
       "datatype": "bool",
       "defaultValue": "true",
       "description": "Include CQRS and advanced pattern infrastructure"
+    },
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net9.0",
+          "description": ".NET 9.0"
+        },
+        {
+          "choice": "net8.0",
+          "description": ".NET 8.0"
+        },
+        {
+          "choice": "net7.0", 
+          "description": ".NET 7.0"
+        },
+        {
+          "choice": "net6.0",
+          "description": ".NET 6.0"
+        }
+      ],
+      "defaultValue": "net8.0",
+      "replaces": "net8.0"
     }
   },
   "sources": [
@@ -85,7 +154,9 @@
             "src/**/CQRS/**",
             "src/**/Handlers/**",
             "src/**/Commands/**",
-            "src/**/Queries/**"
+            "src/**/Queries/**",
+            "src/**/Domain/**",
+            "src/**/Application/**"
           ]
         }
       ]
@@ -103,6 +174,20 @@
       "actionId": "cb9a6cf3-4f5c-4860-b9d2-03a574959774",
       "args": {
         "+x": "scripts/*.sh"
+      },
+      "continueOnError": true
+    },
+    {
+      "description": "Restore NuGet packages",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "args": {
+        "executable": "dotnet",
+        "args": "restore"
       },
       "continueOnError": true
     }
