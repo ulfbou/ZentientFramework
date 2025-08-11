@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- Assembly Signing -->
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="'$(SignAssembly)' == 'true'">$(MSBuildThisFileDirectory)Zentient.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <PublicSign Condition="'$(CI)' == 'true'">true</PublicSign>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(SignAssembly)' == 'true' AND Exists('$(MSBuildThisFileDirectory)Zentient.snk')">
+    <None Include="$(MSBuildThisFileDirectory)Zentient.snk" />
+  </ItemGroup>
+</Project>

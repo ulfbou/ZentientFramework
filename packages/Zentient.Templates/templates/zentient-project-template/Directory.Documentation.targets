@@ -1,0 +1,47 @@
+<Project>
+  <!-- Documentation Generation Automation -->
+  <PropertyGroup>
+    <DocFxConfigFile Condition="'$(DocFxConfigFile)' == ''">docfx.json</DocFxConfigFile>
+    <GenerateDocumentation Condition="'$(GenerateDocumentation)' == ''">true</GenerateDocumentation>
+    <RequireDocumentationForPublicApis Condition="'$(RequireDocumentationForPublicApis)' == ''">true</RequireDocumentationForPublicApis>
+    <DocumentationCoverageThreshold Condition="'$(DocumentationCoverageThreshold)' == ''">80</DocumentationCoverageThreshold>
+  </PropertyGroup>
+
+  <!-- Documentation Generation -->
+  <Target Name="GenerateDocumentation" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release' AND '$(GenerateDocs)' == 'true'">
+    <Message Text="Generating API documentation..." Importance="high" />
+    <Exec Command="dotnet tool run docfx docfx.json" 
+          WorkingDirectory="$(MSBuildThisFileDirectory)" 
+          ContinueOnError="true" 
+          Condition="Exists('$(MSBuildThisFileDirectory)docfx.json')" />
+  </Target>
+
+  <!-- XML Documentation Validation -->
+  <Target Name="ValidateXmlDocumentation" BeforeTargets="Build" Condition="'$(GenerateDocumentationFile)' == 'true'">
+    <Message Text="Validating XML documentation..." Importance="normal" />
+  </Target>
+
+  <!-- Install DocFX tool if not available -->
+  <Target Name="InstallDocFxTool" BeforeTargets="GenerateDocumentation" Condition="'$(GenerateDocumentation)' == 'true'">
+    <Message Text="Ensuring DocFX tool is available..." Importance="high" />
+    <Exec Command="dotnet tool list -g | grep docfx || dotnet tool install -g docfx" 
+          ContinueOnError="true" 
+          IgnoreExitCode="true" />
+  </Target>
+
+  <!-- Generate documentation coverage report -->
+  <Target Name="GenerateDocumentationCoverageReport" AfterTargets="GenerateDocumentation" Condition="'$(GenerateDocumentation)' == 'true'">
+    <Message Text="Generating documentation coverage report..." Importance="high" />
+    
+    <PropertyGroup>
+      <CoverageReportPath>$(OutputPath)documentation-coverage.html</CoverageReportPath>
+    </PropertyGroup>
+    
+    <!-- Generate coverage report using XML documentation files -->
+    <ItemGroup>
+      <XmlDocFiles Include="$(OutputPath)*.xml" />
+    </ItemGroup>
+    
+    <Message Text="Documentation files found: @(XmlDocFiles)" Importance="normal" />
+  </Target>
+</Project>

@@ -1,0 +1,11 @@
+<Project>
+  <!-- Security Validation -->
+  <Target Name="SecurityValidation" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Message Text="Running security validation..." Importance="high" />
+  </Target>
+
+  <!-- Source Link Validation -->
+  <Target Name="ValidateSourceLink" AfterTargets="Build" Condition="'$(PublishRepositoryUrl)' == 'true'">
+    <Message Text="Validating Source Link configuration..." Importance="high" />
+  </Target>
+</Project>

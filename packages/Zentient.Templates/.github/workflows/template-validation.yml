@@ -1,0 +1,31 @@
+name: Template Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate-library-template:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Install Library Template
+      run: |
+        cd templates/zentient-library-template
+        dotnet new install .
+    
+    - name: Test Library Template
+      run: |
+        cd /tmp
+        dotnet new zentient-lib -n TestLib
+        cd TestLib
+        dotnet build

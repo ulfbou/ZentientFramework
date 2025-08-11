@@ -1,0 +1,124 @@
+---
+name: Zentient.Templates Release Validation
+
+on:
+  push:
+    branches: [main, release/*]
+    tags: ['v[0-9]+.[0-9]+.[0-9]+', 'v[0-9]+.[0-9]+.[0-9]+-*']
+  pull_request:
+    types: [closed]
+    branches: [main, develop, release/*]
+  workflow_dispatch:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  validate-template:
+    name: Validate Zentient Library Template
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['8.0.x', '9.0.x']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Show .NET SDKs
+        run: dotnet --list-sdks
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: >-
+            ${{ runner.os }}-nuget-${{ matrix.dotnet-version }}-${{
+            hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install template from local source
+        run: dotnet new install ./templates/zentient-library-template
+
+      - name: Verify template registration
+        run: \
+          dotnet new --list | grep 'zentient-library' || \
+              (echo "Template not registered" && exit 1)
+
+      - name: Create temp directory for template test
+        run: mkdir template-test
+
+      - name: Generate new project from template
+        working-directory: ./template-test
+        run: dotnet new zentient-library -n Zentient.Template.Sample
+
+      - name: Restore generated project dependencies
+        working-directory: ./template-test/Zentient.Template.Sample
+        run: dotnet restore
+
+      - name: Build generated project
+        working-directory: ./template-test/Zentient.Template.Sample
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Check code formatting
+        working-directory: ./template-test/Zentient.Template.Sample
+        run: dotnet format --verify-no-changes
+
+      - name: Run generated project tests (if present)
+        working-directory: ./template-test/Zentient.Template.Sample
+        run: |
+          set -e
+          if [ -d "tests" ]; then
+            for proj in tests/**/*.csproj; do
+              dotnet test "$proj" \
+                --configuration Release \
+                --no-build \
+                --logger trx
+            done
+          elif ls *.Tests.csproj 1> /dev/null 2>&1; then
+            for proj in *.Tests.csproj; do
+              dotnet test "$proj" \
+                --configuration Release \
+                --no-build \
+                --logger trx
+            done
+          else
+            echo "No test projects found in template output."
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.dotnet-version }}
+          path: '**/*.trx'
+
+      - name: Clean up template install
+        run: >
+          dotnet new uninstall
+          ./templates/zentient-library-template
+
+      - name: Display success message
+        run: >
+          echo "✔ Zentient library template validated for .NET SDK
+          ${{ matrix.dotnet-version }}"
+
+  lint-workflow:
+    name: Lint Workflow YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint YAML files
+        uses: actionshub/yamllint@v1.8.3
