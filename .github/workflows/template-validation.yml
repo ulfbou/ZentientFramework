@@ -65,7 +65,16 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Install library template
-        run: dotnet new install ./templates/zentient-library-template
+        run: |
+          # Check .NET version and use appropriate install command
+          DOTNET_VERSION=$(dotnet --version)
+          if [[ "$DOTNET_VERSION" =~ ^6\. ]]; then
+            # .NET 6 uses older template command syntax
+            dotnet new --install ./templates/zentient-library-template
+          else
+            # .NET 7+ uses new syntax
+            dotnet new install ./templates/zentient-library-template
+          fi
 
       - name: Verify template installation
         run: dotnet new list zentient-lib
