@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/templates/zentient-project-template/.vscode
+/templates/zentient-project-template/src/ZentientTemplate.Core/obj
