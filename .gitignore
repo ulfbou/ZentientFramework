@@ -11,4 +11,10 @@ scripts/local-template-validation.sh
 scripts/test-cicd-pipeline.sh
 scripts/commit-and-validate.sh
 cicd-readiness-report.md
+
+# Internal development artifacts
+.gitignore.internal
+goals.md
+tasks.md
+*.backup
 *.log
