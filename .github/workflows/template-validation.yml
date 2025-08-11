@@ -26,6 +26,6 @@ jobs:
     - name: Test Library Template
       run: |
         cd /tmp
-        dotnet new zentient-library -n TestLib
+        dotnet new zentient-lib -n TestLib
         cd TestLib
         dotnet build
