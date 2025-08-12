@@ -1,0 +1,21 @@
+﻿<!-- Zentient Endpoints Analyzers Project File -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<RootNamespace>Zentient.Endpoints.Analyzers</RootNamespace>
+		<Description>Roslyn analyzers and code fixes for Zentient.Endpoints usage.</Description>
+		<IsPackable>true</IsPackable>
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<AssemblyOriginatorKeyFile>../Zentient.snk</AssemblyOriginatorKeyFile>
+		<SignAssembly>true</SignAssembly>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+	</ItemGroup>
+
+</Project>

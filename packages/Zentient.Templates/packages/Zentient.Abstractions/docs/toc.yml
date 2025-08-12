@@ -1,0 +1,29 @@
+- name: Home
+  href: index.md
+- name: User Guide
+  items:
+    - name: Getting Started
+      href: ../README.md
+    - name: Migration Guide
+      href: guides/MIGRATION_GUIDE_2.x_to_3.0.md
+- name: API Reference
+  href: api/
+  homepage: api/index.md
+- name: Development
+  items:
+    - name: Design Principles
+      href: development/REFINED_IZENTIENT_DESIGN.md
+    - name: Developer Experience
+      href: development/DX_ANALYSIS.md
+    - name: Architecture Improvements
+      href: development/DX_IMPROVEMENTS_SUMMARY.md
+    - name: Compilation Notes
+      href: development/COMPILATION_FIXES.md
+- name: Releases
+  items:
+    - name: Changelog
+      href: ../CHANGELOG.md
+    - name: Release 3.0.1
+      href: releases/RELEASE_NOTES_3.0.1.md
+    - name: Release Process
+      href: releases/RELEASE_CHECKLIST.md
