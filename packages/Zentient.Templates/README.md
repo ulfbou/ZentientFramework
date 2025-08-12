@@ -1,205 +1,101 @@
-# Zentient.Templates — Enterprise-Grade .NET Project Templates
+# Zentient.Template — {One-line Description of the Module's Purpose}
 
-[![Build](https://img.shields.io/github/actions/workflow/status/ulfbou/Zentient.Templates/docs.yml)](https://github.com/ulf**Minimal Web API Project:**
-```bash
-dotnet new zentient -n MyWebAPI \
-  --UseDocker true \
-  --UseRedisCache false \
-  --UseEntityFramework false \
-  --IncludeAdvancedPatterns false
-```
-ient.Templates/actions)
-![License](https://img.shields.io/github/license/ulfbou/Zentient.Templates)
-![.NET Versions](https://img.shields.io/badge/.NET-6.0%20%7C%207.0%20%7C%208.0%20%7C%209.0-blue)
+[![NuGet](https://img.shields.io/nuget/v/Zentient.Template?label=Zentient.Template)](https://www.nuget.org/packages/Zentient.Template)
+[![Build](https://img.shields.io/github/actions/workflow/status/ulfbou/Zentient.Template/build.yml)](https://github.com/ulfbou/Zentient.Template/actions)
+![License](https://img.shields.io/github/license/ulfbou/Zentient.Template)
+![.NET Versions](https://img.shields.io/badge/.NET-8.0%20%7C%209.0-blue)
 
 ---
 
 ## Table of Contents
 
 * [Overview](#-overview)
-* [Why Zentient Templates?](#-why-zentient-templates)
-* [Available Templates](#-available-templates)
+* [Why Zentient.Template?](#-why-zentientmodulename)
+* [Architecture](#-architecture-overview)
 * [Quick Start](#-quick-start)
-* [Template Features](#-template-features)
 * [Advanced Usage](#-advanced-usage)
+* [Integration](#-integration)
+* [Observability](#-observability)
+* [Vision & Roadmap](#-vision--roadmap)
 * [Contributing](#-contributing)
 
 ---
 
 ## 🚀 Overview
 
-**Zentient.Templates** provides enterprise-grade .NET project templates that eliminate boilerplate and establish best practices from day one. These templates are designed with **developer experience (DX) friendliness** as the primary goal, providing everything developers need to be productive immediately.
+**Zentient.Template** is a modular, low-boilerplate building block for advanced .NET architectures. It aligns with the Zentient philosophy of clean separation, developer-first ergonomics, and protocol-agnostic design.
 
-Whether you're building libraries, applications, or complete projects, these templates provide comprehensive automation for building, testing, documentation, security, and deployment.
-
----
-
-## ❓ Why Zentient Templates?
-
-Common pain points when starting new .NET projects:
-
-* � **Manual Setup Overhead** - Hours spent configuring build systems, CI/CD, quality gates
-* 📚 **Inconsistent Standards** - Different projects using different conventions and tooling
-* 🔍 **Missing Best Practices** - Security, performance, and maintainability considerations overlooked
-* 🚫 **Incomplete Automation** - Manual processes that should be automated from the start
-
-### ✨ Key Benefits
-
-* 🏗️ **Zero-Setup Development**
-  Everything works out of the box - no manual configuration required.
-
-* 📦 **Enterprise-Ready Automation**
-  Complete build, test, quality, security, and documentation pipelines included.
-
-* 🛠️ **Developer-First Design**
-  Optimized for productivity with clear conventions and comprehensive tooling.
-
-* 🧪 **Production-Grade Quality**
-  Security scanning, performance monitoring, and quality gates built-in.
+Whether used standalone or as part of the larger [Zentient Framework](https://github.com/ulfbou/zentient), this module offers high cohesion and pluggability across the result pipeline, validation, telemetry, or domain boundaries.
 
 ---
 
-## 📦 Available Templates
+## ❓ Why Zentient.Template?
 
-### 🏗️ Zentient Library Template (`zentient-lib`)
-Enterprise-grade library template with comprehensive automation:
+Common challenges in modern .NET systems that this module addresses:
 
-- **Complete Build System**: Multi-targeting, packaging, signing
-- **Quality Automation**: Code analysis, StyleCop, security scanning  
-- **Testing Infrastructure**: Unit tests, integration tests, coverage reporting
-- **Documentation**: XML docs, DocFX integration, API documentation
-- **Performance**: Benchmarking and profiling capabilities
-- **Security**: Vulnerability scanning, compliance validation
+* 🔁 Repetition of infrastructure logic across layers
+* ⚠️ Tight coupling between concerns (validation, mapping, transport)
+* 🔍 Lack of composability and observability around critical flows
+* 🚫 Overuse of exceptions where structured data would be superior
 
-```bash
-dotnet new install ./templates/zentient-library-template
-dotnet new zentient-lib -n MyLibrary
+### ✨ Key Features
+
+* 🧩 **Composable Abstractions**
+  Built on interface-first contracts, extensible via DI and partial opt-in.
+
+* 📦 **Minimal Dependencies**
+  Zero heavy framework bindings unless explicitly extended (e.g., `Http`, `Grpc`, etc).
+
+* 🛠️ **Developer-First APIs**
+  Predictable, discoverable, and functional-style extensions across the stack.
+
+* 📐 **Clean Architecture Alignment**
+  Each library is suitable for Domain, Application, or Presentation layers as appropriate.
+
+* 🧪 **Testability by Design**
+  Interfaces and factories are easy to mock, verify, or extend.
+
+---
+
+## 🏛️ Architecture Overview
+
+This library is part of the **Zentient** modular ecosystem:
+
+```
+[ Domain Logic ] → [ Zentient.Results ] → [ Zentient.Template ] → [ Transport / Storage / Infra ]
 ```
 
-### 🚀 Zentient Project Template (`zentient`)
-Complete application infrastructure template:
+A typical integration flow:
 
-- **Multi-Project Structure**: Core, API, tests, and infrastructure
-- **Modern Patterns**: CQRS, dependency injection, configuration management
-- **Container Support**: Docker, docker-compose for development
-- **Data Access**: Entity Framework integration with migrations
-- **Caching**: Redis support for distributed scenarios
+* Application returns `IResult<T>`
+* `PackageTemplate` handles the cross-cutting concern (e.g., telemetry, validation, mapping)
+* Final output is adapted to the transport layer or infrastructure gateway
 
-```bash
-dotnet new install ./templates/zentient-project-template  
-dotnet new zentient -n MyProject
-```
+![Architecture Diagram](./docs/assets/diagram.svg)
 
 ---
 
 ## 💻 Quick Start
 
-**1. Install Templates**
+**1. Install via NuGet**
 
 ```bash
-# Clone the repository
-git clone https://github.com/ulfbou/Zentient.Templates.git
-cd Zentient.Templates
-
-# Install library template
-dotnet new install ./templates/zentient-library-template
-
-# Install project template  
-dotnet new install ./templates/zentient-project-template
+dotnet add package Zentient.Template
 ```
 
-**2. Create a New Library**
+**2. Register services in `Program.cs`**
 
-```bash
-# Basic library with all features
-dotnet new zentient-lib -n Zentient.MyLibrary
-
-# Customized library
-dotnet new zentient-lib -n MyValidation \
-  --LibraryType Validation \
-  --EnablePerformance true \
-  --Author "Your Name"
+```csharp
+builder.Services.AddZentientPackageTemplate(); // DI-friendly setup
 ```
 
-**3. Create a New Project**
+**3. Apply in your logic**
 
-```bash
-# Complete project with all features
-dotnet new zentient -n MyApplication
-
-# Minimal project  
-dotnet new zentient -n MySimpleApp \
-  --UseDocker false \
-  --UseRedisCache false
-```
-
----
-
-## �️ Template Features
-
-### Comprehensive Automation
-- **Build System**: MSBuild automation through Directory.*.props/targets files
-- **Quality Gates**: Code analysis, StyleCop, security scanning
-- **Testing**: xUnit, FluentAssertions, coverage reporting, benchmarks
-- **Documentation**: XML docs, DocFX, API documentation generation
-- **CI/CD**: GitHub Actions workflows for build, test, and deployment
-
-### Developer Experience
-- **Zero Configuration**: Everything works immediately after template instantiation
-- **VS Code Integration**: Debug configurations, tasks, recommended extensions
-- **IntelliSense**: Complete IDE support with proper project references
-- **Hot Reload**: Development-optimized build configurations
-
-### Enterprise Features
-- **Security**: Vulnerability scanning, dependency auditing, security compliance
-- **Performance**: Benchmarking, profiling, memory analysis
-- **Observability**: Logging, metrics, health checks integration
-- **Deployment**: Container support, package generation, signing
-
----
-
-## 🔧 Advanced Usage
-
-### Template Parameters
-
-#### Library Template Parameters
-| Parameter | Description | Default | Options |
-|-----------|-------------|---------|---------|
-| `ProjectName` | Library name | `Zentient.NewLibrary` | Any valid name |
-| `Framework` | Target framework | `net8.0` | `net6.0`, `net7.0`, `net8.0`, `net9.0` |
-| `LibraryType` | Library category | `Custom` | `Core`, `Validation`, `Configuration`, etc. |
-| `EnableSigning` | Assembly signing | `true` | `true`, `false` |
-| `EnableTesting` | Testing setup | `true` | `true`, `false` |
-| `EnableDocumentation` | Documentation | `true` | `true`, `false` |
-| `EnablePerformance` | Benchmarking | `false` | `true`, `false` |
-
-#### Project Template Parameters  
-| Parameter | Description | Default | Options |
-|-----------|-------------|---------|---------|
-| `ProjectName` | Project name | `MyZentientProject` | Any valid name |
-| `UseDocker` | Docker support | `true` | `true`, `false` |
-| `UseRedisCache` | Redis caching | `false` | `true`, `false` |
-| `UseEntityFramework` | EF integration | `true` | `true`, `false` |
-| `IncludeAdvancedPatterns` | CQRS patterns | `true` | `true`, `false` |
-
-### Customization Examples
-
-**Library with Performance Monitoring:**
-```bash
-dotnet new zentient-lib -n Zentient.MyCache \
-  --LibraryType Caching \
-  --EnablePerformance true \
-  --EnableSecurity true \
-  --Description "High-performance caching library"
-```
-
-**Minimal Web API Project:**
-```bash
-dotnet new zentient -n MyWebAPI \
-  --UseDocker true \
-  --UseRedisCache false \
-  --UseEntityFramework false \
-  --IncludeAdvancedPatterns false
+```csharp
+var result = await _myService.DoWorkAsync(request);
+return result
+    .PipeThroughMyConcern()
+    .ToWhatever(); // depends on module
 ```
 
 ---

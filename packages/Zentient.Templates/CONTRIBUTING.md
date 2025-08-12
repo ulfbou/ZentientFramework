@@ -1,352 +1,113 @@
-# Contributing to Zentient.Templates
+# Contributing to the Zentient Framework
 
-Thank you for your interest in contributing to Zentient.Templates! This guide will help you get started with developing, testing, and improving our .NET project templates.
+We welcome and deeply appreciate your contributions to the Zentient Framework! By contributing, you play a vital role in building a robust, predictable, and developer-first ecosystem for the entire .NET community. This document outlines the guidelines and processes for contributing across all Zentient projects.
 
-## Table of Contents
+## Code of Conduct
 
-- [Development Setup](#development-setup)
-- [Template Development](#template-development)
-- [Testing Templates](#testing-templates)
-- [Code Standards](#code-standards)
-- [Submitting Changes](#submitting-changes)
-- [Template Architecture](#template-architecture)
+To ensure a welcoming, inclusive, and professional environment, all contributors are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please review it before contributing.
 
-## Development Setup
+## How Can I Contribute?
 
-### Prerequisites
+Your contributions can take many forms:
 
-- **.NET SDK 8.0 or later** - Required for template engine and testing
-- **Git** - For version control
-- **Visual Studio Code** (recommended) - With C# Dev Kit extension
-- **Docker** (optional) - For testing containerized scenarios
+### 1. Reporting Bugs
 
-### Getting Started
+If you discover a bug in any Zentient library, please open an issue on the relevant project's GitHub Issues page.
+When reporting, please provide:
+* A clear and concise description of the bug.
+* Detailed steps to reproduce the behavior.
+* The expected vs. actual behavior.
+* Screenshots or minimal code snippets if helpful.
+* Your .NET SDK version(s) and operating system.
 
-1. **Fork and Clone**
-   ```bash
-   git fork https://github.com/ulfbou/Zentient.Templates
-   git clone https://github.com/YOUR_USERNAME/Zentient.Templates.git
-   cd Zentient.Templates
-   ```
+### 2. Suggesting Enhancements
 
-2. **Install Templates Locally**
-   ```bash
-   # Install both templates for testing
-   dotnet new install ./templates/zentient-library-template
-   dotnet new install ./templates/zentient-project-template
-   
-   # Verify installation
-   dotnet new list zentient
-   ```
+Have an idea for a new feature, API improvement, or better documentation? We'd love to hear it!
+Open an issue on the relevant project's GitHub Issues page and describe your suggestion, including:
+* A clear and concise description of the proposed enhancement.
+* The specific problem it solves or the benefit it provides.
+* Any potential alternatives or considerations you've explored.
 
-3. **Verify Setup**
-   ```bash
-   # Create test instances
-   mkdir test-workspace && cd test-workspace
-   
-   # Test library template
-   dotnet new zentient-lib -n TestLibrary
-   cd TestLibrary && dotnet build && dotnet test
-   cd ..
-   
-   # Test project template
-   dotnet new zentient -n TestProject
-   cd TestProject && dotnet build
-   cd ..
-   
-   # Clean up
-   cd .. && rm -rf test-workspace
-   ```
+### 3. Writing Code
 
-## Template Development
+We highly value contributions of code for bug fixes, new features, or refactorings. Before starting any significant work:
 
-### Template Structure
+* **Check existing issues:** See if your contribution is already being discussed or worked on.
+* **Open an issue:** For new features, significant changes, or complex bug fixes, please open an issue first to discuss your idea with the maintainers. This ensures alignment, prevents duplicate efforts, and helps us guide you.
+* **Fork the repository:** Create a fork of the Zentient Framework's main repository on GitHub.
 
-```
-templates/
-├── zentient-library-template/
-│   ├── .template.config/
-│   │   └── template.json              # Template configuration
-│   ├── Directory.*.props/.targets     # MSBuild automation
-│   ├── src/                          # Source code examples
-│   ├── tests/                        # Test examples
-│   └── docs/                         # Documentation examples
-└── zentient-project-template/
-    ├── .template.config/
-    │   └── template.json              # Template configuration
-    └── src/                          # Multi-project structure
-```
+### 4. Improving Documentation
 
-### Key Files and Their Purpose
+High-quality, developer-first documentation is crucial for Zentient. If you find typos, inaccuracies, or areas that could be explained more clearly in any `README.md`, conceptual guides (`/docs/`), or code comments, please consider contributing. You can submit a pull request with your changes or open an issue.
 
-#### Template Configuration (`template.json`)
-Defines template metadata, parameters, and behavior:
+## Getting Started with Development
 
-```json
-{
-  "$schema": "http://json.schemastore.org/template",
-  "identity": "Zentient.Library.Template",
-  "shortName": "zentient-lib",
-  "symbols": {
-    "ProjectName": {
-      "type": "parameter",
-      "dataType": "string",
-      "defaultValue": "Zentient.NewLibrary",
-      "replaces": "Zentient.LibraryTemplate"
-    }
-  }
-}
-```
+To set up your local development environment for the Zentient Framework:
 
-#### Directory Build Files
-MSBuild automation files that provide enterprise-grade features:
+1.  **Prerequisites:**
+    * .NET SDK (version 8.0 or newer). We recommend using the latest stable version of .NET 9.0.
+    * [GitVersion CLI](https://gitversion.net/docs/): For consistent versioning across the framework.
+    * [pre-commit](https://pre-commit.com/#installation): For local code formatting and linting checks before committing. Install it via pip (`pip install pre-commit`) and then run `pre-commit install` in the repository root.
 
-- **Directory.Build.props** - Core build properties
-- **Directory.Pack.props** - NuGet packaging configuration
-- **Directory.Quality.props** - Code analysis and quality gates
-- **Directory.Test.props** - Testing infrastructure
-- **Directory.Security.props** - Security scanning and compliance
-- **Directory.Documentation.props** - Documentation generation
+2.  **Clone the Repository:**
+    ```bash
+    git clone [https://github.com/ulfbou/Zentient.Framework.git](https://github.com/ulfbou/Zentient.Framework.git) # Adjust if main repo name is different
+    cd Zentient.Framework
+    ```
 
-### Adding New Parameters
+3.  **Build the Project:**
+    ```bash
+    dotnet build # This will build all projects in the solution
+    ```
 
-1. **Define in template.json**
-   ```json
-   "symbols": {
-     "MyNewParameter": {
-       "type": "parameter",
-       "dataType": "bool",
-       "description": "Enable my new feature",
-       "defaultValue": "false"
-     }
-   }
-   ```
+4.  **Run Tests:**
+    ```bash
+    dotnet test # This will run tests for all test projects
+    ```
 
-2. **Use in template files**
-   ```xml
-   <!-- In .props files -->
-   <PropertyGroup Condition="'$(MyNewParameter)' == 'true'">
-     <EnableMyFeature>true</EnableMyFeature>
-   </PropertyGroup>
-   ```
+## Your First Code Contribution (Workflow)
 
-3. **Add conditional content**
-   ```json
-   "sources": [
-     {
-       "modifiers": [
-         {
-           "condition": "(!MyNewParameter)",
-           "exclude": ["optional-feature/**"]
-         }
-       ]
-     }
-   ]
-   ```
+Once you've set up your development environment:
 
-## Testing Templates
+1.  **Create a New Branch:**
+    * For new features: `git checkout -b feat/your-feature-name`
+    * For bug fixes: `git checkout -b fix/issue-number-short-description`
+    * For documentation: `git checkout -b docs/clarify-api-usage`
+    * For refactoring/chore: `git checkout -b chore/refactor-module-x`
 
-### Manual Testing
+2.  **Make Your Changes:** Implement your feature, bug fix, or documentation update.
 
-1. **Create Test Instance**
-   ```bash
-   # Test with default parameters
-   dotnet new zentient-lib -n ManualTest
-   cd ManualTest
-   
-   # Verify all features work
-   dotnet build
-   dotnet test
-   dotnet pack
-   ```
+3.  **Adhere to Framework Conventions:**
+    * **Coding Style:** Follow standard .NET coding conventions. We use a `.editorconfig` file to enforce consistent formatting; your IDE should pick this up automatically. Run `dotnet format` locally before committing (`pre-commit` will also enforce this).
+    * **Zentient Design Principles:** Ensure your changes align with the framework's core philosophies:
+        * **Async-First:** All public APIs designed for I/O or long-running operations must be asynchronous (`Task<T>`, `ValueTask<T>`) and omit the `Async` suffix if no synchronous counterpart exists. Avoid `.Result` or `.Wait()`.
+        * **Developer-First:** Prioritize predictability, clear API surface, and compiler-guided correctness.
+        * **Interface-First:** Public contracts (method return types, parameters) should rely on interfaces (e.g., `IResult<T>`, `IEndpointOutcome`), not concrete types.
+        * **Immutability:** All result, outcome, and metadata types (like `ErrorInfo`, `Result`, `EndpointOutcome`, `TransportMetadata`) must be immutable (using `init` setters).
+        * **Naming Conventions:** Adhere strictly to the guidelines in `/docs/conventions/naming-conventions.md` (e.g., `I` prefix for interfaces, `Extensions` suffix for extension classes, `With`/`Set`/`As`/`From` patterns).
+        * **Cancellation Support:** Include `CancellationToken` for methods performing I/O or potentially long-running operations.
 
-2. **Test Parameter Variations**
-   ```bash
-   # Test different configurations
-   dotnet new zentient-lib -n TestMinimal \
-     --EnableSigning false \
-     --EnableTesting false \
-     --EnableDocumentation false
-   
-   dotnet new zentient-lib -n TestMaximal \
-     --EnablePerformance true \
-     --LibraryType Validation
-   ```
+4.  **Write Tests:**
+    * All new features must be accompanied by comprehensive unit tests.
+    * Bug fixes should include a regression test that fails without your fix and passes with it.
+    * Ensure all existing tests pass after your changes (`dotnet test`).
+    * Aim for high code coverage, especially for core logic.
 
-3. **Test Multi-Framework**
-   ```bash
-   # Test different target frameworks
-   dotnet new zentient-lib -n TestNet6 --Framework net6.0
-   dotnet new zentient-lib -n TestNet9 --Framework net9.0
-   ```
+5.  **Commit Your Changes:**
+    Write clear, concise commit messages. We encourage using [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) (e.g., `feat(endpoints): add new result type`, `fix(results): resolve serialization issue`, `docs: update async guidelines`).
+    ```bash
+    git add .
+    git commit -m "feat(module): descriptive commit message"
+    ```
 
-### Template Validation Checklist
+6.  **Push to Your Fork:**
+    ```bash
+    git push origin feat/my-new-feature
+    ```
 
-Before submitting changes, verify:
-
-- [ ] Template installs without errors
-- [ ] All parameter combinations work
-- [ ] Generated projects build successfully
-- [ ] Tests run and pass
-- [ ] NuGet packages generate correctly
-- [ ] Documentation builds without warnings
-- [ ] Security scans complete successfully
-- [ ] Performance benchmarks execute (if enabled)
-
-## Code Standards
-
-### MSBuild Files (.props/.targets)
-
-```xml
-<!-- Good: Clear structure with comments -->
-<Project>
-  <!-- Feature Configuration -->
-  <PropertyGroup Label="MyFeature Settings">
-    <EnableMyFeature Condition="'$(EnableMyFeature)' == ''">true</EnableMyFeature>
-    <MyFeatureLevel Condition="'$(MyFeatureLevel)' == ''">strict</MyFeatureLevel>
-  </PropertyGroup>
-
-  <!-- Feature Dependencies -->
-  <ItemGroup Condition="'$(EnableMyFeature)' == 'true'">
-    <PackageReference Include="MyFeature.Package" Version="1.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-</Project>
-```
-
-### Template.json Structure
-
-```json
-{
-  // Required metadata
-  "$schema": "http://json.schemastore.org/template",
-  "identity": "Unique.Template.Identity",
-  "shortName": "template-shortname",
-  
-  // Clear parameter definitions
-  "symbols": {
-    "ParameterName": {
-      "type": "parameter",
-      "dataType": "bool|string|choice",
-      "description": "Clear description of what this parameter does",
-      "defaultValue": "sensible-default"
-    }
-  },
-  
-  // Conditional file inclusion
-  "sources": [
-    {
-      "modifiers": [
-        {
-          "condition": "(!FeatureEnabled)",
-          "exclude": ["feature-specific-files/**"]
-        }
-      ]
-    }
-  ]
-}
-```
-
-### C# Code Standards
-
-- **Follow .NET coding conventions**
-- **Use XML documentation for all public APIs**
-- **Include comprehensive examples in template code**
-- **Write tests that demonstrate template usage**
-
-## Submitting Changes
-
-### Pull Request Process
-
-1. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/my-improvement
-   git commit -m "feat: add improved documentation generation"
-   ```
-
-2. **Test Thoroughly**
-   ```bash
-   # Manual verification
-   dotnet new zentient-lib -n TestMyChanges
-   cd TestMyChanges && dotnet build && dotnet test
-   ```
-
-3. **Update Documentation**
-   - Update README.md if adding new features
-   - Update template parameter tables
-   - Add examples for new functionality
-
-4. **Submit Pull Request**
-   - Clear description of changes
-   - Link to related issues
-   - Include testing evidence
-
-### Commit Message Convention
-
-We use conventional commits:
-
-- `feat:` - New features or enhancements
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `test:` - Test improvements
-- `refactor:` - Code refactoring
-- `chore:` - Build/tooling changes
-
-Examples:
-```
-feat: add performance benchmarking to library template
-fix: resolve CS1591 warning inconsistency in Directory.*.props
-docs: update README with new template parameters
-```
-
-### Code Review Criteria
-
-Pull requests are evaluated on:
-
-- **Developer Experience Impact** - Does this improve DX?
-- **Template Quality** - Are generated projects production-ready?
-- **Testing Coverage** - Are changes properly tested?
-- **Documentation** - Is new functionality documented?
-- **Backward Compatibility** - Do existing templates still work?
-
-## Template Architecture
-
-### Design Principles
-
-1. **Developer Experience First** - Every decision prioritizes developer productivity
-2. **Zero Configuration** - Templates should work immediately without setup
-3. **Enterprise Ready** - Generated projects are production-ready
-4. **Modular Features** - Users can opt-in/out of specific capabilities
-5. **Best Practices** - Templates enforce industry best practices
-
-### Directory.*.props Pattern
-
-We use a modular MSBuild approach:
-
-```
-Directory.Build.props          # Core build settings
-Directory.Pack.props           # NuGet packaging
-Directory.Quality.props        # Code analysis
-Directory.Security.props       # Security scanning
-Directory.Test.props           # Testing infrastructure
-Directory.Documentation.props  # Documentation generation
-Directory.Performance.props    # Benchmarking
-```
-
-This allows:
-- **Focused responsibility** per file
-- **Easy maintenance** and updates
-- **Conditional inclusion** based on parameters
-- **Clear separation** of concerns
-
-## Getting Help
-
-- **GitHub Issues** - For bugs, feature requests, and questions
-- **Pull Request Reviews** - Maintainers provide detailed feedback
-
-Thank you for contributing to Zentient.Templates! Your efforts help create better developer experiences for the entire .NET community.
+7.  **Create a Pull Request (PR):**
+    * Go to the Zentient Framework GitHub repository (or your fork) and you should see a prompt to create a new pull request from your pushed branch.
+    * **Target the `develop` branch.**
     * Provide a clear title and detailed description for your PR.
     * Reference any related issues (e.g., `Closes #123` or `Fixes #123`).
     * Explain the changes you've made, why they are necessary, and how they align with Zentient's conventions.
