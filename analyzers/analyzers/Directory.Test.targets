@@ -1,3 +1,5 @@
+<!-- Directory.Test.targets -->
+<!-- This file contains build targets specific to testing projects. -->
 <Project>
 
   <Target Name="RunUnitTests" Condition="'$(IsTestProject)' == 'true'">

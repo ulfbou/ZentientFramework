@@ -1,3 +1,5 @@
+<!-- Directory.Documentation.targets -->
+<!-- This file contains build targets specific to documentation generation and validation for library projects. -->
 <Project>
 
   <Target Name="ValidateDocumentationCoverage" BeforeTargets="Build" Condition="'$(RequireDocumentationForPublicApis)' == 'true'">

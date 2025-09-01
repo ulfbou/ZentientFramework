@@ -1,4 +1,5 @@
 <!-- Directory.Analyzer.props -->
+<!-- This file contains configuration settings specific to Roslyn analyzer projects. -->
 <Project>
 
   <!-- Core Analyzer Configuration -->

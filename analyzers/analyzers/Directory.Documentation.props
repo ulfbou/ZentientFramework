@@ -1,3 +1,5 @@
+<!-- Directory.Documentation.props -->
+<!-- This file contains documentation generation settings for all projects in the solution. -->
 <Project>
 
   <!-- Documentation Generation Configuration -->

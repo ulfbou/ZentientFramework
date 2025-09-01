@@ -1,3 +1,5 @@
+<!-- Directory.Signing.props -->
+<!-- This file contains code signing and assembly signing configurations for all projects in the repository. -->
 <Project>
 
   <PropertyGroup Label="Code Signing Configuration">

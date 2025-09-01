@@ -1,3 +1,5 @@
+<!-- Directory.Quality.targets -->
+<!-- This file contains quality assurance targets for all projects in the solution. -->
 <Project>
 
   <Target Name="RunCodeAnalysis" BeforeTargets="Build" Condition="'$(RunCodeAnalysis)' == 'true'">

@@ -1,3 +1,5 @@
+<!-- Directory.Pack.targets -->
+<!-- This file contains build targets specific to packaging .NET projects into NuGet packages. -->
 <Project>
 
   <Target Name="ValidatePackageConfiguration" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">

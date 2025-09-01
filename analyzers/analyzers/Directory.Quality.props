@@ -1,3 +1,5 @@
+<!-- Directory.Quality.props -->
+<!-- This file contains quality assurance settings for all projects in the solution. -->
 <Project>
 
   <PropertyGroup Label="Quality Assurance Configuration">

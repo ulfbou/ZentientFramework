@@ -1,3 +1,5 @@
+<!-- Directory.Performance.targets -->
+<!-- This file contains build targets specific to performance analysis and benchmarking for library projects. -->
 <Project>
 
   <Target Name="RunPerformanceBenchmarks" Condition="'$(PerformanceBenchmarkingEnabled)' == 'true' AND '$(Configuration)' == 'Release'">

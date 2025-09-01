@@ -1,3 +1,5 @@
+<!-- Directory.Test.props -->
+<!-- This file contains testing-related build configurations for all test projects in the repository. -->
 <Project>
 
   <PropertyGroup Label="Test Configuration">

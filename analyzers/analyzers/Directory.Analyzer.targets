@@ -1,10 +1,8 @@
 <!-- Directory.Analyzer.targets -->
+<!-- This file contains build targets specific to Roslyn analyzer projects. -->
 <Project>
 
-  <!-- Detect if this is a Roslyn Analyzer project by checking the name -->
-  <!-- If the project name contains "Analyzer", we assume it's a Roslyn Analyzer project, -->
-  <!-- unless IsRoslynAnalyzerProject is explicitly set to false, or IsAnalyzer is false, or -->
-  <!-- the project is test project. -->
+  <!-- Detect if the project is a Roslyn analyzer based on naming conventions -->
   <PropertyGroup Condition="'$(IsRoslynAnalyzerProject)' != 'true' AND
                             '$(IsAnalyzer)' != 'true' AND
                             '$(IsTestProject)' != 'true' AND

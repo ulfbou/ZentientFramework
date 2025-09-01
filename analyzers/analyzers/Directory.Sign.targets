@@ -1,3 +1,5 @@
+<!-- Directory.Signing.targets -->
+<!-- This file contains code signing and strong naming targets for all projects in the solution. -->
 <Project>
 
   <Target Name="SignAssemblies" AfterTargets="Build" Condition="'$(EnableCodeSigning)' == 'true'">

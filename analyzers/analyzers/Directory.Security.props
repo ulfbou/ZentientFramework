@@ -1,3 +1,5 @@
+<!-- Directory.Security.props -->
+<!-- This file contains security-related build configurations for all projects in the repository. -->
 <Project>
 
   <!-- Security Analysis Configuration -->

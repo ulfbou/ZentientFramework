@@ -1,3 +1,5 @@
+<!-- Directory.Security.targets -->
+<!-- This file contains security-related build configurations for all projects in the repository. -->
 <Project>
 
   <Target Name="RunSecurityScan" BeforeTargets="Build" Condition="'$(RunSecurityCodeAnalysis)' == 'true'">

@@ -1,3 +1,5 @@
+<!-- Directory.Performance.props -->
+<!-- This file contains performance monitoring and optimization settings for all projects in the solution. -->
 <Project>
 
   <!-- Performance Monitoring Configuration -->
