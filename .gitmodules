@@ -1,0 +1,4 @@
+[submodule "packages/Zentient.Abstractions"]
+	path = packages/Zentient.Abstractions
+	url = https://github.com/ulfbou/Zentient.Abstractions
+	branch = feature/3.0.0-type-definitions
