@@ -1,0 +1,268 @@
+# Path: .github/workflows/release.yml (for Zentient.Abstractions repository)
+name: Zentient.Abstractions CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - develop
+      - release/*
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  SOLUTION_FILE_NAME: Zentient.Abstractions.sln
+  NUGET_SOURCE_URL: https://api.nuget.org/v3/index.json
+
+jobs:
+  build-and-pack:
+    name: Build and Pack NuGet Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      head_sha: ${{ github.sha }}
+      head_branch: ${{ github.ref_name }}
+      sem_ver: ${{ steps.gitversion.outputs.SemVer }}
+      nuget_version_v2: ${{ steps.gitversion.outputs.NuGetVersionV2 }}
+      major_minor_patch: ${{ steps.gitversion.outputs.MajorMinorPatch }}
+      gitversion_major: ${{ steps.gitversion.outputs.Major }}
+      gitversion_minor: ${{ steps.gitversion.outputs.Minor }}
+      gitversion_patch: ${{ steps.gitversion.outputs.Patch }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+
+      - name: Install GitVersion
+        uses: GitTools/actions/gitversion/setup@v1
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Semantic Version
+        id: gitversion
+        uses: GitTools/actions/gitversion/execute@v1
+
+      - name: Restore NuGet Packages
+        run: dotnet restore "$SOLUTION_FILE_NAME"
+
+      - name: Build Solution
+        run: |
+          # Try building with .NET 9.0 first, fallback to excluding it
+          if dotnet build "$SOLUTION_FILE_NAME" \
+            --configuration Release \
+            --no-restore \
+            /p:ZENTIENT_VERSION_FINAL=${{ steps.gitversion.outputs.SemVer }} \
+            /p:ZENTIENT_VERSION_MAJOR=${{ steps.gitversion.outputs.Major }} \
+            /p:ZENTIENT_VERSION_MINOR=${{ steps.gitversion.outputs.Minor }} \
+            /p:ZENTIENT_VERSION_PATCH=${{ steps.gitversion.outputs.Patch }}; then
+            echo "Build succeeded with .NET 9.0 support"
+          else
+            echo "Falling back to build without .NET 9.0 support"
+            dotnet build "$SOLUTION_FILE_NAME" \
+              --configuration Release \
+              --no-restore \
+              /p:EXCLUDE_NET9=true \
+              /p:ZENTIENT_VERSION_FINAL=${{ steps.gitversion.outputs.SemVer }} \
+              /p:ZENTIENT_VERSION_MAJOR=${{ steps.gitversion.outputs.Major }} \
+              /p:ZENTIENT_VERSION_MINOR=${{ steps.gitversion.outputs.Minor }} \
+              /p:ZENTIENT_VERSION_PATCH=${{ steps.gitversion.outputs.Patch }}
+          fi
+
+      - name: Pack NuGet Package
+        run: |
+          mkdir -p artifacts/packages
+          echo "DEBUG: Attempting to pack with version: ${{ steps.gitversion.outputs.NuGetVersionV2 }}"
+
+          PROJECT_PATH="src/Zentient.Abstractions.csproj"
+
+          if [[ ! -f "$PROJECT_PATH" ]]; then
+            echo "ERROR: Project file not found at $PROJECT_PATH. Cannot pack."
+            exit 1
+          fi
+
+          dotnet pack "$PROJECT_PATH" \
+            --configuration Release \
+            --output artifacts/packages \
+            /p:Version="${{ steps.gitversion.outputs.NuGetVersionV2 }}" \
+            /p:PackageVersion="${{ steps.gitversion.outputs.NuGetVersionV2 }}" \
+            --no-build
+
+      - name: Verify Packed NuGet Package Version
+        run: |
+          echo "Contents of artifacts/packages AFTER dotnet pack:"
+          ls -lR artifacts/packages || true
+
+          PACKAGE_BASE_NAME="Zentient.Abstractions"
+          EXPECTED_NUPKG_NAME="${PACKAGE_BASE_NAME}.${{ steps.gitversion.outputs.NuGetVersionV2 }}.nupkg"
+          EXPECTED_NUPKG_PATH="artifacts/packages/$EXPECTED_NUPKG_NAME"
+
+          echo "DEBUG: Looking for expected package: $EXPECTED_NUPKG_PATH"
+
+          if [ -f "$EXPECTED_NUPKG_PATH" ]; then
+            echo "SUCCESS: Expected package '$EXPECTED_NUPKG_PATH' found."
+          else
+            echo "ERROR: Expected package '$EXPECTED_NUPKG_PATH' NOT found."
+            echo "Failing job because the NuGet package '$PACKAGE_BASE_NAME' was not created with the correct version."
+            exit 1
+          fi
+
+      - name: Upload NuGet Packages Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-${{ github.sha }}
+          path: artifacts/packages/
+
+  release:
+    name: Publish NuGet and GitHub Release
+    needs: build-and-pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+  
+    if: |
+      success() && (
+        startsWith(github.ref, 'refs/heads/release/') ||
+        github.ref_type == 'tag' ||
+        (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && (
+          github.base_ref == 'main' ||
+          github.base_ref == 'develop' ||
+          startsWith(github.base_ref, 'release/')
+        ))
+      )
+  
+    steps:
+      - name: Checkout Repository (for release notes)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+  
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+  
+      - name: Download NuGet Packages Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages-${{ needs.build-and-pack.outputs.head_sha }}
+          path: artifacts/packages
+  
+      - name: Check if NuGet Version Exists
+        id: check-version
+        run: |
+          PACKAGE="zentient.abstractions"
+          VERSION="${{ needs.build-and-pack.outputs.nuget_version_v2 }}"
+          STATUS_CODE=$(curl -sL -w "%{http_code}" "https://api.nuget.org/v3-flatcontainer/${PACKAGE}/${VERSION}/index.json" -o /dev/null)
+          echo "DEBUG: Querying package ${PACKAGE} version ${VERSION}. HTTP Status: ${STATUS_CODE}"
+          if [ "$STATUS_CODE" == "200" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push NuGet Packages to NuGet.org
+        if: steps.check-version.outputs.exists != 'true'
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_SOURCE_URL: https://api.nuget.org/v3/index.json
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "WARNING: NUGET_API_KEY is not set. Skipping push."
+            exit 0
+          fi
+  
+          PACKAGE_BASE="Zentient.Abstractions"
+          VERSION="${{ needs.build-and-pack.outputs.nuget_version_v2 }}"
+          NUPKG="artifacts/packages/${PACKAGE_BASE}.${VERSION}.nupkg"
+          SNUPKG="artifacts/packages/${PACKAGE_BASE}.${VERSION}.snupkg"
+  
+          if [ -f "$NUPKG" ]; then
+            echo "Pushing $NUPKG..."
+            dotnet nuget push "$NUPKG" --source "$NUGET_SOURCE_URL" --api-key "$NUGET_API_KEY"
+          else
+            echo "ERROR: Primary package not found: $NUPKG"
+            exit 1
+          fi
+  
+          if [ -f "$SNUPKG" ]; then
+            echo "Pushing $SNUPKG..."
+            dotnet nuget push "$SNUPKG" --source "$NUGET_SOURCE_URL" --api-key "$NUGET_API_KEY"
+          else
+            echo "Symbols package not found: $SNUPKG"
+          fi
+  
+      - name: Extract Release Notes
+        id: extract_release_notes
+        run: |
+          CHANGELOG="CHANGELOG.md"
+          VERSION="${{ needs.build-and-pack.outputs.major_minor_patch }}"
+  
+          if [ ! -f "$CHANGELOG" ]; then
+            echo "CHANGELOG.md not found. Skipping notes."
+            echo "body_path=NO_CHANGELOG_FOUND" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+  
+          awk "/^## \\[${VERSION}\\]/,/^## \[/" "$CHANGELOG" > release-notes.md.tmp
+  
+          sed -i '1d' release-notes.md.tmp
+          sed -i '/^## \\[/d' release-notes.md.tmp
+          sed -i -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' release-notes.md.tmp
+          sed -i '/^$/d' release-notes.md.tmp
+  
+          if [ ! -s release-notes.md.tmp ]; then
+            echo "No release notes found for version $VERSION."
+            echo "body_path=NO_RELEASE_NOTES" >> $GITHUB_OUTPUT
+            echo "No release notes available." > release-notes.md
+          else
+            mv release-notes.md.tmp release-notes.md
+            echo "body_path=release-notes.md" >> $GITHUB_OUTPUT
+          fi
+  
+      - name: Create GitHub Release
+        if: steps.check-version.outputs.exists != 'true' || startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.build-and-pack.outputs.sem_ver }}
+          name: Release ${{ needs.build-and-pack.outputs.sem_ver }}
+          draft: false
+          prerelease: ${{ needs.build-and-pack.outputs.sem_ver != needs.build-and-pack.outputs.major_minor_patch }}
+          body_path: release-notes.md
+          files: |
+            artifacts/packages/Zentient.Abstractions.${{ needs.build-and-pack.outputs.nuget_version_v2 }}.nupkg
+            artifacts/packages/Zentient.Abstractions.${{ needs.build-and-pack.outputs.nuget_version_v2 }}.snupkg
