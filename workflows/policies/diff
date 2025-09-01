@@ -1,0 +1,1788 @@
+diff --git a/.github/workflows/docs.yml b/.github/workflows/docs.yml
+new file mode 100644
+index 0000000..c95e7e2
+--- /dev/null
++++ b/.github/workflows/docs.yml
+@@ -0,0 +1,75 @@
++# Path: .github/workflows/docs.yml
++name: Build and Deploy Documentation
++
++on:
++  push:
++    branches:
++      - main
++
++  pull_request:
++    branches:
++      - main
++
++permissions:
++  contents: write
++  pages: write
++  id-token: write
++
++concurrency:
++  group: "pages"
++  cancel-in-progress: false
++
++jobs:
++  deploy-docs:
++    environment:
++      name: github-pages
++      url: ${{ steps.deployment.outputs.page_url }}
++    runs-on: ubuntu-latest
++
++    steps:
++      - name: Checkout Repository
++        uses: actions/checkout@v4
++
++      - name: Setup .NET SDK
++        uses: actions/setup-dotnet@v4
++        with:
++          dotnet-version: '9.0.x'
++
++      - name: Restore NuGet Packages
++        run: dotnet restore src/MyTestProject.csproj
++
++      - name: Build Project for XML Documentation
++        run: dotnet build src/MyTestProject.csproj --configuration Release
++
++      - name: Install DocFX Global Tool
++        run: dotnet tool install -g docfx
++
++      # Workaround Step: Explicitly generate API metadata
++      # This addresses the observed behavior where 'docfx build' sometimes skips metadata generation
++      # even with correct docfx.json configuration.
++      - name: Generate API Metadata (Workaround)
++        run: |
++          if [[ -d api ]]; then
++            echo "(DEBUG) Removing existing 'api' directory to ensure clean pack."
++            rm -rf api
++          fi
++          if [[ -d _site ]]; then
++            echo "(DEBUG) Removing existing '_site' directory to ensure clean pack."
++            rm -rf _site
++          fi
++          docfx metadata
++
++      - name: Build DocFX Site
++        run: docfx build
++
++      - name: Setup Pages
++        uses: actions/configure-pages@v5
++
++      - name: Upload Artifact
++        uses: actions/upload-pages-artifact@v3
++        with:
++          path: '_site'
++
++      - name: Deploy to GitHub Pages
++        id: deployment
++        uses: actions/deploy-pages@v4
+\ No newline at end of file
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+new file mode 100644
+index 0000000..f661f1c
+--- /dev/null
++++ b/.github/workflows/release.yml
+@@ -0,0 +1,279 @@
++# Path: .github/workflows/release.yml (for MyTestProject repository)
++name: MyTestProject CI/CD
++
++on:
++  push:
++    branches:
++      - main
++      - develop/*
++      - feature/*
++      - bugfix/*
++    tags:
++      - 'v[0-9]+.[0-9]+.[0-9]+'
++      - 'v[0-9]+.[0-9]+.[0-9]+-*'
++  pull_request:
++    types: [closed]
++    branches:
++      - main
++      - develop
++      - release/*
++  workflow_dispatch:
++
++env:
++  DOTNET_CLI_TELEMETRY_OPTOUT: true
++  DOTNET_NOLOGO: true
++  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
++  SOLUTION_FILE_NAME: MyTestProject.sln
++  NUGET_SOURCE_URL: https://api.nuget.org/v3/index.json
++
++jobs:
++  build-and-pack:
++    name: Build and Pack NuGet Package
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++    outputs:
++      head_sha: ${{ github.sha }}
++      head_branch: ${{ github.ref_name }}
++      sem_ver: ${{ steps.gitversion.outputs.SemVer }}
++      nuget_version_v2: ${{ steps.gitversion.outputs.NuGetVersionV2 }}
++      major_minor_patch: ${{ steps.gitversion.outputs.MajorMinorPatch }}
++      gitversion_major: ${{ steps.gitversion.outputs.Major }}
++      gitversion_minor: ${{ steps.gitversion.outputs.Minor }}
++      gitversion_patch: ${{ steps.gitversion.outputs.Patch }}
++
++    steps:
++      - name: Checkout Repository
++        uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++
++      - name: Setup .NET SDKs
++        uses: actions/setup-dotnet@v4
++        with:
++          dotnet-version: |
++            6.0.x
++            7.0.x
++            8.0.x
++            9.0.x
++
++      - name: Install GitVersion
++        uses: GitTools/actions/gitversion/setup@v1
++        with:
++          versionSpec: '5.x'
++
++      - name: Determine Semantic Version
++        id: gitversion
++        uses: GitTools/actions/gitversion/execute@v1
++
++      - name: Display GitVersion Outputs
++        run: |
++          echo "GitVersion Outputs:"
++          echo "  SemVer: ${{ steps.gitversion.outputs.SemVer }}"
++          echo "  NuGetVersionV2: ${{ steps.gitversion.outputs.NuGetVersionV2 }}"
++          echo "  MajorMinorPatch: ${{ steps.gitversion.outputs.MajorMinorPatch }}"
++          echo "  Major: ${{ steps.gitversion.outputs.Major }}"
++          echo "  Minor: ${{ steps.gitversion.outputs.Minor }}"
++          echo "  Patch: ${{ steps.gitversion.outputs.Patch }}"
++
++      - name: Restore NuGet Packages
++        run: dotnet restore "$SOLUTION_FILE_NAME"
++
++      - name: Build Solution
++        run: |
++          dotnet build "$SOLUTION_FILE_NAME" \
++            --configuration Release \
++            --no-restore \
++            /p:ZENTIENT_VERSION_FINAL=${{ steps.gitversion.outputs.SemVer }} \
++            /p:ZENTIENT_VERSION_MAJOR=${{ steps.gitversion.outputs.Major }} \
++            /p:ZENTIENT_VERSION_MINOR=${{ steps.gitversion.outputs.Minor }} \
++            /p:ZENTIENT_VERSION_PATCH=${{ steps.gitversion.outputs.Patch }}
++
++      - name: Build Tests
++        run: dotnet build tests/MyTestProject.Tests.csproj --configuration Release --no-restore
++
++      - name: Run Unit Tests
++        run: dotnet test tests/MyTestProject.Tests.csproj --configuration Release --no-build --logger trx --results-directory artifacts/test-results --verbosity normal
++
++      - name: Pack NuGet Package
++        run: |
++          mkdir -p artifacts/packages
++          echo "(DEBUG) Attempting to pack with version: ${{ steps.gitversion.outputs.NuGetVersionV2 }}"
++          PROJECT_PATH="src/MyTestProject.csproj"
++          if [[ ! -f "$PROJECT_PATH" ]]; then
++            echo "(ERROR) Project file not found at $PROJECT_PATH. Cannot pack."
++            exit 1
++          fi
++          dotnet pack "$PROJECT_PATH" \
++            --configuration Release \
++            --output artifacts/packages \
++            /p:Version="${{ steps.gitversion.outputs.NuGetVersionV2 }}" \
++            /p:PackageVersion="${{ steps.gitversion.outputs.NuGetVersionV2 }}" \
++            --no-build
++
++      - name: Pack NuGet Package
++        run: |
++          mkdir -p artifacts/packages
++          echo "DEBUG: Attempting to pack with version: ${{ steps.gitversion.outputs.NuGetVersionV2 }}"
++
++          PROJECT_PATH="src/MyTestProject.csproj"
++
++          if [[ ! -f "$PROJECT_PATH" ]]; then
++            echo "ERROR: Project file not found at $PROJECT_PATH. Cannot pack."
++            exit 1
++          fi
++
++          dotnet pack "$PROJECT_PATH" \
++            --configuration Release \
++            --output artifacts/packages \
++            /p:Version="${{ steps.gitversion.outputs.NuGetVersionV2 }}" \
++            /p:PackageVersion="${{ steps.gitversion.outputs.NuGetVersionV2 }}" \
++            --no-build
++
++      - name: Verify Packed NuGet Package Version
++        run: |
++          echo "Contents of artifacts/packages AFTER dotnet pack:"
++          ls -lR artifacts/packages || true
++
++          PACKAGE_BASE_NAME="MyTestProject"
++          EXPECTED_NUPKG_NAME="${PACKAGE_BASE_NAME}.${{ steps.gitversion.outputs.NuGetVersionV2 }}.nupkg"
++          EXPECTED_NUPKG_PATH="artifacts/packages/$EXPECTED_NUPKG_NAME"
++
++          echo "DEBUG: Looking for expected package: $EXPECTED_NUPKG_PATH"
++
++          if [ -f "$EXPECTED_NUPKG_PATH" ]; then
++            echo "SUCCESS: Expected package '$EXPECTED_NUPKG_PATH' found."
++          else
++            echo "ERROR: Expected package '$EXPECTED_NUPKG_PATH' NOT found."
++            echo "Failing job because the NuGet package '$PACKAGE_BASE_NAME' was not created with the correct version."
++            exit 1
++          fi
++
++      - name: Upload NuGet Packages Artifact
++        uses: actions/upload-artifact@v4
++        with:
++          name: nuget-packages-${{ github.sha }}
++          path: artifacts/packages/
++
++  release:
++    name: Publish NuGet and GitHub Release
++    needs: build-and-pack
++    runs-on: ubuntu-latest
++    permissions:
++      contents: write
++      packages: write
++      id-token: write
++
++    if: |
++      success() && (
++        startsWith(github.ref, 'refs/heads/release/') ||
++        github.ref_type == 'tag' ||
++        (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && (
++          github.base_ref == 'main' ||
++          github.base_ref == 'develop' ||
++          startsWith(github.base_ref, 'release/')
++        ))
++      )
++
++    steps:
++      - name: Checkout Repository (for release notes)
++        uses: actions/checkout@v4
++        with:
++          ref: ${{ github.sha }}
++          fetch-depth: 0
++
++      - name: Setup .NET SDK (for dotnet nuget push)
++        uses: actions/setup-dotnet@v4
++        with:
++          dotnet-version: 9.0.x
++
++      - name: Download NuGet Packages Artifact
++        uses: actions/download-artifact@v4
++        with:
++          name: nuget-packages-${{ needs.build-and-pack.outputs.head_sha }}
++          path: artifacts/packages
++      - name: Debug NuGet Package Info (for NuGet.org push)
++        run: |
++          echo "Debug Info for NuGet Push:"
++          echo "github.ref: ${{ github.ref }}"
++          echo "github.ref_type: ${{ github.ref_type }}"
++          echo "GitVersion nuget_version_v2: ${{ needs.build-and-pack.outputs.nuget_version_v2 }}"
++          echo "Contents of artifacts/packages:"
++          ls -R artifacts/packages || true
++          echo "Attempting to find package using direct path and wildcard:"
++          find artifacts/packages -name "*.${{ needs.build-and-pack.outputs.nuget_version_v2 }}.nupkg" -print || true
++          find artifacts/packages -name "*.snupkg" -print || true
++
++      - name: Push NuGet Packages to NuGet.org
++        env:
++          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
++        run: |
++          PACKAGE_BASE_NAME="MyTestProject"
++          PACKAGE_VERSION="${{ needs.build-and-pack.outputs.nuget_version_v2 }}"
++
++          PRIMARY_PACKAGE_GLOB="artifacts/packages/${PACKAGE_BASE_NAME}.${PACKAGE_VERSION}.nupkg"
++          SYMBOL_PACKAGE_GLOB="artifacts/packages/${PACKAGE_BASE_NAME}.${PACKAGE_VERSION}.snupkg"
++
++          if find "$PRIMARY_PACKAGE_GLOB" -print -quit | grep -q .; then
++            echo "Publishing primary package: $PRIMARY_PACKAGE_GLOB..."
++            dotnet nuget push "$PRIMARY_PACKAGE_GLOB" \
++              --source "${{ env.NUGET_SOURCE_URL }}" \
++              --api-key "$NUGET_API_KEY" \
++              --skip-duplicate
++          else
++            echo "Primary NuGet package not found for '$PACKAGE_BASE_NAME'. Expected: $PRIMARY_PACKAGE_GLOB. Skipping push."
++            exit 1
++          fi
++
++          if find "$SYMBOL_PACKAGE_GLOB" -print -quit | grep -q .; then
++            echo "Publishing symbols package: $SYMBOL_PACKAGE_GLOB..."
++            dotnet nuget push "$SYMBOL_PACKAGE_GLOB" \
++              --source "${{ env.NUGET_SOURCE_URL }}/symbolpackage" \
++              --api-key "$NUGET_API_KEY" \
++              --skip-duplicate
++          else
++            echo "Symbols NuGet package not found for '$PACKAGE_BASE_NAME'. Expected: $SYMBOL_PACKAGE_GLOB. Skipping symbols push."
++          fi
++
++      - name: Extract Release Notes
++        id: extract_release_notes
++        run: |
++          CHANGELOG_PATH="CHANGELOG.md"
++          RELEASE_VERSION="${{ needs.build-and-pack.outputs.major_minor_patch }}"
++          
++          if [ ! -f "$CHANGELOG_PATH" ]; then
++            echo "WARNING: CHANGELOG.md not found at $CHANGELOG_PATH. Skipping release notes extraction."
++            echo "body_path=NO_CHANGELOG_FOUND" >> $GITHUB_OUTPUT
++            exit 0
++          fi
++
++          awk "/^## \\[${RELEASE_VERSION}\\]/,/^## /" "$CHANGELOG_PATH" > release-notes.md.tmp
++          
++          sed -i '1d' release-notes.md.tmp
++          sed -i '/^## /d' release-notes.md.tmp
++          sed -i -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' release-notes.md.tmp
++          sed -i '/^$/d' release-notes.md.tmp
++
++          if [ ! -s release-notes.md.tmp ]; then
++            echo "WARNING: No release notes content found for version ${RELEASE_VERSION} in $CHANGELOG_PATH."
++            echo "body_path=NO_RELEASE_NOTES" >> $GITHUB_OUTPUT
++            echo "No release notes content available for this version." > release-notes.md
++          else
++            mv release-notes.md.tmp release-notes.md
++            echo "body_path=release-notes.md" >> $GITHUB_OUTPUT
++            echo "Release notes extracted for version ${RELEASE_VERSION}."
++          fi
++
++      - name: Create GitHub Release
++        uses: softprops/action-gh-release@v2
++        env:
++          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++        with:
++          tag_name: ${{ needs.build-and-pack.outputs.sem_ver }}
++          name: Release ${{ needs.build-and-pack.outputs.sem_ver }}
++          draft: false
++          prerelease: ${{ needs.build-and-pack.outputs.sem_ver != needs.build-and-pack.outputs.major_minor_patch }}
++          body_path: release-notes.md
++          files: |
++            artifacts/packages/MyTestProject.${{ needs.build-and-pack.outputs.nuget_version_v2 }}.nupkg
++            artifacts/packages/MyTestProject.${{ needs.build-and-pack.outputs.nuget_version_v2 }}.snupkg
+\ No newline at end of file
+diff --git a/.gitignore b/.gitignore
+index ce89292..85aa0f4 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -416,3 +416,8 @@ FodyWeavers.xsd
+ *.msix
+ *.msm
+ *.msp
++
++# DocFX generated output
++_site/
++api/
++bin/
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+new file mode 100644
+index 0000000..eeaae5d
+--- /dev/null
++++ b/CHANGELOG.md
+@@ -0,0 +1,77 @@
++Here is the **perfect `CHANGELOG.md` template** for a Zentient Framework library—modeled after `Zentient.Endpoints`, aligned with Conventional Commits, developer-first principles, and ecosystem modularity:
++
++---
++
++# 📦 CHANGELOG
++
++> All notable changes to this project will be documented in this file.
++> The format is based on [Conventional Commits](https://www.conventionalcommits.org/) and this project adheres to [Semantic Versioning](https://semver.org/).
++
++---
++
++## \[Unreleased]
++
++> **Planned changes not yet released**
++
++### ✨ Added
++
++* Initial roadmap items or planned APIs (e.g., `Zentient.{ModuleName}.Grpc`)
++* Placeholder for future transport adapters or diagnostics hooks
++
++### 🛠 Changed
++
++* Placeholder for breaking or behavioral changes coming in future releases
++
++### 🧹 Removed
++
++* Deprecated behaviors, code paths, or obsolete APIs pending removal
++
++---
++
++## \[v0.1.0] — YYYY-MM-DD
++
++> 🎉 First public release
++
++### ✨ Added
++
++* Introduced core abstractions: `I{ModuleInterface}`, `Zentient.{ModuleName}` base types
++* Functional extensions for fluent usage with `IResult<T>`
++* DI registration via `AddZentient{ModuleName}()`
++* Basic observability hooks (e.g., logger/metadata support)
++
++### 🔧 Infrastructure
++
++* CI/CD pipeline using GitHub Actions with .NET 8 and .NET 9 matrix
++* NuGet publishing with source link and deterministic builds
++* Initialized full documentation structure (`README.md`, `docs/`, `docfx.json`)
++* Applied `.editorconfig`, license, and code-style baselines
++
++---
++
++## \[v0.1.0-preview\.1] — YYYY-MM-DD
++
++> 🧪 Internal pre-release for integrators and collaborators
++
++### ✨ Added
++
++* Preview version of `Zentient.{ModuleName}.Http` (or equivalent transport adapter)
++* Early support for `Bind(...)` and exception-wrapping behavior
++* Experimental DI hooks and extension patterns
++
++---
++
++## 💡 Versioning Guidelines
++
++* **Patch (`x.y.Z`)**: Fixes and backward-compatible improvements
++* **Minor (`x.Y.z`)**: New features, safe for all consumers
++* **Major (`X.y.z`)**: Breaking changes, redesigns, or removed APIs
++
++---
++
++## 📜 Past Releases
++
++> Earlier releases (if any) will be listed here in descending order once versioning is formalized.
++
++---
++
++> Maintained with ❤️ by [@ulfbou](https://github.com/ulfbou) and Zentient contributors.
+diff --git a/CODE_OF_CONDUCT.md b/CODE_OF_CONDUCT.md
+new file mode 100644
+index 0000000..0a41aba
+--- /dev/null
++++ b/CODE_OF_CONDUCT.md
+@@ -0,0 +1,73 @@
++# Code of Conduct for Zentient Frameworks
++
++## Our Pledge
++
++We as members, contributors, and maintainers of the Zentient.Results project pledge to make participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
++
++We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
++
++## Our Standards
++
++Examples of behavior that contributes to a positive environment for our community include:
++
++* Demonstrating empathy and kindness toward other people
++* Being respectful of differing opinions, viewpoints, and experiences
++* Giving and gracefully accepting constructive feedback
++* Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
++* Focusing on what is best not just for us as individuals, but for the overall community
++
++Examples of unacceptable behavior include:
++
++* The use of sexualized language or imagery, and sexual attention or advances of any kind
++* Trolling, insulting or derogatory comments, and personal or political attacks
++* Public or private harassment
++* Publishing others' private information, such as a physical or email address, without their explicit permission
++* Other conduct which could reasonably be considered inappropriate in a professional setting
++
++## Enforcement Responsibilities
++
++Project maintainers are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
++
++Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, and will communicate reasons for moderation decisions when appropriate.
++
++## Scope
++
++This Code of Conduct applies within all project spaces, and also applies when an individual is officially representing the project in public spaces. Examples of representing our project include using an official project e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
++
++## Enforcement Guidelines
++
++Project maintainers will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
++
++### 1. Correction
++
++* **Community Impact**: Use of inappropriate language or other behavior deemed unprofessional or unwelcome in the community.
++* **Consequence**: A private, written warning from project maintainers, providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate. A public apology may be requested.
++
++### 2. Warning
++
++* **Community Impact**: A violation through a single incident or series of actions.
++* **Consequence**: A warning with consequences for continued behavior. No interaction with the involved people for a specified period, including unsolicited interaction with those enforcing the Code of Conduct. This includes avoiding interaction in community spaces as well as external channels like social media. Violating these terms may lead to a temporary or permanent ban.
++
++### 3. Temporary Ban
++
++* **Community Impact**: A serious violation of community standards, including sustained inappropriate behavior.
++* **Consequence**: A temporary ban from any sort of interaction or public communication with the project community for a specified period. No public or private interaction with the involved people, including unsolicited interaction with those enforcing the Code of Conduct. Violating these terms may lead to a permanent ban.
++
++### 4. Permanent Ban
++
++* **Community Impact**: Demonstrating a pattern of violation of community standards, including sustained inappropriate behavior, harassment of an individual, or aggression toward or disparagement of classes of individuals.
++* **Consequence**: A permanent ban from any public interaction within the project community.
++
++## Reporting Violations
++
++If you experience or witness unacceptable behavior, or have any other concerns, please report it as soon as possible by contacting the project maintainers at **zentientdev@gmail.com**.
++
++All complaints will be reviewed and investigated promptly and fairly. All maintainers are obligated to respect the privacy and security of the reporter of any incident.
++
++## Attribution
++
++This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1, available at [https://www.contributor-covenant.org/version/2/1/code_of_conduct.html](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html).
++
++Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
++
++For answers to common questions about this code of conduct, see the [FAQ](https://www.contributor-covenant.org/faq).
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+new file mode 100644
+index 0000000..86eeb49
+--- /dev/null
++++ b/CONTRIBUTING.md
+@@ -0,0 +1,139 @@
++# Contributing to the Zentient Framework
++
++We welcome and deeply appreciate your contributions to the Zentient Framework! By contributing, you play a vital role in building a robust, predictable, and developer-first ecosystem for the entire .NET community. This document outlines the guidelines and processes for contributing across all Zentient projects.
++
++## Code of Conduct
++
++To ensure a welcoming, inclusive, and professional environment, all contributors are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please review it before contributing.
++
++## How Can I Contribute?
++
++Your contributions can take many forms:
++
++### 1. Reporting Bugs
++
++If you discover a bug in any Zentient library, please open an issue on the relevant project's GitHub Issues page.
++When reporting, please provide:
++* A clear and concise description of the bug.
++* Detailed steps to reproduce the behavior.
++* The expected vs. actual behavior.
++* Screenshots or minimal code snippets if helpful.
++* Your .NET SDK version(s) and operating system.
++
++### 2. Suggesting Enhancements
++
++Have an idea for a new feature, API improvement, or better documentation? We'd love to hear it!
++Open an issue on the relevant project's GitHub Issues page and describe your suggestion, including:
++* A clear and concise description of the proposed enhancement.
++* The specific problem it solves or the benefit it provides.
++* Any potential alternatives or considerations you've explored.
++
++### 3. Writing Code
++
++We highly value contributions of code for bug fixes, new features, or refactorings. Before starting any significant work:
++
++* **Check existing issues:** See if your contribution is already being discussed or worked on.
++* **Open an issue:** For new features, significant changes, or complex bug fixes, please open an issue first to discuss your idea with the maintainers. This ensures alignment, prevents duplicate efforts, and helps us guide you.
++* **Fork the repository:** Create a fork of the Zentient Framework's main repository on GitHub.
++
++### 4. Improving Documentation
++
++High-quality, developer-first documentation is crucial for Zentient. If you find typos, inaccuracies, or areas that could be explained more clearly in any `README.md`, conceptual guides (`/docs/`), or code comments, please consider contributing. You can submit a pull request with your changes or open an issue.
++
++## Getting Started with Development
++
++To set up your local development environment for the Zentient Framework:
++
++1.  **Prerequisites:**
++    * .NET SDK (version 8.0 or newer). We recommend using the latest stable version of .NET 9.0.
++    * [GitVersion CLI](https://gitversion.net/docs/): For consistent versioning across the framework.
++    * [pre-commit](https://pre-commit.com/#installation): For local code formatting and linting checks before committing. Install it via pip (`pip install pre-commit`) and then run `pre-commit install` in the repository root.
++
++2.  **Clone the Repository:**
++    ```bash
++    git clone [https://github.com/ulfbou/Zentient.Framework.git](https://github.com/ulfbou/Zentient.Framework.git) # Adjust if main repo name is different
++    cd Zentient.Framework
++    ```
++
++3.  **Build the Project:**
++    ```bash
++    dotnet build # This will build all projects in the solution
++    ```
++
++4.  **Run Tests:**
++    ```bash
++    dotnet test # This will run tests for all test projects
++    ```
++
++## Your First Code Contribution (Workflow)
++
++Once you've set up your development environment:
++
++1.  **Create a New Branch:**
++    * For new features: `git checkout -b feat/your-feature-name`
++    * For bug fixes: `git checkout -b fix/issue-number-short-description`
++    * For documentation: `git checkout -b docs/clarify-api-usage`
++    * For refactoring/chore: `git checkout -b chore/refactor-module-x`
++
++2.  **Make Your Changes:** Implement your feature, bug fix, or documentation update.
++
++3.  **Adhere to Framework Conventions:**
++    * **Coding Style:** Follow standard .NET coding conventions. We use a `.editorconfig` file to enforce consistent formatting; your IDE should pick this up automatically. Run `dotnet format` locally before committing (`pre-commit` will also enforce this).
++    * **Zentient Design Principles:** Ensure your changes align with the framework's core philosophies:
++        * **Async-First:** All public APIs designed for I/O or long-running operations must be asynchronous (`Task<T>`, `ValueTask<T>`) and omit the `Async` suffix if no synchronous counterpart exists. Avoid `.Result` or `.Wait()`.
++        * **Developer-First:** Prioritize predictability, clear API surface, and compiler-guided correctness.
++        * **Interface-First:** Public contracts (method return types, parameters) should rely on interfaces (e.g., `IResult<T>`, `IEndpointOutcome`), not concrete types.
++        * **Immutability:** All result, outcome, and metadata types (like `ErrorInfo`, `Result`, `EndpointOutcome`, `TransportMetadata`) must be immutable (using `init` setters).
++        * **Naming Conventions:** Adhere strictly to the guidelines in `/docs/conventions/naming-conventions.md` (e.g., `I` prefix for interfaces, `Extensions` suffix for extension classes, `With`/`Set`/`As`/`From` patterns).
++        * **Cancellation Support:** Include `CancellationToken` for methods performing I/O or potentially long-running operations.
++
++4.  **Write Tests:**
++    * All new features must be accompanied by comprehensive unit tests.
++    * Bug fixes should include a regression test that fails without your fix and passes with it.
++    * Ensure all existing tests pass after your changes (`dotnet test`).
++    * Aim for high code coverage, especially for core logic.
++
++5.  **Commit Your Changes:**
++    Write clear, concise commit messages. We encourage using [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) (e.g., `feat(endpoints): add new result type`, `fix(results): resolve serialization issue`, `docs: update async guidelines`).
++    ```bash
++    git add .
++    git commit -m "feat(module): descriptive commit message"
++    ```
++
++6.  **Push to Your Fork:**
++    ```bash
++    git push origin feat/my-new-feature
++    ```
++
++7.  **Create a Pull Request (PR):**
++    * Go to the Zentient Framework GitHub repository (or your fork) and you should see a prompt to create a new pull request from your pushed branch.
++    * **Target the `develop` branch.**
++    * Provide a clear title and detailed description for your PR.
++    * Reference any related issues (e.g., `Closes #123` or `Fixes #123`).
++    * Explain the changes you've made, why they are necessary, and how they align with Zentient's conventions.
++    * Ensure all CI checks (formatting, analyzers, tests) pass.
++    * Be prepared for constructive feedback and discussions during the review process.
++
++## License
++
++By contributing to the Zentient Framework, you agree that your contributions will be licensed under the [MIT License](https://github.com/ulfbou/Zentient.Framework/blob/main/LICENSE) (adjust path if different).
++
++## Support & Contact
++
++If you have any questions or need clarification on the contributing process, please don't hesitate to open a [GitHub Issue](https://github.com/ulfbou/Zentient.Framework/issues) or join our [Discussions board](https://github.com/ulfbou/Zentient.Framework/discussions) (if applicable).
++
++Thank you for helping us build the future of predictable .NET outcomes!
++
++---
++
++## 📚 Resources & Related Documents
++
++* [Zentient.Results NuGet](https://www.nuget.org/packages/Zentient.Results)
++* [Zentient.Endpoints NuGet](https://www.nuget.org/packages/Zentient.Endpoints)
++* [GitVersion Documentation](https://gitversion.net/docs/)
++* [dotnet format Documentation](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-format)
++* `/docs/conventions/async-guidelines.md`
++* `/docs/conventions/developer-first.md`
++* `/docs/conventions/naming-conventions.md`
++* `/docs/architecture/transport-pipeline.md`
++* `/docs/analyzers/rules.md`
+diff --git a/Directory.Build.props b/Directory.Build.props
+new file mode 100644
+index 0000000..a27e16b
+--- /dev/null
++++ b/Directory.Build.props
+@@ -0,0 +1,79 @@
++<!-- Directory Build Properties for MyTestProject solution -->
++<Project>
++	<PropertyGroup>
++		<SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildThisFileDirectory)</SolutionDir>
++
++		<Version Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</Version>
++		<InformationalVersion Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</InformationalVersion>
++		<PackageVersion Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</PackageVersion>
++		<NuGetVersion Condition="'$(ZENTIENT_VERSION_FINAL)' != ''">$(ZENTIENT_VERSION_FINAL)</NuGetVersion>
++
++		<AssemblyVersion Condition="'$(ZENTIENT_VERSION_MAJOR)' != ''">$(ZENTIENT_VERSION_MAJOR).$(ZENTIENT_VERSION_MINOR).$(ZENTIENT_VERSION_PATCH).0</AssemblyVersion>
++		<FileVersion Condition="'$(ZENTIENT_VERSION_MAJOR)' != ''">$(ZENTIENT_VERSION_MAJOR).$(ZENTIENT_VERSION_MINOR).$(ZENTIENT_VERSION_PATCH).0</FileVersion>
++
++		<Authors>Ulf Bourelius</Authors>
++		<Company>Zentient Framework Team</Company>
++		<Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
++		<PackageLicenseExpression>MIT</PackageLicenseExpression>
++		<PackageProjectUrl>https://github.com/ulfbou/MyTestProject</PackageProjectUrl>
++		<RepositoryUrl>https://github.com/ulfbou/MyTestProject.git</RepositoryUrl>
++		<RepositoryType>git</RepositoryType>
++		<PublishRepositoryUrl>true</PublishRepositoryUrl>
++		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
++
++		<SignAssembly>false</SignAssembly>
++		<PublicSign>false</PublicSign>
++		<AssemblyOriginatorKeyFile>$(SolutionDir)Zentient.snk</AssemblyOriginatorKeyFile>
++
++		<IsReleaseVersion Condition="'$(ZENTIENT_VERSION_FINAL)' != '' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(ZENTIENT_VERSION_FINAL)', '^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'))">true</IsReleaseVersion>
++		<IsReleaseVersion Condition="'$(IsReleaseVersion)' == ''">false</IsReleaseVersion>
++
++		<SignAssembly Condition="'$(IsReleaseVersion)' == 'true'">true</SignAssembly>
++		<PublicSign Condition="'$(IsReleaseVersion)' == 'true'">true</PublicSign>
++
++		<SignAssembly Condition="'$(IsTestProject)' == 'true'">false</SignAssembly>
++		<PublicSign Condition="'$(IsTestProject)' == 'true'">false</PublicSign>
++
++		<EmbedUntrackedSources>true</EmbedUntrackedSources>
++		<IncludeSymbols>true</IncludeSymbols>
++		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
++		<GenerateDocumentationFile Condition="'$(IsTestProject)' != 'true'">true</GenerateDocumentationFile>
++		<NoWarn>$(NoWarn);CS1591</NoWarn>
++
++		<LangVersion>latest</LangVersion>
++		<Nullable>enable</Nullable>
++		<ImplicitUsings>enable</ImplicitUsings>
++
++		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
++		<TreatWarningsAsErrors Condition="'$(IsTestProject)' != 'true'">true</TreatWarningsAsErrors>
++		<WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
++		<Deterministic>true</Deterministic>
++		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
++
++		<DebugType Condition="'$(Configuration)' == 'Debug'">portable</DebugType>
++		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
++		<Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
++		<DebugSymbols Condition="'$(Configuration)' == 'Debug'">true</DebugSymbols>
++		<DebugSymbols Condition="'$(Configuration)' == 'Release'">true</DebugSymbols>
++		<DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG;TRACE</DefineConstants>
++		<DefineConstants Condition="'$(Configuration)' == 'Release'">$(DefineConstants);TRACE</DefineConstants>
++
++		<BaseOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\bin</BaseOutputPath>
++		<BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\obj</BaseIntermediateOutputPath>
++		<PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\packages</PackageOutputPath>
++	</PropertyGroup>
++
++	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
++		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER</DefineConstants>
++	</PropertyGroup>
++
++	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
++		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER;NET9_0_OR_GREATER</DefineConstants>
++	</PropertyGroup>
++
++	<PropertyGroup Condition="'$(IsTestProject)' == 'true'">
++		<NoWarn>$(NoWarn);CS1574;CS1591;SA1600;SA1601;SA1602;SA1604;SA1605;SA1606;SA1607;SA1608;SA1609;SA1610;SA1611;SA1612;SA1613;SA1614;SA1615;SA1616;SA1617;SA1618;SA1619;SA1620;SA1621;SA1622;SA1623;SA1624;SA1625;SA1626;SA1627;SA1628;SA1629;SA1630;SA1631;SA1632;SA1633;SA1634;SA1635;SA1636;SA1637;SA1638;SA1639;SA1640;SA1641;SA1642;SA1643;SA1644;SA1645;SA1646;SA1647;CS1734</NoWarn>
++		<GenerateDocumentationFile>false</GenerateDocumentationFile>
++	</PropertyGroup>
++
++</Project>
+diff --git a/Directory.Build.targets b/Directory.Build.targets
+new file mode 100644
+index 0000000..de264c0
+--- /dev/null
++++ b/Directory.Build.targets
+@@ -0,0 +1,35 @@
++<!-- Directory Build Targets for MyTestProject solution -->
++<Project>
++
++	<!-- Unified output structure -->
++	<PropertyGroup>
++		<ArtifactsDir>$(SolutionDir)artifacts</ArtifactsDir>
++		<PackageOutputPath>$(ArtifactsDir)/packages</PackageOutputPath>
++
++		<!-- Use a consistent OutputPath across all projects, overriding default bin/Debug/Release -->
++		<OutputPath Condition="'$(IsTestProject)' != 'true'">$(ArtifactsDir)/bin/$(MSBuildProjectName)/$(Configuration)/</OutputPath>
++		<OutputPath Condition="'$(IsTestProject)' == 'true'">$(MSBuildProjectDirectory)/bin/$(Configuration)/$(TargetFramework)/</OutputPath>
++		<TestResultsDirectory>$(ArtifactsDir)/test-results/$(MSBuildProjectName)</TestResultsDirectory>
++	</PropertyGroup>
++
++	<!-- Analyzer support: allow repo-wide custom analyzers or rulesets -->
++	<PropertyGroup>
++		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
++		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
++		<CodeAnalysisRuleSet Condition="'$(IsTestProject)' != 'true'">$(SolutionDir)analyzers/Zentient.ruleset</CodeAnalysisRuleSet>
++		<CodeAnalysisRuleSet Condition="'$(IsTestProject)' == 'true'">$(SolutionDir)analyzers/Zentient.Tests.ruleset</CodeAnalysisRuleSet>
++	</PropertyGroup>
++
++	<ItemGroup>
++		<AdditionalFiles Include="$(SolutionDir).editorconfig" />
++
++		<!-- Internal rulesets or config files. Use AdditionalFiles for rule sets. -->
++		<AdditionalFiles Include="$(SolutionDir)analyzers/**/*.ruleset" Condition="Exists('$(SolutionDir)analyzers')" />
++	</ItemGroup>
++
++	<!-- Ensure all test projects isolate their results -->
++	<PropertyGroup Condition="'$(IsTestProject)' == 'true'">
++		<IsPackable>false</IsPackable>
++	</PropertyGroup>
++
++</Project>
+diff --git a/Directory.Pack.targets b/Directory.Pack.targets
+new file mode 100644
+index 0000000..3aceda0
+--- /dev/null
++++ b/Directory.Pack.targets
+@@ -0,0 +1,14 @@
++<!-- Directory Pack Targets for MyTestProject solution -->
++<Project>
++
++	<PropertyGroup>
++		<PackageOutputPath>$(SolutionDir)artifacts/packages</PackageOutputPath>
++
++		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">true</ContinuousIntegrationBuild>
++	</PropertyGroup>
++
++	<PropertyGroup Condition="'$(IsPackable)' == ''">
++		<IsPackable>true</IsPackable>
++	</PropertyGroup>
++
++</Project>
+diff --git a/Dockerfile b/Dockerfile
+new file mode 100644
+index 0000000..5c7d68f
+--- /dev/null
++++ b/Dockerfile
+@@ -0,0 +1,107 @@
++# Dockerfile to build and pack ulfbou/Zentient.Endpoints supporting .NET 8, 9
++
++# Use the stable .NET 9.0 SDK image.
++FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
++
++# Set environment variables to prevent telemetry and logo output
++ENV DOTNET_CLI_TELEMETRY_OPTOUT=true \
++    DOTNET_NOLOGO=true \
++    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
++
++# Install .NET 8.0 SDK via APT package manager
++# This is more reliable for stable/LTS versions on Debian-based images.
++RUN apt-get update && \
++    apt-get install -y --no-install-recommends \
++        apt-transport-https \
++        ca-certificates \
++        curl \
++        gnupg \
++        git \
++        jq && \
++    # Add Microsoft's GPG key using the safer curl + gpg method
++    # IMPORTANT: Ensure the key is placed in /usr/share/keyrings/ as specified in prod.list
++    mkdir -p /usr/share/keyrings && \
++    curl -sSL https://packages.microsoft.com/keys/microsoft.asc -o microsoft.asc && \
++    gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg microsoft.asc && \
++    rm microsoft.asc && \
++    # Add Microsoft's package list for Debian 12 (assuming the base is Debian 12)
++    # This prod.list explicitly references the key at /usr/share/keyrings/microsoft-prod.gpg
++    wget -O - https://packages.microsoft.com/config/debian/12/prod.list | tee /etc/apt/sources.list.d/microsoft-prod.list && \
++    # Update apt-get and install .NET 8.0 SDK
++    apt-get update && \
++    apt-get install -y --no-install-recommends dotnet-sdk-8.0 && \
++    # Clean up apt caches to keep the image size down
++    rm -rf /var/lib/apt/lists/*
++
++# Install GitVersion.Tool globally
++# Ensure /root/.dotnet/tools is on PATH for dotnet tools
++ENV PATH="${PATH}:/root/.dotnet/tools"
++RUN dotnet tool install --global GitVersion.Tool
++
++WORKDIR /app
++
++# Necessary for GitVersion when WORKDIR changes relative to the git root.
++RUN git config --global --add safe.directory /app
++
++# Copy the entire repository to ensure .git directory and Directory.Build.props are present
++COPY . .
++
++# Copy all MSBuild configuration files from repo root
++COPY *.props ./
++COPY *.targets ./
++
++# IMPORTANT: Fix path separators in the solution file for Linux compatibility
++# This command replaces all '\' with '/' in the .sln file
++RUN sed -i 's|\\|/|g' Zentient.Endpoints.sln
++
++# Restore dependencies
++RUN dotnet restore "Zentient.Endpoints.sln"
++
++# Pass the ZENTIENT_VERSION_FINAL_OVERRIDE build argument to this stage
++ARG ZENTIENT_VERSION_FINAL_OVERRIDE
++
++# Calculate version and export as an environment variable for subsequent steps
++RUN if [ -z "$ZENTIENT_VERSION_FINAL_OVERRIDE" ]; then \
++        export CALCULATED_VERSION=$(dotnet-gitversion /output json | jq -r '.SemVer'); \
++        echo "Calculated version: $CALCULATED_VERSION"; \
++        export ZENTIENT_VERSION_FINAL="$CALCULATED_VERSION"; \
++    else \
++        echo "Using provided version override: $ZENTIENT_VERSION_FINAL_OVERRIDE"; \
++        echo "Using final version for build: $ZENTIENT_VERSION_FINAL_OVERRIDE"; \
++        export ZENTIENT_VERSION_FINAL="$ZENTIENT_VERSION_FINAL_OVERRIDE"; \
++    fi && \
++    # Set the environment variable for this and subsequent RUN commands in this stage
++    echo "export ZENTIENT_VERSION_FINAL=$ZENTIENT_VERSION_FINAL" >> /etc/profile.d/zentient_version.sh && \
++    # Make sure it's available in the current shell context
++    export ZENTIENT_VERSION_FINAL="$ZENTIENT_VERSION_FINAL"
++
++# Build the solution in Release configuration
++RUN dotnet build "Zentient.Endpoints.sln" -c Release --no-restore \
++    /p:IsDockerBuild=true \
++    /p:ContinuousIntegrationBuild=true
++
++# ONLY RUN TESTS FOR ZENTIENT.ENDPOINTS.TESTS
++# This will only execute tests within that specific project.
++# Store test results in a well-known path within the container.
++RUN dotnet test "tests/Zentient.Endpoints.Tests/Zentient.Endpoints.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=test-results.trx" --collect "XPlat Code Coverage" --results-directory "/app/test-results"
++
++# Create a directory for NuGet package artifacts
++RUN mkdir -p /app/nuget-packages
++
++# Pack ONLY Zentient.Endpoints.csproj for the initial beta release
++# Store packed NuGet packages in a well-known path within the container.
++RUN echo "Packing src/Zentient.Endpoints/Zentient.Endpoints.csproj..."; \
++    dotnet pack "src/Zentient.Endpoints/Zentient.Endpoints.csproj" -c Release -o /app/nuget-packages --no-build \
++    /p:ContinuousIntegrationBuild=true \
++    /p:Version=$ZENTIENT_VERSION_FINAL # Ensure the final version from GitVersion is used
++
++# Final stage: copy artifacts out (using scratch for smallest image for artifacts)
++FROM scratch AS artifacts
++WORKDIR /app
++
++# Copy the NuGet packages and test results from the build stage
++COPY --from=build /app/nuget-packages /app/nuget-packages
++COPY --from=build /app/test-results /app/test-results
++
++# Default command to list the built artifacts for verification (useful for debugging)
++CMD ["ls", "-lR", "/app"]
+diff --git a/Dockerfile.runtime b/Dockerfile.runtime
+new file mode 100644
+index 0000000..9ac4cb0
+--- /dev/null
++++ b/Dockerfile.runtime
+@@ -0,0 +1,21 @@
++# Dockerfile.runtime
++# This Dockerfile is used by the CI pipeline to create the final runtime image
++# from already published application output (which is the build context).
++
++# ARG for the target framework version, passed from GitHub Actions
++ARG TARGET_FRAMEWORK
++
++# Use the appropriate base image based on the TARGET_FRAMEWORK ARG
++FROM mcr.microsoft.com/dotnet/aspnet:${TARGET_FRAMEWORK}
++
++WORKDIR /app
++
++# Copy the pre-published application from the build context (which is /tmp/app_net80 or /tmp/app/net90)
++# This directory already contains the DLLs, dependencies, etc., ready to run.
++COPY . .
++
++# Expose the default ASP.NET Core HTTP port
++EXPOSE 8080
++
++# Define the entry point for the application
++ENTRYPOINT ["dotnet", "Zentient.Endpoints.dll"]
+\ No newline at end of file
+diff --git a/GitVersion.yml b/GitVersion.yml
+new file mode 100644
+index 0000000..f54f284
+--- /dev/null
++++ b/GitVersion.yml
+@@ -0,0 +1,40 @@
++# GitVersion configuration for the Zentient.Endpoints project
++
++mode: ContinuousDelivery
++increment: Inherit
++tag-prefix: '[vV]'
++major-version-bump-message: '\+semver:\s?(major)'
++minor-version-bump-message: '\+semver:\s?(minor)'
++patch-version-bump-message: '\+semver:\s?(patch)'
++commit-message-incrementing: Enabled
++
++branches:
++  main:
++    mode: ContinuousDelivery
++    tag: ''
++    increment: Patch
++    is-release-branch: true
++    prevent-increment-of-merged-branch-version: true
++  develop:
++    mode: ContinuousDelivery
++    tag: beta
++    increment: Minor
++    is-release-branch: false
++
++  release:
++    regex: ^release[/-]v(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)$
++    mode: ContinuousDelivery
++    increment: Patch
++    is-release-branch: true
++    tag: ''
++    source-branches: ['main']
++
++  specific-package-release:
++    regex: ^release/(?!v\d+\.\d+\.\d+)(?<BranchName>.+)$
++    mode: ContinuousDelivery
++    increment: Patch
++    tag: 'rc'
++    source-branches: ['main']
++
++ignore:
++  sha: []
+diff --git a/README.md b/README.md
+index 8701bdb..c2c42c9 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,193 @@
+-# Zentient.Template
+\ No newline at end of file
++# Zentient.Template — {One-line Description of the Module's Purpose}
++
++[![NuGet](https://img.shields.io/nuget/v/Zentient.Template?label=Zentient.Template)](https://www.nuget.org/packages/Zentient.Template)
++[![Build](https://img.shields.io/github/actions/workflow/status/ulfbou/Zentient.Template/build.yml)](https://github.com/ulfbou/Zentient.Template/actions)
++![License](https://img.shields.io/github/license/ulfbou/Zentient.Template)
++![.NET Versions](https://img.shields.io/badge/.NET-8.0%20%7C%209.0-blue)
++
++---
++
++## Table of Contents
++
++* [Overview](#-overview)
++* [Why Zentient.Template?](#-why-zentientmodulename)
++* [Architecture](#-architecture-overview)
++* [Quick Start](#-quick-start)
++* [Advanced Usage](#-advanced-usage)
++* [Integration](#-integration)
++* [Observability](#-observability)
++* [Vision & Roadmap](#-vision--roadmap)
++* [Contributing](#-contributing)
++
++---
++
++## 🚀 Overview
++
++**Zentient.Template** is a modular, low-boilerplate building block for advanced .NET architectures. It aligns with the Zentient philosophy of clean separation, developer-first ergonomics, and protocol-agnostic design.
++
++Whether used standalone or as part of the larger [Zentient Framework](https://github.com/ulfbou/zentient), this module offers high cohesion and pluggability across the result pipeline, validation, telemetry, or domain boundaries.
++
++---
++
++## ❓ Why Zentient.Template?
++
++Common challenges in modern .NET systems that this module addresses:
++
++* 🔁 Repetition of infrastructure logic across layers
++* ⚠️ Tight coupling between concerns (validation, mapping, transport)
++* 🔍 Lack of composability and observability around critical flows
++* 🚫 Overuse of exceptions where structured data would be superior
++
++### ✨ Key Features
++
++* 🧩 **Composable Abstractions**
++  Built on interface-first contracts, extensible via DI and partial opt-in.
++
++* 📦 **Minimal Dependencies**
++  Zero heavy framework bindings unless explicitly extended (e.g., `Http`, `Grpc`, etc).
++
++* 🛠️ **Developer-First APIs**
++  Predictable, discoverable, and functional-style extensions across the stack.
++
++* 📐 **Clean Architecture Alignment**
++  Each library is suitable for Domain, Application, or Presentation layers as appropriate.
++
++* 🧪 **Testability by Design**
++  Interfaces and factories are easy to mock, verify, or extend.
++
++---
++
++## 🏛️ Architecture Overview
++
++This library is part of the **Zentient** modular ecosystem:
++
++```
++[ Domain Logic ] → [ Zentient.Results ] → [ Zentient.Template ] → [ Transport / Storage / Infra ]
++```
++
++A typical integration flow:
++
++* Application returns `IResult<T>`
++* `PackageTemplate` handles the cross-cutting concern (e.g., telemetry, validation, mapping)
++* Final output is adapted to the transport layer or infrastructure gateway
++
++![Architecture Diagram](./docs/assets/diagram.svg)
++
++---
++
++## 💻 Quick Start
++
++**1. Install via NuGet**
++
++```bash
++dotnet add package Zentient.Template
++```
++
++**2. Register services in `Program.cs`**
++
++```csharp
++builder.Services.AddZentientPackageTemplate(); // DI-friendly setup
++```
++
++**3. Apply in your logic**
++
++```csharp
++var result = await _myService.DoWorkAsync(request);
++return result
++    .PipeThroughMyConcern()
++    .ToWhatever(); // depends on module
++```
++
++---
++
++## 🔧 Advanced Usage
++
++### 🧰 Extend or Override Default Behavior
++
++All Zentient modules support inversion-of-control overrides:
++
++```csharp
++public class MyCustomThing : I{ModuleServiceInterface}
++{
++    public Outcome Execute(...)
++    {
++        // your implementation
++    }
++}
++```
++
++Register with:
++
++```csharp
++builder.Services.AddScoped<I{ModuleServiceInterface}, MyCustomThing>();
++```
++
++### ⚙️ Functional Pipelines
++
++Modules expose fluent, chainable operations via extension methods:
++
++```csharp
++var outcome = await _service.DoWork(input)
++    .ValidateWith(...)
++    .TransformWith(...)
++    .ObserveWith(...);
++```
++
++---
++
++## 🔌 Integration
++
++Zentient modules are designed to be **transport-agnostic** and **ecosystem-neutral**, but optional extensions may include:
++
++* `Zentient.Template.Http` — for ASP.NET Core integration
++* `Zentient.Template.Grpc` — for gRPC-based bindings
++* `Zentient.Template.Messaging` — for event-driven usage
++* `Zentient.Template.Analyzers` — for Roslyn-assisted enforcement
++
++---
++
++## 📊 Observability
++
++* 📈 **Structured Metadata Output**
++  Every operation can emit standardized metadata for structured logging.
++
++* 🔍 **Diagnostics-Friendly API**
++  Hook into logs, traces, or error pipelines at every stage.
++
++* 🧭 **OpenTelemetry Ready**
++  Easily connect to spans, baggage, and tracing scopes.
++
++---
++
++## 🗺️ Vision & Roadmap
++
++Zentient.Template is part of the long-term goal to modularize and standardize modern .NET systems around:
++
++* 🧩 Extensible and decoupled service boundaries
++* 🚦 Structured, domain-centric outcomes
++* 📡 Telemetry-aware design
++* 🧪 Developer-first tooling
++* 🌐 Protocol and transport neutrality
++
++**Planned:**
++
++* ✅ Core abstraction stabilization
++* 🔄 Support for additional transport adapters
++* 🧠 IntelliSense-enhanced analyzers
++* 🔒 Policy, validation, and observability extensions
++
++---
++
++## 🤝 Contributing
++
++We welcome contributions from developers who care about modularity, clarity, and clean system boundaries.
++
++* Fork the repository
++* Submit an issue or join the discussion
++* Open a PR with rationale and test coverage
++
++> Zentient.Template exists to eliminate repetition, enforce clarity, and enable robust, scalable .NET systems.
++
++---
++
++> Created with ❤️ by [@ulfbou](https://github.com/ulfbou) and the Zentient contributors.
+diff --git a/RELEASE_NOTES.md b/RELEASE_NOTES.md
+new file mode 100644
+index 0000000..4b757d1
+--- /dev/null
++++ b/RELEASE_NOTES.md
+@@ -0,0 +1,109 @@
++# 📦 MyTestProject v{Version} – {ReleaseTitle}
++
++📅 **Release Date:** {YYYY-MM-DD}  
++🏷️ **Version:** {Version}  
++📄 **Status:** ✅ Released  
++🔗 **Repository:** [{ProjectName}](https://github.com/{owner}/{repo-name})
++
++---
++
++## ✨ Overview
++
++{Introductory statement about the purpose and value of the library.}  
++This release establishes {describe what this version sets up, integrates with, or unlocks}. It is designed to work seamlessly with the broader **Zentient Framework**, particularly with modules like [`Zentient.Results`](https://github.com/ulfbou/Zentient.Results).
++
++---
++
++## 🧱 Key Features
++
++### 1. `{Feature 1 Name}`
++
++> {Brief functional description.}
++
++- {Bullet point explaining functionality.}  
++- {Bullet point explaining how to use or construct it.}
++
++---
++
++### 2. `{Feature 2 Name}`
++
++> {Brief functional description.}
++
++- {Bullet point explaining functionality.}  
++- {Bullet point for construction or integration.}
++
++---
++
++### 3. `{Feature 3 Name}`
++
++> {Optional comment or tagline.}
++
++- {Bullet points...}
++
++_(Add more features as needed. Each should include a short header, functional description, and bullets.)_
++
++---
++
++## 🎯 Motivation
++
++{Explain the design problem or architectural friction this module addresses.}  
++This version introduces:
++
++* ✅ {Design benefit, e.g., separation of concerns}  
++* 🔁 {Developer benefit, e.g., reuse across transports or testability}  
++* 🔐 {Robustness or safety benefit, e.g., immutability, contract-based API}  
++* 🧩 {Extensibility benefit, e.g., plug-and-play behaviors, metadata, pipelines}
++
++---
++
++## 🚀 Getting Started
++
++Install via NuGet:
++
++```bash
++dotnet add package {ProjectName}
++````
++
++Start using `{MainInterfaceOrType}` in your services or endpoints. Common usage patterns:
++
++```csharp
++var outcome = {ProjectName}.{StaticFactoryMethod}(...);
++```
++
++Attach extensions or metadata as needed:
++
++```csharp
++outcome.WithMetadata(m => m.WithTag("key", "value"));
++```
++
++---
++
++## 📦 Dependencies
++
++* ✅ [`Zentient.Results`](https://github.com/ulfbou/Zentient.Results) — Core result modeling primitives.
++* ➕ {Other dependencies if applicable}
++
++---
++
++## 📅 Roadmap Highlights
++
++> For the full roadmap, see the [project wiki](https://github.com/{owner}/{repo-name}/wiki/Roadmap).
++
++| Version | Focus Area                     | Status         |
++| ------- | ------------------------------ | -------------- |
++| 0.1.0   | {Initial core feature}         | ✅ Complete     |
++| 0.2.0   | {Next major integration area}  | 🔄 In Progress |
++| 0.3.0   | {Planned future extension}     | 🗓️ Planned    |
++| 0.4.0+  | {Ecosystem, tooling, adapters} | 🗓️ Planned    |
++
++---
++
++## 🙌 Acknowledgements
++
++Thanks to the **Zentient Framework Team**, early contributors, and the broader .NET ecosystem for helping make this vision possible.
++
++---
++
++## 🪪 License
++
++Distributed under the [MIT License](https://github.com/{owner}/{repo-name}/blob/main/LICENSE).
+diff --git a/Zentient.Template.sln b/Zentient.Template.sln
+new file mode 100644
+index 0000000..d208ba4
+--- /dev/null
++++ b/Zentient.Template.sln
+@@ -0,0 +1,36 @@
++﻿
++Microsoft Visual Studio Solution File, Format Version 12.00
++# Visual Studio Version 17
++VisualStudioVersion = 17.0.31903.59
++MinimumVisualStudioVersion = 10.0.40219.1
++Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
++EndProject
++Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
++EndProject
++Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Template", "src\Zentient.Template.csproj", "{965A5539-5742-1E31-45EE-395B5FEA9502}"
++EndProject
++Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Template.Tests", "tests\Zentient.Template.Tests.csproj", "{24EBE12F-4C24-B99E-C58A-477FB0F293AA}"
++EndProject
++Global
++	GlobalSection(SolutionConfigurationPlatforms) = preSolution
++		Debug|Any CPU = Debug|Any CPU
++		Release|Any CPU = Release|Any CPU
++	EndGlobalSection
++	GlobalSection(ProjectConfigurationPlatforms) = postSolution
++		{965A5539-5742-1E31-45EE-395B5FEA9502}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
++		{965A5539-5742-1E31-45EE-395B5FEA9502}.Debug|Any CPU.Build.0 = Debug|Any CPU
++		{965A5539-5742-1E31-45EE-395B5FEA9502}.Release|Any CPU.ActiveCfg = Release|Any CPU
++		{965A5539-5742-1E31-45EE-395B5FEA9502}.Release|Any CPU.Build.0 = Release|Any CPU
++		{24EBE12F-4C24-B99E-C58A-477FB0F293AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
++		{24EBE12F-4C24-B99E-C58A-477FB0F293AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
++		{24EBE12F-4C24-B99E-C58A-477FB0F293AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
++		{24EBE12F-4C24-B99E-C58A-477FB0F293AA}.Release|Any CPU.Build.0 = Release|Any CPU
++	EndGlobalSection
++	GlobalSection(SolutionProperties) = preSolution
++		HideSolutionNode = FALSE
++	EndGlobalSection
++	GlobalSection(NestedProjects) = preSolution
++		{965A5539-5742-1E31-45EE-395B5FEA9502} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
++		{24EBE12F-4C24-B99E-C58A-477FB0F293AA} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
++	EndGlobalSection
++EndGlobal
+diff --git a/Zentient.snk b/Zentient.snk
+new file mode 100644
+index 0000000..829e4db
+Binary files /dev/null and b/Zentient.snk differ
+diff --git a/analyzers/Zentient.Tests.ruleset b/analyzers/Zentient.Tests.ruleset
+new file mode 100644
+index 0000000..4a1ce43
+--- /dev/null
++++ b/analyzers/Zentient.Tests.ruleset
+@@ -0,0 +1,54 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RuleSet Name="Zentient Test Rules" Description="Relaxed Roslyn ruleset for Zentient test projects." ToolsVersion="15.0">
++	<Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
++		<Rule Id="CA1014" Action="None" />
++		<Rule Id="CA1062" Action="Error" />
++		<Rule Id="CA1502" Action="Error" />
++		<Rule Id="CA1506" Action="Error" />
++		<Rule Id="CA1515" Action="None" />
++		<Rule Id="CA1707" Action="None" />
++		<Rule Id="CA1708" Action="Error" />
++		<Rule Id="CA1710" Action="Warning" />
++		<Rule Id="CA1716" Action="Error" />
++		<Rule Id="CA1720" Action="Warning" />
++		<Rule Id="CA1724" Action="Error" />
++		<Rule Id="CA1805" Action="Warning" />
++		<Rule Id="CA1812" Action="None" />
++		<Rule Id="CA1819" Action="Warning" />
++		<Rule Id="CA1822" Action="Warning" />
++		<Rule Id="CA1825" Action="Error" />
++		<Rule Id="CA1829" Action="Warning" />
++		<Rule Id="CA1830" Action="Warning" />
++		<Rule Id="CA1831" Action="Warning" />
++		<Rule Id="CA2000" Action="Error" />
++		<Rule Id="CA2001" Action="Error" />
++		<Rule Id="CA2002" Action="Error" />
++		<Rule Id="CA2003" Action="Error" />
++		<Rule Id="CA2004" Action="Error" />
++		<Rule Id="CA2005" Action="Error" />
++		<Rule Id="CA2007" Action="Warning" />
++		<Rule Id="CA2012" Action="Error" />
++		<Rule Id="CA2016" Action="Error" />
++		<Rule Id="CA2208" Action="Warning" />
++		<Rule Id="CA2017" Action="Warning" />
++	</Rules>
++
++	<Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
++		<Rule Id="SA1000" Action="Error" />
++		<Rule Id="SA1005" Action="Error" />
++		<Rule Id="SA1101" Action="Error" />
++		<Rule Id="SA1105" Action="Warning" />
++		<Rule Id="SA1118" Action="Warning" />
++		<Rule Id="SA1200" Action="Error" />
++		<Rule Id="SA1309" Action="None" />
++		<Rule Id="SA1407" Action="Warning" />
++		<Rule Id="SA1516" Action="Warning" />
++		<Rule Id="SA1600" Action="None" />
++		<Rule Id="SA1601" Action="None" />
++		<Rule Id="SA1602" Action="None" />
++		<Rule Id="SA1609" Action="None" />
++		<Rule Id="SA1618" Action="None" />
++		<Rule Id="SA1623" Action="None" />
++		<Rule Id="SA1636" Action="None" />
++	</Rules>
++</RuleSet>
+diff --git a/analyzers/Zentient.ruleset b/analyzers/Zentient.ruleset
+new file mode 100644
+index 0000000..62ef08b
+--- /dev/null
++++ b/analyzers/Zentient.ruleset
+@@ -0,0 +1,56 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RuleSet Name="Zentient Core Rules" Description="Core Roslyn ruleset for Zentient code quality." ToolsVersion="17.0">
++	<Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
++		<Rule Id="CA1014" Action="None" />
++		<Rule Id="CA1062" Action="Error" />
++		<Rule Id="CA1502" Action="Error" />
++		<Rule Id="CA1506" Action="Error" />
++		<Rule Id="CA1515" Action="None" />
++		<Rule Id="CA1707" Action="None" />
++		<Rule Id="CA1708" Action="Error" />
++		<Rule Id="CA1710" Action="Warning" />
++		<Rule Id="CA1716" Action="Error" />
++		<Rule Id="CA1720" Action="Warning" />
++		<Rule Id="CA1724" Action="Error" />
++		<Rule Id="CA1805" Action="Warning" />
++		<Rule Id="CA1812" Action="None" />
++		<Rule Id="CA1819" Action="Warning" />
++		<Rule Id="CA1822" Action="Warning" />
++		<Rule Id="CA1825" Action="Error" />
++		<Rule Id="CA1829" Action="Warning" />
++		<Rule Id="CA1830" Action="Warning" />
++		<Rule Id="CA1831" Action="Warning" />
++		<Rule Id="CA2000" Action="Error" />
++		<Rule Id="CA2001" Action="Error" />
++		<Rule Id="CA2002" Action="Error" />
++		<Rule Id="CA2003" Action="Error" />
++		<Rule Id="CA2004" Action="Error" />
++		<Rule Id="CA2005" Action="Error" />
++		<Rule Id="CA2007" Action="Warning" />
++		<Rule Id="CA2012" Action="Error" />
++		<Rule Id="CA2016" Action="Error" />
++		<Rule Id="CA2017" Action="Warning" />
++		<Rule Id="CA2208" Action="Warning" />
++	</Rules>
++	<Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
++		<Rule Id="CA1848" Action="Info" />
++	</Rules>
++	<Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
++		<Rule Id="SA1000" Action="Error" />
++		<Rule Id="SA1005" Action="Error" />
++		<Rule Id="SA1101" Action="Error" />
++		<Rule Id="SA1105" Action="Warning" />
++		<Rule Id="SA1118" Action="Warning" />
++		<Rule Id="SA1200" Action="Error" />
++		<Rule Id="SA1309" Action="None" />
++		<Rule Id="SA1407" Action="Warning" />
++		<Rule Id="SA1516" Action="Warning" />
++		<Rule Id="SA1600" Action="Error" />
++		<Rule Id="SA1601" Action="Error" />
++		<Rule Id="SA1602" Action="Error" />
++		<Rule Id="SA1609" Action="Warning" />
++		<Rule Id="SA1618" Action="Error" />
++		<Rule Id="SA1623" Action="Warning" />
++		<Rule Id="SA1636" Action="Warning" />
++	</Rules>
++</RuleSet>
+diff --git a/docfx.json b/docfx.json
+new file mode 100644
+index 0000000..64f6909
+--- /dev/null
++++ b/docfx.json
+@@ -0,0 +1,46 @@
++{
++  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
++  "metadata": [
++    {
++      "src": [
++        {
++          "files": [
++            "src/bin/Release/net9.0/MyTestProject.dll",
++            "src/bin/Release/net9.0/MyTestProject.xml"
++          ]
++        }
++      ],
++      "dest": "api"
++    }
++  ],
++  "build": {
++    "content": [
++      {
++        "files": [
++          "**/*.{md,yml}"
++        ],
++        "exclude": [
++          "_site/**"
++        ]
++      }
++    ],
++    "resource": [
++      {
++        "files": [
++          "images/**"
++        ]
++      }
++    ],
++    "output": "_site",
++    "template": [
++      "default",
++      "modern"
++    ],
++    "globalMetadata": {
++      "_appName": "MyTestProject",
++      "_appTitle": "MyTestProject API Reference",
++      "_enableSearch": true,
++      "pdf": true
++    }
++  }
++}
+diff --git a/favicon.png b/favicon.png
+new file mode 100644
+index 0000000..9bfc0f2
+Binary files /dev/null and b/favicon.png differ
+diff --git a/src/Class1.cs b/src/Class1.cs
+new file mode 100644
+index 0000000..c66acd1
+--- /dev/null
++++ b/src/Class1.cs
+@@ -0,0 +1,57 @@
++// <copyright file="PackageService.cs" company="Zentient Framework Team">
++// Copyright © 2025 Zentient Framework Team. All rights reserved.
++// </copyright>
++
++using System.Diagnostics.CodeAnalysis;
++using System.Reflection;
++
++namespace Zentient.Template
++{
++    /// <summary>
++    /// Provides core functionalities and information for the Zentient package template.
++    /// This class serves as an initial entry point and can be extended or replaced
++    /// with actual business logic for your new package.
++    /// </summary>
++    public class PackageService
++    {
++        private readonly string _packageName;
++
++        /// <summary>
++        /// Initializes a new instance of the <see cref="PackageService"/> class.
++        /// </summary>
++        /// <param name="packageName">Optional: The name of the package. Defaults to the assembly name if not provided.</param>
++        public PackageService(string? packageName = null)
++        {
++            // Use provided name, otherwise fall back to the assembly name for dynamic behavior.
++            _packageName = packageName ?? Assembly.GetExecutingAssembly().GetName().Name ?? "Zentient.Template.Unknown";
++        }
++
++        /// <summary>
++        /// Gets the name of the Zentient package.
++        /// This property is initialized during construction and reflects the package's identity.
++        /// </summary>
++        /// <value>A <see cref="string"/> representing the name of the package.</value>
++        public string PackageName => _packageName;
++
++        /// <summary>
++        /// Gets a simple greeting message from this Zentient package.
++        /// This method demonstrates basic functionality and string interpolation.
++        /// </summary>
++        /// <returns>A <see cref="string"/> containing a greeting message.</returns>
++        [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "Method form is used to demonstrate a template for future expansion and maintain consistency with other service methods.")]
++        public string GetGreeting()
++            => $"Hello from {PackageName}!";
++
++        /// <summary>
++        /// Demonstrates a placeholder method for future logic.
++        /// </summary>
++        /// <param name="input">A string input.</param>
++        /// <returns>The input string transformed.</returns>
++        public string ProcessInput(string input)
++        {
++            // This is a placeholder for actual business logic.
++            // You can replace this with your package's core functionality.
++            return $"Processed: {input} by {PackageName}";
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/src/Zentient.Template.csproj b/src/Zentient.Template.csproj
+new file mode 100644
+index 0000000..d76f364
+--- /dev/null
++++ b/src/Zentient.Template.csproj
+@@ -0,0 +1,22 @@
++<!-- Zentient.Template Project File -->
++<Project Sdk="Microsoft.NET.Sdk">
++
++	<PropertyGroup>
++		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
++		<RootNamespace>Zentient.Template</RootNamespace>
++		<IsPackable>true</IsPackable>
++		<Description>...</Description>
++		<AssemblyOriginatorKeyFile>..\Zentient.snk</AssemblyOriginatorKeyFile>
++		<PackageId>Zentient.Template</PackageId>
++		<PackageTags>Zentient; PackageTemplate; </PackageTags>
++		<PackageReadmeFile>README.md</PackageReadmeFile>
++	</PropertyGroup>
++
++	<ItemGroup>
++		<None Include="$(SolutionDir)README.md" Pack="true" PackagePath="\"/>
++		<None Include="$(SolutionDir)LICENSE" Pack="true" PackagePath="\"/>
++		<None Include="$(SolutionDir)Zentient.snk" Pack="true" PackagePath="\"/>
++		<None Include="$(SolutionDir)CHANGELOG.md" Pack="true" PackagePath="\"/>
++	</ItemGroup>
++
++</Project>
+diff --git a/stylecop.json b/stylecop.json
+new file mode 100644
+index 0000000..6d5cbd3
+--- /dev/null
++++ b/stylecop.json
+@@ -0,0 +1,14 @@
++// stylecop.json
++{
++  "settings": {
++    "documentationRules": {
++      "companyName": "Zentient Framework Team",
++      "copyrightText": "Copyright © 2025 Zentient Framework Team. All rights reserved.",
++      "xmlHeader": true
++    },
++    "orderingRules": {
++      "usingDirectivesPlacement": "outsideNamespace",
++      "systemUsingDirectivesFirst": true
++    }
++  }
++}
+diff --git a/tests/UnitTests1.cs b/tests/UnitTests1.cs
+new file mode 100644
+index 0000000..0c97a32
+--- /dev/null
++++ b/tests/UnitTests1.cs
+@@ -0,0 +1,80 @@
++// <copyright file="PackageServiceTests.cs" company="Zentient Framework Team">
++// Copyright © 2025 Zentient Framework Team. All rights reserved.
++// </copyright>
++
++using System.Reflection;
++using FluentAssertions;
++using Zentient.Template;
++using Xunit;
++
++namespace Zentient.Template.Tests
++{
++    [Trait("Category", "Unit")]
++    public class PackageServiceTests
++    {
++        [Fact(DisplayName = "GetGreeting returns correct message when package name is provided")]
++        [Trait("Method", nameof(PackageService.GetGreeting))]
++        public void GetGreeting_WithProvidedName_ShouldReturnCorrectMessage()
++        {
++            var testPackageName = "MyCustomPackage";
++            var service = new PackageService(testPackageName);
++            var expected = $"Hello from {testPackageName}!";
++
++            var actual = service.GetGreeting();
++
++            actual.Should().Be(expected);
++        }
++
++        [Fact(DisplayName = "GetGreeting returns assembly name greeting when no name is provided")]
++        [Trait("Method", nameof(PackageService.GetGreeting))]
++        public void GetGreeting_WithoutProvidedName_ShouldReturnAssemblyGreeting()
++        {
++            var service = new PackageService();
++            var expectedPackageName = typeof(PackageService).Assembly.GetName().Name;
++            var expected = $"Hello from {expectedPackageName}!";
++
++            var actual = service.GetGreeting();
++
++            actual.Should().Be(expected);
++        }
++
++        [Fact(DisplayName = "PackageName property reflects constructor argument")]
++        [Trait("Method", nameof(PackageService.PackageName))]
++        public void PackageName_Property_ShouldReflectConstructorArgument()
++        {
++            var expectedName = "AnotherTestPackage";
++            var service = new PackageService(expectedName);
++
++            var actualName = service.PackageName;
++
++            actualName.Should().Be(expectedName);
++        }
++
++        [Fact(DisplayName = "PackageName property defaults to assembly name")]
++        [Trait("Method", nameof(PackageService.PackageName))]
++        public void PackageName_Property_ShouldDefaultToAssemblyName()
++        {
++            var service = new PackageService();
++            var expectedDefaultName = typeof(PackageService).Assembly.GetName().Name;
++
++            var actualDefaultName = service.PackageName;
++
++            actualDefaultName.Should().Be(expectedDefaultName);
++        }
++
++        [Theory(DisplayName = "ProcessInput transforms the string correctly")]
++        [InlineData("data", "Processed: data by ")]
++        [InlineData("test string", "Processed: test string by ")]
++        [Trait("Method", nameof(PackageService.ProcessInput))]
++        public void ProcessInput_ShouldTransformString(string input, string expectedPrefix)
++        {
++            var testPackageName = "Processor";
++            var service = new PackageService(testPackageName);
++            var expected = $"{expectedPrefix}{testPackageName}";
++
++            var actual = service.ProcessInput(input);
++
++            actual.Should().Be(expected);
++        }
++    }
++}
+diff --git a/tests/Zentient.Template.Tests.csproj b/tests/Zentient.Template.Tests.csproj
+new file mode 100644
+index 0000000..a17fc22
+--- /dev/null
++++ b/tests/Zentient.Template.Tests.csproj
+@@ -0,0 +1,24 @@
++﻿<!-- Zentient.Template Tests Project File -->
++<Project Sdk="Microsoft.NET.Sdk">
++
++	<PropertyGroup>
++		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
++		<RootNamespace>Zentient.Template.Tests</RootNamespace>
++		<IsTestProject>true</IsTestProject>
++		<IsPackable>false</IsPackable>
++	</PropertyGroup>
++
++	<ItemGroup>
++		<PackageReference Include="FluentAssertions" Version="8.5.0" />
++		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
++		<PackageReference Include="Moq" Version="4.20.72" />
++		<PackageReference Include="Zentient.Abstractions" Version="2.0.1" />
++		<PackageReference Include="Zentient.Results" Version="0.4.4" />
++		<PackageReference Include="xunit" Version="2.9.3" />
++		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.3" />
++	</ItemGroup>
++
++	<ItemGroup>
++		<ProjectReference Include="..\src\Zentient.Template.csproj" />
++	</ItemGroup>
++</Project>
