@@ -1,0 +1,76 @@
+<!-- Directory.Build.props -->
+<Project>
+	<PropertyGroup>
+		<!--
+      VersionPrefix will be dynamically updated by semantic-release.
+      Do NOT set a fixed 'Version' or GitVersion-derived 'Version' here.
+      semantic-release will manage this property.
+    -->
+		<VersionPrefix>0.1.0</VersionPrefix>
+
+		<!-- NuGet Metadata -->
+		<Authors>Ulf Bourelius</Authors>
+		<Company>Zentient Framework Team</Company>
+		<Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/ulfbou/Zentient.Endpoints</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ulfbou/Zentient.Endpoints.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<!-- Symbols & Debugging -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<!-- Language & Compiler Settings -->
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Default Target Frameworks for most projects (can be overridden by individual projects) -->
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+
+		<!-- Build Behavior & Quality Gates -->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<!-- Enforce CS1591 (missing XML comment) as an error by default for packable projects. -->
+		<WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+		<DebugType Condition="'$(Configuration)' == 'Debug'">portable</DebugType>
+		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
+		<Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+		<DebugSymbols Condition="'$(Configuration)' == 'Debug'">true</DebugSymbols>
+		<DebugSymbols Condition="'$(Configuration)' == 'Release'">true</DebugSymbols>
+		<DefineConstants Condition="'$(Configuration)' == 'Debug'">$(DefineConstants);DEBUG;TRACE</DefineConstants>
+		<DefineConstants Condition="'$(Configuration)' == 'Release'">$(DefineConstants);TRACE</DefineConstants>
+	</PropertyGroup>
+
+	<!-- Only apply analyzers to library code in src/ (not test or tools projects) -->
+	<ItemGroup Condition=" '$(MSBuildProjectDirectory)' == '$(SolutionDir)src' Or $(MSBuildProjectDirectory.StartsWith('$(SolutionDir)src\')) ">
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435" PrivateAssets="All" />
+		<AdditionalFiles Include="$(SolutionDir)stylecop.json" />
+	</ItemGroup>
+
+	<!-- Conditional compilation symbols for target frameworks, if needed. -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<DefineConstants>$(DefineConstants);NET8_0_OR_GREATER;NET9_0_OR_GREATER</DefineConstants>
+	</PropertyGroup>
+
+	<!-- PropertyGroup for Test Projects:
+         Suppress ALL StyleCop documentation rules (SA1xxx range) and CS1591,
+         and disable documentation file generation.
+         Using IsTestProject for the condition as it's explicitly set in all test projects. -->
+	<PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+		<NoWarn>$(NoWarn);CS1574;CS1591;SA1600;SA1601;SA1602;SA1604;SA1605;SA1606;SA1607;SA1608;SA1609;SA1610;SA1611;SA1612;SA1613;SA1614;SA1615;SA1616;SA1617;SA1618;SA1619;SA1620;SA1621;SA1622;SA1623;SA1624;SA1625;SA1626;SA1627;SA1628;SA1629;SA1630;SA1631;SA1632;SA1633;SA1634;SA1635;SA1636;SA1637;SA1638;SA1639;SA1640;SA1641;SA1642;SA1643;SA1644;SA1645;SA1646;SA1647;CS1734</NoWarn>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+	</PropertyGroup>
+
+</Project>

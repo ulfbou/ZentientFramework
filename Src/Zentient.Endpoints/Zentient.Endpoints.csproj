@@ -1,0 +1,15 @@
+﻿<!-- Zentient Endpoints Core Project File -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<RootNamespace>Zentient.Endpoints</RootNamespace>
+		<IsPackable>true</IsPackable>
+		<Description>Core abstractions and utilities for unifying result handling across transport protocols (HTTP, gRPC, Messaging) using Zentient.Results.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Zentient.Results" Version="[0.3.0, )" />
+	</ItemGroup>
+
+</Project>
