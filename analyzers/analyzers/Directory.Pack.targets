@@ -2,27 +2,36 @@
 <!-- This file contains build targets specific to packaging .NET projects into NuGet packages. -->
 <Project>
 
-  <Target Name="ValidatePackageConfiguration" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
+  <Target Name="ValidatePackageConfiguration"
+          BeforeTargets="GenerateNuspec"
+          AfterTargets="AssignPackageProperties"
+          Condition="'$(IsPackable)' == 'true'">
+
     <Message Text="Validating package configuration..." Importance="high" />
-    <!-- Validate required package metadata -->
-    <Error Text="PackageId must be specified for packable projects" 
+
+    <!-- Ensure PackageAuthors is set from Authors if missing -->
+    <PropertyGroup Condition="'$(PackageAuthors)' == '' and '$(Authors)' != ''">
+      <PackageAuthors>$(Authors)</PackageAuthors>
+    </PropertyGroup>
+
+    <!-- Required metadata -->
+    <Error Text="PackageId must be specified for packable projects"
            Condition="'$(PackageId)' == ''" />
-    <Error Text="PackageVersion must be specified for packable projects" 
+    <Error Text="PackageVersion must be specified for packable projects"
            Condition="'$(PackageVersion)' == ''" />
-    <Error Text="PackageDescription must be specified for packable projects" 
+    <Error Text="PackageDescription must be specified for packable projects"
            Condition="'$(PackageDescription)' == ''" />
-    <Error Text="PackageAuthors must be specified for packable projects" 
-           Condition="'$(PackageAuthors)' == ''" />
-    <!-- Validate licensing -->
-    <Warning Text="Package license should be specified (PackageLicenseExpression or PackageLicenseFile)" 
-             Condition="'$(PackageLicenseExpression)' == '' AND '$(PackageLicenseFile)' == ''" />
-    <!-- Validate URLs -->
-    <Warning Text="PackageProjectUrl should be specified for better discoverability" 
-             Condition="'$(PackageProjectUrl)' == ''" />
-    <!-- Validate documentation -->
-    <Warning Text="README.md not found - consider adding package documentation" 
-             Condition="'$(PackageReadmeFile)' != '' AND !Exists('$(PackageReadmeFile)')" />
-    <Message Text="✅ Package configuration validation passed" Importance="normal" />
+    <Error Text="Authors or PackageAuthors must be specified for packable projects"
+           Condition="'$(PackageAuthors)' == '' AND '$(Authors)' == ''" />
+
+    <!-- Licensing: now an error -->
+    <Error Text="Package license must be specified (PackageLicenseExpression or PackageLicenseFile)"
+           Condition="'$(PackageLicenseExpression)' == '' AND '$(PackageLicenseFile)' == ''" />
+
+    <!-- Project URL: now an error -->
+    <Error Text="PackageProjectUrl should be specified for better discoverability"
+           Condition="'$(PackageProjectUrl)' == ''" />
+
   </Target>
 
   <Target Name="PreparePackageContents" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
@@ -51,7 +60,9 @@ Content Files: @(PackageContentFiles, ', ')</PackageSummary>
     <Message Text="$(PackageSummary)" Importance="normal" />
   </Target>
 
-  <Target Name="ValidatePackageDependencies" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true' AND '$(EnablePackageValidation)' == 'true'">
+  <Target Name="ValidatePackageDependencies"
+          BeforeTargets="GenerateNuspec"
+          Condition="'$(IsPackable)' == 'true' AND '$(EnablePackageValidation)' == 'true'">    
     <Message Text="Validating package dependencies..." Importance="high" />
     
     <!-- Check for vulnerable dependencies -->

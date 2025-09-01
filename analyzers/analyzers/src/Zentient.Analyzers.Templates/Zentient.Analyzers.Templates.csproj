@@ -1,31 +1,35 @@
-<!-- Zentient.Analyzers.Templates Project File -->
+﻿<!-- Zentient.Analyzers.Templates Project File -->
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Zentient.Analyzers.Templates</AssemblyName>
     <RootNamespace>Zentient.Analyzers</RootNamespace>
     <Version>1.0.0</Version>
-    <Description>Roslyn analyzer enforcing XML docs on public methods</Description>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <DevelopmentDependency>true</DevelopmentDependency>
-    <PackageId>Zentient.Analyzers.Templates</PackageId>
-  </PropertyGroup>
+    <Description>Template/content package for Zentient analyzers</Description>
 
-  <PropertyGroup>
-    <Authors Condition="'$(Authors)' == ''">Ulf Bourelius</Authors>
-    <PackageAuthors Condition="'$(PackageAuthors)' == ''">$(Authors)</PackageAuthors>
+    <!-- NuGet metadata -->
+    <Authors>Ulf Bourelius</Authors>
+    <PackageAuthors>$(Authors)</PackageAuthors>
+    <PackageId>Zentient.Analyzers.Templates</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ulfbou/Zentient.Analyzers</PackageProjectUrl>
+
+    <!-- Packing behaviour -->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- No compilation -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <NoBuild>true</NoBuild>
   </PropertyGroup>
 
+  <!-- Content to include in the package -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" PrivateAssets="all" />
-
-    <PackageReference Include="System.Formats.Asn1" Version="9.0.8" />
+    <None Include="$(MSBuildProjectDirectory)\placeholder.txt"
+          Pack="true"
+          PackagePath="contentFiles/any/any/" />
   </ItemGroup>
 
-  <Import Project="..\..\Directory.Analyzer.props" />
-  <Import Project="..\..\Directory.Analyzer.targets" />
 </Project>

@@ -11,6 +11,7 @@
     <Description>Roslyn source generators for Zentient stubs and templates.</Description>
     <DevelopmentDependency>true</DevelopmentDependency>
     <Authors>Ulf Bourelius</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

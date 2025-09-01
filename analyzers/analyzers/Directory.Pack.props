@@ -15,6 +15,7 @@
 
     <!-- Package URLs and links -->
     <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">$(RepositoryUrl)</PackageProjectUrl>
+    <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">https://github.com/ulfbou/zentient</PackageProjectUrl>
     <PackageRepositoryUrl Condition="'$(PackageRepositoryUrl)' == ''">$(RepositoryUrl)</PackageRepositoryUrl>
     <PackageRepositoryType Condition="'$(PackageRepositoryType)' == ''">$(RepositoryType)</PackageRepositoryType>
 

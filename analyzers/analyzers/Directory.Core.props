@@ -44,7 +44,12 @@
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
 
     <!-- Package configuration -->
+    <IsPackable Condition="'$(IsPackable)' == ''">false</IsPackable>
     <IsPackable Condition="'$(IsPackable)' == '' AND '$(OutputType)' == 'Library'">true</IsPackable>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' AND '$(IsPackable)' == 'true'">true</GeneratePackageOnBuild>
+    <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">
+      https://github.com/ulfbou/Zentient.Analyzers.git
+    </PackageProjectUrl>
+
   </PropertyGroup>
 </Project>
