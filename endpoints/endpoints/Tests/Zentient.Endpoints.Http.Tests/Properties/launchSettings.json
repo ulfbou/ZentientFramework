@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Zentient.Endpoints.Http.Tests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:52558;http://localhost:52559"
+    }
+  }
+}
