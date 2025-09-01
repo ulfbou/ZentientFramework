@@ -1,0 +1,23 @@
+﻿<!-- Zentient.Analyzers.Core Project file -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <AssemblyName>Zentient.Analyzers.Core</AssemblyName>
+    <RootNamespace>Zentient.Analyzers</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageId>Zentient.Analyzers.Core</PackageId>
+    <Authors>Ulf Bourelius</Authors>
+    <PackageAuthors Condition="'$(PackageAuthors)' == ''">$(Authors)</PackageAuthors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ulfbou/Zentient.Analyzers</PackageProjectUrl>
+    <Version>1.0.0</Version>
+    <Description>Core abstractions for stubs and templates, no Roslyn dependencies.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.8" />
+  </ItemGroup>
+
+</Project>

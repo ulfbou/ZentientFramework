@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-net/master/src/Stryker.CLI/stryker.schema.json",
+  "project": "src/Zentient.Analyzers/Zentient.Analyzers.csproj",
+  "reporters": [ "html", "progress" ],
+  "mutate": [ "src/Zentient.Analyzers/**/*.cs" ],
+  "ignore-methods": [ "Initialize" ],
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": 50
+  }
+}

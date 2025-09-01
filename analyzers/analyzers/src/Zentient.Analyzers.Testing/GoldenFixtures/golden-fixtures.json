@@ -1,0 +1,21 @@
+[
+  {
+    "Id": "implements-interface-clean",
+    "Source": "using Zentient.Abstractions;\n\npublic interface IFoo { int M(int x); string Name { get; } }\n\n[ZentientStub(typeof(IFoo))]\npublic class FooStub : IFoo\n{\n    public int M(int x) => x;\n    public string Name => \"ok\";\n}",
+    "ExpectedDiagnostics": []
+  },
+  {
+    "Id": "missing-member",
+    "Source": "using Zentient.Abstractions;\n\npublic interface IFoo { int M(int x); }\n\n[ZentientStub(typeof(IFoo))]\npublic class FooStub : IFoo\n{\n}",
+    "ExpectedDiagnostics": [
+      {
+        "Id": "ZT0001",
+        "Message": "",
+        "Severity": "Error",
+        "File": "Test0.cs",
+        "Start": 0,
+        "Length": 0
+      }
+    ]
+  }
+]
