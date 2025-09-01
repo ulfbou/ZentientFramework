@@ -1,0 +1,14 @@
+// stylecop.json
+{
+  "settings": {
+    "documentationRules": {
+      "companyName": "Zentient Framework Team",
+      "copyrightText": "Copyright © 2025 Zentient Framework Team. All rights reserved.",
+      "xmlHeader": true
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace",
+      "systemUsingDirectivesFirst": true
+    }
+  }
+}
