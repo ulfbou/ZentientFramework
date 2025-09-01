@@ -1,0 +1,14 @@
+<!-- Directory Pack Targets for Zentient.Endpoints solution -->
+<Project>
+
+	<PropertyGroup>
+		<PackageOutputPath>$(SolutionDir)artifacts/packages</PackageOutputPath>
+
+		<ContinuousIntegrationBuild Condition="'$(ContinuousIntegrationBuild)' == ''">true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(IsPackable)' == ''">
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
+</Project>
