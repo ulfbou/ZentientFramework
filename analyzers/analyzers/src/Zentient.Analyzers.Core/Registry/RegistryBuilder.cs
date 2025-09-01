@@ -2,6 +2,8 @@
 // Copyright (c) 2025 Ulf Bourelius. All rights reserved. MIT License. See LICENSE in the project root for license information.
 // </copyright>
 
+using System.Collections.Immutable;
+
 using Zentient.Analyzers.Abstractions;
 
 namespace Zentient.Analyzers.Registry

@@ -1,8 +1,7 @@
-﻿<!-- Zentient.Analyzers.SourceGenerators -->
+<!-- Zentient.Analyzers.SourceGenerators -->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Zentient.Analyzers.SourceGenerators</AssemblyName>
     <RootNamespace>Zentient.Analyzers.SourceGenerators</RootNamespace>
@@ -15,7 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Zentient.Analyzers.Core\Zentient.Analyzers.Core.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
   </ItemGroup>

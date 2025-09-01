@@ -33,10 +33,7 @@ namespace Zentient.Analyzers.Engine
         /// <inheritdoc/>
         public IReadOnlyList<ISourceUnit> Build(IEnumerable<string> instructionKeys, bool includeDependencies = true)
         {
-            if (instructionKeys is null)
-            {
-                throw new ArgumentNullException(nameof(instructionKeys));
-            }
+            ArgumentNullException.ThrowIfNull(instructionKeys);
 
             var seeds = instructionKeys.ToHashSet(StringComparer.Ordinal);
             var allKeys = includeDependencies ? ComputeTransitiveClosure(seeds) : seeds;

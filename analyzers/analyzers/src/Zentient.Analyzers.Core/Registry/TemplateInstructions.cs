@@ -3,6 +3,7 @@
 // </copyright>
 
 using Zentient.Analyzers.Abstractions;
+using Zentient.Analyzers.Registry.Contexts;
 
 namespace Zentient.Analyzers.Registry
 {
@@ -16,7 +17,7 @@ namespace Zentient.Analyzers.Registry
     internal sealed record TemplateInstructions(
         string Key,
         string Domain,
-        string[] Requires,
+        IReadOnlyList<string> Requires,
         Func<ITemplateContext, IReadOnlyList<ISourceUnit>, ISourceUnit> Emitter) : ITemplateInstructions
     {
         /// <inheritdoc/>

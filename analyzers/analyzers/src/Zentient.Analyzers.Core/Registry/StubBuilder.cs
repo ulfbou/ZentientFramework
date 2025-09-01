@@ -14,7 +14,7 @@ namespace Zentient.Analyzers.Registry
         private readonly RegistryBuilder _builder;
         private readonly string _key;
         private readonly string _domain;
-        private StubMode _mode = StubMode.Full;
+        private StubMode _mode = StubMode.FullClass;
         private string[] _requires = Array.Empty<string>();
         private Func<IStubContext, ISourceUnit>? _emitter;
 
