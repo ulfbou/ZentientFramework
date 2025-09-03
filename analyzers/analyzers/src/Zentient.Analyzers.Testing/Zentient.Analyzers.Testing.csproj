@@ -1,4 +1,4 @@
-﻿<!-- Zentient.Analyzers.Testing Project File -->
+<!-- Zentient.Analyzers.Testing Project File -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
