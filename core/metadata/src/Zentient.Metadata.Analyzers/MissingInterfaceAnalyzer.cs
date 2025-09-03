@@ -1,4 +1,10 @@
+// <copyright file="MissingInterfaceAnalyzer.cs" company="Zentient Framework Team">
+// Copyright © 2025 Zentient Framework Team. All rights reserved.
+// </copyright>
+
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Zentient.Metadata.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer("CSharp")]
     public class MissingInterfaceAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "ZMD003";
@@ -16,7 +22,8 @@ namespace Zentient.Metadata.Analyzers
             "Type with {0} must implement {1}",
             "Usage",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+            isEnabledByDefault: true,
+            description: "Warns when a type with a Zentient.Metadata attribute does not implement the required interface.");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

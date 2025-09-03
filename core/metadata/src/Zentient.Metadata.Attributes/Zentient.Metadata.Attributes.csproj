@@ -1,4 +1,4 @@
-<!-- Zentient.Metadata Project file -->
+<!-- Zentient.Metadata.Attributes Project file -->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -13,17 +13,11 @@
     <!-- Build Defaults -->
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
 
     <!-- Assembly Info -->
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <GenerateAssemblyTitleAttribute>true</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>true</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyProductAttribute>true</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>true</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>true</GenerateAssemblyCopyrightAttribute>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
     <!-- Output Configuration -->
     <OutputPath>bin\$(Configuration)\</OutputPath>

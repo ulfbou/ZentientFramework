@@ -1,4 +1,10 @@
+// <copyright file="DuplicateMetadataTagAnalyzer.cs" company="Zentient Framework Team">
+// Copyright © 2025 Zentient Framework Team. All rights reserved.
+// </copyright>
+
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,17 +12,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Zentient.Metadata.Analyzers
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer("CSharp")]
     public class DuplicateMetadataTagAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "ZMD002";
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
             "Duplicate or conflicting metadata tags",
-            "Multiple MetadataTagAttribute tags with the same key and different values detected.",
+            "Multiple MetadataTagAttribute tags with the same key and different values detected",
             "Usage",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+            isEnabledByDefault: true,
+            description: "Warns when multiple MetadataTagAttribute tags with the same key and different values are detected on a type.");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

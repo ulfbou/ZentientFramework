@@ -4,28 +4,26 @@
   <PropertyGroup>
     <!-- Template Symbols -->
     <ProjectName>Zentient.Metadata</ProjectName>
-    <LibraryAuthor>Ulf Bourelius;Zentient Framework Team</LibraryAuthor>
+    <LibraryAuthor>Ulf Bourelius</LibraryAuthor>
     <LibraryCompany>Zentient Framework Team</LibraryCompany>
-    <LibraryDescription>
-      The **Zentient.Metadata** package provides a powerful, attribute-based system for declaring and discovering metadata in your .NET applications. It shifts metadata management from an imperative, code-heavy process to a simple, declarative one, enhancing the discoverability and extensibility of your components.
-
-      This library is built on a foundation of clean, immutable interfaces (`IMetadata`) and a fluent builder pattern (`IMetadataBuilder`), ensuring that your metadata is safe and predictable. By using attributes like `[BehaviorDefinition]`, `[CategoryDefinition]`, and the strongly-typed `[MetadataTag&lt;TTag&gt;]`, you can effortlessly attach rich, discoverable information to any class or member. This makes it an ideal solution for building frameworks and platforms that rely on runtime metadata without the overhead of manually managing dictionaries or XML files.
-    </LibraryDescription>
-    <LibraryTags>
-        zentient;framework;library;analyzers;metadata;attributes;declarative;discoverability;extensibility;framework;reflection;dependency-injection;dx;code-generation;source-generators
-    </LibraryTags>
+    <LibraryDescription></LibraryDescription>
     <LibraryCopyright>Copyright � 2025 Zentient Frameworks Team. All rights reserved.</LibraryCopyright>
     <RepositoryUrl>https://github.com/ulfbou/Zentient.Metadata.git</RepositoryUrl>
 
     <!-- Build Defaults -->
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <TargetFrameworks Condition="'$(TargetFramework)' == ''">net8.0;net9.0</TargetFrameworks>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
 
     <!-- Assembly Info -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateAssemblyTitleAttribute>true</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>true</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyProductAttribute>true</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCompanyAttribute>true</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyCopyrightAttribute>true</GenerateAssemblyCopyrightAttribute>
 
     <!-- Output Configuration -->
     <OutputPath>bin\$(Configuration)\</OutputPath>

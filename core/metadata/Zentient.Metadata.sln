@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{87654321
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
+		Directory.Core.props = Directory.Core.props
+		Directory.Core.targets = Directory.Core.targets
 		Directory.Documentation.props = Directory.Documentation.props
 		Directory.Documentation.targets = Directory.Documentation.targets
 		Directory.Pack.props = Directory.Pack.props
@@ -67,6 +69,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "analyzers", "analyzers", "{
 		analyzers\Zentient.ruleset = analyzers\Zentient.ruleset
 		analyzers\Zentient.Tests.ruleset = analyzers\Zentient.Tests.ruleset
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentient.Metadata.Analyzers", "src\Zentient.Metadata.Analyzers\Zentient.Metadata.Analyzers.csproj", "{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,6 +130,18 @@ Global
 		{D0B61345-2F85-7700-5E20-01774A07B3F6}.Release|x64.Build.0 = Release|Any CPU
 		{D0B61345-2F85-7700-5E20-01774A07B3F6}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0B61345-2F85-7700-5E20-01774A07B3F6}.Release|x86.Build.0 = Release|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Debug|x64.Build.0 = Debug|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Debug|x86.Build.0 = Debug|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Release|x64.ActiveCfg = Release|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Release|x64.Build.0 = Release|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Release|x86.ActiveCfg = Release|Any CPU
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,6 +153,7 @@ Global
 		{8C4A74FF-0E77-49C8-BF1A-8F92D9CC0ED1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{DDB370C6-02E4-49AB-95DB-787276531995} = {8C4A74FF-0E77-49C8-BF1A-8F92D9CC0ED1}
 		{D0B61345-2F85-7700-5E20-01774A07B3F6} = {DDB370C6-02E4-49AB-95DB-787276531995}
+		{8F285835-9471-DDC6-AD3C-7F7E03FD6EFE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {11111111-2222-3333-4444-555555555555}
