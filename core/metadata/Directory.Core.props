@@ -1,0 +1,49 @@
+<!-- Directory.Core.props -->
+<!-- This file contains core project configuration settings for all projects in the solution. -->
+<Project>
+
+  <!-- Core Project Configuration -->
+  <PropertyGroup>
+    <!-- Project metadata -->
+    <Product>Zentient Framework</Product>
+    <Company>Zentient Frameworks Team</Company>
+    <Authors>Ulf Bourelius</Authors>
+    <Copyright>Copyright © 2025 Zentient Frameworks Team. All rights reserved.</Copyright>
+    <Description>A Zentient framework library</Description>
+
+    <!-- Repository information -->
+    <RepositoryUrl>https://github.com/ulfbou/Zentient.Analyzers.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch Condition="'$(RepositoryBranch)' == ''">main</RepositoryBranch>
+
+    <!-- Build configuration -->
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
+
+    <!-- Language and framework settings -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Deterministic>true</Deterministic>
+
+    <!-- Assembly information -->
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateAssemblyTitleAttribute>true</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>true</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyProductAttribute>true</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCompanyAttribute>true</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyCopyrightAttribute>true</GenerateAssemblyCopyrightAttribute>
+
+    <!-- Output configuration -->
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+
+    <!-- Package configuration -->
+    <IsPackable Condition="'$(IsPackable)' == '' AND '$(OutputType)' == 'Library'">true</IsPackable>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' AND '$(IsPackable)' == 'true'">true</GeneratePackageOnBuild>
+  </PropertyGroup>
+</Project>
