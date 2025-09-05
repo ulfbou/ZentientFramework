@@ -2,6 +2,8 @@
 // Copyright (c) 2025 Ulf Bourelius. All rights reserved. MIT License. See LICENSE in the project root for license information.
 // </copyright>
 
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using Zentient.Abstractions.Metadata;
@@ -13,13 +15,17 @@ namespace Zentient.Metadata.Internal
     /// A concrete, immutable implementation of <see cref="IMetadata"/>.
     /// This is the final, read-only metadata object produced by the builder.
     /// </summary>
+    [DebuggerDisplay("{ToString()}")]
     internal sealed class MetadataImpl : IMetadata
     {
-        private readonly IReadOnlyDictionary<string, object?> _tags;
+        private static readonly StringComparer KeyComparer = StringComparer.Ordinal;
+        private readonly ImmutableDictionary<string, object?> _tags;
 
         public MetadataImpl(IDictionary<string, object?>? tags = null)
         {
-            _tags = new Dictionary<string, object?>(tags ?? new Dictionary<string, object?>());
+            _tags = tags is ImmutableDictionary<string, object?> imd
+                ? imd
+                : ImmutableDictionary.CreateRange(KeyComparer, tags ?? new Dictionary<string, object?>());
         }
 
         // --- IMetadataReader Implementation (via Composition) ---
@@ -66,18 +72,18 @@ namespace Zentient.Metadata.Internal
         // --- IMetadata Implementation (Immutability) ---
         public IMetadata WithTag(string key, object? value)
         {
-            var newTags = new Dictionary<string, object?>(_tags);
-            newTags[key] = value;
-            return new MetadataImpl(newTags);
+            Guard.AgainstNullOrWhitespace(key, nameof(key));
+            var newTags = _tags.SetItem(key, value);
+            return ReferenceEquals(newTags, _tags) ? this : new MetadataImpl(newTags);
         }
 
         public IMetadata WithoutTag(string key)
         {
+            Guard.AgainstNullOrWhitespace(key, nameof(key));
             if (!_tags.ContainsKey(key))
                 return this;
-            var newTags = new Dictionary<string, object?>(_tags);
-            newTags.Remove(key);
-            return new MetadataImpl(newTags);
+            var newTags = _tags.Remove(key);
+            return ReferenceEquals(newTags, _tags) ? this : new MetadataImpl(newTags);
         }
 
         public IMetadata WithTag(Func<KeyValuePair<string, object?>> tagFactory)
@@ -88,12 +94,15 @@ namespace Zentient.Metadata.Internal
 
         public IMetadata WithTags(IEnumerable<KeyValuePair<string, object?>> tags)
         {
-            var newTags = new Dictionary<string, object?>(_tags);
+            var newTags = _tags;
+            bool changed = false;
             foreach (var tag in tags)
             {
-                newTags[tag.Key] = tag.Value;
+                var updated = newTags.SetItem(tag.Key, tag.Value);
+                if (!ReferenceEquals(updated, newTags)) changed = true;
+                newTags = updated;
             }
-            return new MetadataImpl(newTags);
+            return changed ? new MetadataImpl(newTags) : this;
         }
 
         public IMetadata WithTags(Func<IEnumerable<KeyValuePair<string, object?>>> tagsFactory)
@@ -107,35 +116,39 @@ namespace Zentient.Metadata.Internal
             var keySet = keys as ICollection<string> ?? keys.ToArray();
             if (keySet.Count == 0)
                 return this;
-
-            var hashSet = keySet is HashSet<string> hs ? hs : new HashSet<string>(keySet);
-            var newTags = new Dictionary<string, object?>(_tags);
-            foreach (var key in hashSet)
+            var newTags = _tags;
+            bool changed = false;
+            foreach (var key in keySet)
             {
-                newTags.Remove(key);
+                var updated = newTags.Remove(key);
+                if (!ReferenceEquals(updated, newTags)) changed = true;
+                newTags = updated;
             }
-            return new MetadataImpl(newTags);
+            return changed ? new MetadataImpl(newTags) : this;
         }
 
         public IMetadata WithoutTag(Func<string, bool> keyPredicate)
         {
-            var newTags = new Dictionary<string, object?>(_tags);
             var keysToRemove = _tags.Keys.Where(keyPredicate).ToList();
-            foreach (var key in keysToRemove)
-            {
-                newTags.Remove(key);
-            }
-            return new MetadataImpl(newTags);
+            return WithoutTags(keysToRemove);
         }
 
         public IMetadata Merge(IMetadataReader other)
         {
-            var newTags = new Dictionary<string, object?>(_tags);
+            var newTags = _tags;
+            bool changed = false;
             foreach (var tag in other.Tags)
             {
-                newTags[tag.Key] = tag.Value;
+                var updated = newTags.SetItem(tag.Key, tag.Value);
+                if (!ReferenceEquals(updated, newTags)) changed = true;
+                newTags = updated;
             }
-            return new MetadataImpl(newTags);
+            return changed ? new MetadataImpl(newTags) : this;
+        }
+
+        public override string ToString()
+        {
+            return $"MetadataImpl[{string.Join(", ", _tags.Select(kv => $"{kv.Key}={kv.Value}"))}]";
         }
     }
 }

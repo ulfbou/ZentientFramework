@@ -40,6 +40,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{ABCDEF12-3456-7890-ABCD-EF1234567890}"
 	ProjectSection(SolutionItems) = preProject
 		docs\README.md = docs\README.md
+		docs\Zentient_Metadata-Specification.md = docs\Zentient_Metadata-Specification.md
 		docs\Zentient_Metadata_Metadata-Attribute-Specification.md = docs\Zentient_Metadata_Metadata-Attribute-Specification.md
 	EndProjectSection
 EndProject
