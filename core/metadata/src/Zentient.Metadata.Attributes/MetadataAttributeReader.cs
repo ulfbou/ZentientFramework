@@ -71,6 +71,44 @@ namespace Zentient.Metadata.Attributes
             return builder.Build();
         }
 
+        /// <summary>
+        /// Scans a given member (property, method, event, etc.) for metadata attributes,
+        /// returning an <see cref="IMetadata"/> instance.
+        /// </summary>
+        /// <param name="member">The member to scan for metadata attributes.</param>
+        /// <returns>An <see cref="IMetadata"/> instance containing all discovered metadata, or an empty instance if none are found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the <paramref name="member"/> is null.</exception>
+        public static IMetadata GetMetadata(MemberInfo member)
+        {
+            ArgumentNullException.ThrowIfNull(member);
+            var builder = Metadata.Create();
+            var attributes = GetAttributes(member.GetType());
+            foreach (var attribute in attributes)
+            {
+                switch (attribute)
+                {
+                    case BehaviorDefinitionAttribute:
+                        builder.SetTag(member.Name, Metadata.Empty);
+                        break;
+                    case CategoryDefinitionAttribute categoryAttribute:
+                        builder.SetTag(member.Name, categoryAttribute.Name);
+                        break;
+                    case MetadataTagAttribute tagAttribute:
+                        builder.SetTag(tagAttribute.Key, tagAttribute.TagValue);
+                        break;
+                    case Zentient.Abstractions.Common.Metadata.DefinitionCategoryAttribute legacyCat:
+                        builder.SetTag("category", legacyCat.CategoryName);
+                        break;
+                    case Zentient.Abstractions.Common.Metadata.DefinitionTagAttribute legacyTag:
+                        builder.SetTag("tags", legacyTag.Tags);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return builder.Build();
+        }
+
         private static IEnumerable<Attribute> GetAttributes(Type type)
         {
             // Get both Zentient.Metadata and Zentient.Abstractions.Common.Metadata attributes

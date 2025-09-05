@@ -10,6 +10,12 @@ namespace Zentient.Metadata.Attributes
     /// </summary>
     public static class AttributeMetadataConverter
     {
+        /// <summary>
+        /// Converts a collection of attributes into an <see cref="IMetadata"/> instance.
+        /// </summary>
+        /// <param name="attributes">The collection of attributes to convert.</param>
+        /// <returns>An <see cref="IMetadata"/> instance representing the metadata defined by the attributes.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="attributes"/> is null.</exception>
         public static IMetadata Convert(IEnumerable<Attribute> attributes)
         {
             // Use the same logic as MetadataAttributeReader, but for arbitrary attribute collections

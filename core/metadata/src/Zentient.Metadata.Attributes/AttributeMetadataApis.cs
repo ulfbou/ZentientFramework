@@ -1,3 +1,7 @@
+// <copyright file="AttributeMetadataApis.cs" company="Zentient Framework Team">
+// Copyright © 2025 Zentient Framework Team. All rights reserved.
+// </copyright>
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -8,59 +12,31 @@ using Zentient.Metadata.Attributes;
 namespace Zentient.Metadata.Attributes
 {
     /// <summary>
-    /// Scans types and members for metadata attributes and produces IMetadata instances.
+    /// Defines a contract for scanning types and members for metadata attributes and producing <see cref="IMetadata"/> instances.
     /// </summary>
     public interface IAttributeMetadataScanner
     {
+        /// <summary>
+        /// Scans a <see cref="Type"/> for metadata attributes and produces an <see cref="IMetadata"/> instance.
+        /// </summary>
+        /// <param name="type">The type to scan for metadata attributes.</param>
+        /// <returns>An <see cref="IMetadata"/> instance representing the metadata found on the type.</returns>
         IMetadata Scan(Type type);
+
+        /// <summary>
+        /// Scans a <see cref="MemberInfo"/> for metadata attributes and produces an <see cref="IMetadata"/> instance.
+        /// </summary>
+        /// <param name="member">The member to scan for metadata attributes.</param>
+        /// <returns>An <see cref="IMetadata"/> instance representing the metadata found on the member.</returns>
         IMetadata Scan(MemberInfo member);
+
+        /// <summary>
+        /// Scans all types and members in an <see cref="Assembly"/> for metadata attributes.
+        /// </summary>
+        /// <param name="assembly">The assembly to scan.</param>
+        /// <returns>
+        /// An enumerable of tuples, each containing a <see cref="MemberInfo"/> and its associated <see cref="IMetadata"/>.
+        /// </returns>
         IEnumerable<(MemberInfo member, IMetadata metadata)> ScanAll(Assembly assembly);
-    }
-
-    /// <summary>
-    /// Converts attribute collections to IMetadata.
-    /// </summary>
-    public static class AttributeMetadataConverter
-    {
-        public static IMetadata Convert(IEnumerable<Attribute> attributes)
-        {
-            var builder = Zentient.Metadata.Metadata.Create();
-            foreach (var attribute in attributes)
-            {
-                switch (attribute)
-                {
-                    case MetadataTagAttribute tag:
-                        builder.SetTag(tag.Key, tag.TagValue);
-                        break;
-                    case CategoryDefinitionAttribute cat:
-                        builder.SetTag("category", cat.Name);
-                        break;
-                    case DefinitionCategoryAttribute legacyCat:
-                        builder.SetTag("category", legacyCat.CategoryName);
-                        break;
-                    case DefinitionTagAttribute legacyTag:
-                        builder.SetTag("tags", legacyTag.Tags);
-                        break;
-                }
-            }
-            return builder.Build();
-        }
-    }
-
-    public class AttributeMetadataScanner : IAttributeMetadataScanner
-    {
-        public IMetadata Scan(Type type) => MetadataAttributeReader.GetMetadata(type);
-        public IMetadata Scan(MemberInfo member) => MetadataAttributeReader.GetMetadata(member);
-        public IEnumerable<(MemberInfo member, IMetadata metadata)> ScanAll(Assembly assembly)
-        {
-            foreach (var type in assembly.GetTypes())
-            {
-                yield return (type, MetadataAttributeReader.GetMetadata(type));
-                foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
-                {
-                    yield return (member, MetadataAttributeReader.GetMetadata(member));
-                }
-            }
-        }
     }
 }
