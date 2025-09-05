@@ -46,4 +46,21 @@ namespace Zentient.Metadata.Attributes
             return builder.Build();
         }
     }
+
+    public class AttributeMetadataScanner : IAttributeMetadataScanner
+    {
+        public IMetadata Scan(Type type) => MetadataAttributeReader.GetMetadata(type);
+        public IMetadata Scan(MemberInfo member) => MetadataAttributeReader.GetMetadata(member);
+        public IEnumerable<(MemberInfo member, IMetadata metadata)> ScanAll(Assembly assembly)
+        {
+            foreach (var type in assembly.GetTypes())
+            {
+                yield return (type, MetadataAttributeReader.GetMetadata(type));
+                foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                {
+                    yield return (member, MetadataAttributeReader.GetMetadata(member));
+                }
+            }
+        }
+    }
 }

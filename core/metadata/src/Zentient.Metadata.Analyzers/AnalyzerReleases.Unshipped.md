@@ -5,6 +5,7 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+ZMD001 | Usage | Warning | InvalidAttributeTargetAnalyzer
 ZMD002 | Usage | Warning | DuplicateMetadataTagAnalyzer
 ZMD003 | Usage | Warning | MissingInterfaceAnalyzer
 ZMD004 | Documentation | Info | MissingDocumentationAnalyzer
