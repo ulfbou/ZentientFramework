@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyTitle>Zentient.Metadata.Abstractions</AssemblyTitle>
+    <Description>Forward-compatible metadata abstractions for Zentient Framework.</Description>
+    <Company>Zentient Framework Team</Company>
+    <Authors>Zentient Framework Team</Authors>
+    <Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
+    <PackageProjectUrl>https://github.com/ulfbou/Zentient.Metadata.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ulfbou/Zentient.Metadata.git</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Zentient.Abstractions" Version="3.0.2" />
+  </ItemGroup>
+
+</Project>
