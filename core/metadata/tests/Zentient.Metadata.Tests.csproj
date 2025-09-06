@@ -22,6 +22,16 @@
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AssemblyTitle>Zentient.Metadata.Tests</AssemblyTitle>
+    <Description>Test suite for Zentient.Metadata and related packages.</Description>
+    <Company>Zentient Framework Team</Company>
+    <Authors>Zentient Framework Team</Authors>
+    <Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
+    <PackageProjectUrl>https://github.com/ulfbou/Zentient.Metadata.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ulfbou/Zentient.Metadata.git</RepositoryUrl>
+  </PropertyGroup>
+
   <!-- Test Framework Dependencies -->
   <ItemGroup>
     <!-- Essential for test discovery and execution -->
@@ -40,6 +50,11 @@
     <PackageReference Include="FluentAssertions" Version="8.5.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\Zentient.Metadata.Abstractions\Zentient.Metadata.Abstractions.csproj" />
+    <ProjectReference Include="..\src\Zentient.Metadata.Attributes\Zentient.Metadata.Attributes.csproj" />
+    <ProjectReference Include="..\src\Zentient.Metadata\Zentient.Metadata.csproj" />
+  </ItemGroup>
 
   <!-- xUnit Global Usings -->
   <ItemGroup>
@@ -48,9 +63,6 @@
   </ItemGroup>
 
   <!-- Project References -->
-  <ItemGroup>
-    <ProjectReference Include="..\src\Zentient.Metadata.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Update="AutoFixture" Version="4.18.1" />
     <PackageReference Update="AutoFixture.Xunit2" Version="4.18.1" />
@@ -63,3 +75,4 @@
   </ItemGroup>
 
 </Project>
+ 

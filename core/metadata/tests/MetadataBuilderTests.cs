@@ -1,13 +1,13 @@
-// <copyright file="src/Zentient.Metadata/Builders/MetadataBuilders.cs" author="Ulf Bourelius">
 // Copyright (c) 2025 Ulf Bourelius. All rights reserved. MIT License. See LICENSE in the project root for license information.
-// </copyright>
+//
+// Tests for Zentient.Metadata.MetadataBuilder via the public Metadata API.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using FluentAssertions;
-using Zentient.Metadata.Builders;
+using Zentient.Metadata;
 using Zentient.Abstractions.Metadata;
 using Zentient.Abstractions.Metadata.Readers;
 
@@ -20,7 +20,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "SetTag sets and overwrites tags")]
         public void SetTag_ShouldSetAndOverwriteTags()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("key1", "value1");
             builder.SetTag("key2", 42);
             builder.SetTag("key1", "newValue");
@@ -34,7 +34,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "AddTags adds multiple tags and overwrites existing")]
         public void AddTags_ShouldAddAndOverwriteTags()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1);
             var tags = new[]
             {
@@ -52,7 +52,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "RemoveTag removes tag if exists")]
         public void RemoveTag_ShouldRemoveTagIfExists()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("x", 1).SetTag("y", 2);
             builder.RemoveTag("x");
 
@@ -65,7 +65,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "RemoveTags removes multiple tags efficiently")]
         public void RemoveTags_ShouldRemoveMultipleTags()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1).SetTag("b", 2).SetTag("c", 3);
             builder.RemoveTags(new[] { "a", "c" });
 
@@ -77,7 +77,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "RemoveTags with predicate removes correct tags")]
         public void RemoveTags_WithPredicate_RemovesCorrectTags()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("foo", 1).SetTag("bar", 2).SetTag("baz", 3);
             builder.RemoveTags((key, value) => key.StartsWith("b"));
 
@@ -89,7 +89,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "UpdateTags updates values based on predicate")]
         public void UpdateTags_ShouldUpdateValues()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1).SetTag("b", 2);
             builder.UpdateTags((k, v) => k == "a", (k, v) => ((int)v!) + 10);
 
@@ -101,11 +101,11 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Merge merges tags from another IMetadataReader")]
         public void Merge_ShouldMergeTagsFromOtherReader()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("x", 1);
 
             var otherTags = new Dictionary<string, object?> { { "y", 2 }, { "x", 3 } };
-            IMetadataReader otherReader = new MetadataBuilder().AddTags(otherTags).Build();
+            IMetadataReader otherReader = Metadata.Create().AddTags(otherTags).Build();
 
             builder.Merge(otherReader);
 
@@ -118,7 +118,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Build returns immutable metadata")]
         public void Build_ShouldReturnImmutableMetadata()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1);
             var metadata = builder.Build();
 
@@ -129,7 +129,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Metadata WithTag returns new instance with added tag")]
         public void Metadata_WithTag_ReturnsNewInstanceWithAddedTag()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1);
             var metadata = builder.Build();
             var newMetadata = metadata.WithTag("b", 2);
@@ -142,7 +142,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Metadata WithoutTag returns new instance without specified tag")]
         public void Metadata_WithoutTag_ReturnsNewInstanceWithoutTag()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1).SetTag("b", 2);
             var metadata = builder.Build();
             var newMetadata = metadata.WithoutTag("a");
@@ -155,7 +155,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Metadata WithTags merges multiple tags")]
         public void Metadata_WithTags_MergesMultipleTags()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1);
             var metadata = builder.Build();
             var newMetadata = metadata.WithTags(new[]
@@ -172,7 +172,7 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Metadata WithoutTags removes multiple tags")]
         public void Metadata_WithoutTags_RemovesMultipleTags()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("a", 1).SetTag("b", 2).SetTag("c", 3);
             var metadata = builder.Build();
             var newMetadata = metadata.WithoutTags(new[] { "a", "c" });
@@ -184,12 +184,12 @@ namespace Zentient.Metadata.Tests
         [Fact(DisplayName = "Metadata Merge merges tags from IMetadataReader")]
         public void Metadata_Merge_MergesTagsFromIMetadataReader()
         {
-            var builder = new MetadataBuilder();
+            var builder = Metadata.Create();
             builder.SetTag("x", 1);
             var metadata = builder.Build();
 
             var otherTags = new Dictionary<string, object?> { { "y", 2 }, { "x", 3 } };
-            IMetadataReader otherReader = new MetadataBuilder().AddTags(otherTags).Build();
+            IMetadataReader otherReader = Metadata.Create().AddTags(otherTags).Build();
             var merged = metadata.Merge(otherReader);
 
             merged.Count.Should().Be(2);
