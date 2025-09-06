@@ -4,17 +4,17 @@
   <PropertyGroup>
     <!-- Template Symbols -->
     <ProjectName>Zentient.Metadata</ProjectName>
-    <LibraryAuthor>Ulf Bourelius;Zentient Framework Team</LibraryAuthor>
-    <LibraryCompany>Zentient Framework Team</LibraryCompany>
-    <LibraryDescription>
-      The **Zentient.Metadata** package provides a powerful, attribute-based system for declaring and discovering metadata in your .NET applications. It shifts metadata management from an imperative, code-heavy process to a simple, declarative one, enhancing the discoverability and extensibility of your components.
+    <Author>Ulf Bourelius;Zentient Framework Team</Author>
+    <Company>Zentient Framework Team</Company>
+    <Description>
+      The Zentient.Metadata package provides a powerful, attribute-based system for declaring and discovering metadata in your .NET applications. It shifts metadata management from an imperative, code-heavy process to a simple, declarative one, enhancing the discoverability and extensibility of your components.
 
-      This library is built on a foundation of clean, immutable interfaces (`IMetadata`) and a fluent builder pattern (`IMetadataBuilder`), ensuring that your metadata is safe and predictable. By using attributes like `[BehaviorDefinition]`, `[CategoryDefinition]`, and the strongly-typed `[MetadataTag&lt;TTag&gt;]`, you can effortlessly attach rich, discoverable information to any class or member. This makes it an ideal solution for building frameworks and platforms that rely on runtime metadata without the overhead of manually managing dictionaries or XML files.
-    </LibraryDescription>
-    <LibraryTags>
+      This library is built on a foundation of clean, immutable interfaces (IMetadata) and a fluent builder pattern (IMetadataBuilder), ensuring that your metadata is safe and predictable. By using attributes like [BehaviorDefinition], [CategoryDefinition], and the strongly-typed [MetadataTag&lt;TTag&gt;], you can effortlessly attach rich, discoverable information to any class or member. This makes it an ideal solution for building frameworks and platforms that rely on runtime metadata without the overhead of manually managing dictionaries or XML files.
+    </Description>
+    <Tags>
         zentient;framework;library;analyzers;metadata;attributes;declarative;discoverability;extensibility;framework;reflection;dependency-injection;dx;code-generation;source-generators
-    </LibraryTags>
-    <LibraryCopyright>Copyright � 2025 Zentient Frameworks Team. All rights reserved.</LibraryCopyright>
+    </Tags>
+    <Copyright>Copyright © 2025 Zentient Frameworks Team. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/ulfbou/Zentient.Metadata.git</RepositoryUrl>
 
     <!-- Build Defaults -->
@@ -23,6 +23,8 @@
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn>
 
     <!-- Assembly Info -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -35,6 +37,10 @@
     <!-- Packaging -->
     <IsPackable Condition="'$(IsPackable)' == '' AND '$(OutputType)' == 'Library'">true</IsPackable>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' AND '$(IsPackable)' == 'true'">true</GeneratePackageOnBuild>
+    <PackageReleaseNotes>See CHANGELOG.md for release notes and docs/ for full specification.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>zentient;metadata;core;builder;scanner;immutable;runtime;reflection;extensible</PackageTags>
 
     <!-- Feature Flags -->
     <EnableSigning Condition="'$(EnableSigning)' == ''">true</EnableSigning>
@@ -47,7 +53,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>Zentient.Metadata</AssemblyTitle>
-    <Description>Core metadata engine for Zentient Framework.</Description>
+    <Description>Core metadata engine for Zentient Framework. See README.md and CHANGELOG.md for details.</Description>
     <Company>Zentient Framework Team</Company>
     <Authors>Zentient Framework Team</Authors>
     <Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
