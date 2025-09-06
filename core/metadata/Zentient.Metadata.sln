@@ -42,7 +42,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		docs\README.md = docs\README.md
 		docs\Zentient.Abstractions.ApiReference.3.0.2.Compressed.md = docs\Zentient.Abstractions.ApiReference.3.0.2.Compressed.md
 		docs\Zentient_Metadata-Specification.md = docs\Zentient_Metadata-Specification.md
-		docs\Zentient_Metadata_Metadata-Attribute-Specification.md = docs\Zentient_Metadata_Metadata-Attribute-Specification.md
+		docs\Zentient_Metadata_Attribute-Specification.md = docs\Zentient_Metadata_Attribute-Specification.md
+		Zentient_Metadata_Diagnostics-Specification.md = Zentient_Metadata_Diagnostics-Specification.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
