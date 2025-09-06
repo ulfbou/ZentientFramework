@@ -20,11 +20,17 @@
     <EnableSecurity Condition="'$(EnableSecurity)' == ''">true</EnableSecurity>
     <EnableDocumentation Condition="'$(EnableDocumentation)' == ''">true</EnableDocumentation>
     <EnablePerformance Condition="'$(EnablePerformance)' == ''">false</EnablePerformance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <PackageReleaseNotes>See CHANGELOG.md for release notes and docs/ for full specification.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>zentient;metadata;attributes;declarative;scanner;builder;category;behavior;tag</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyTitle>Zentient.Metadata.Attributes</AssemblyTitle>
-    <Description>Attribute-based metadata for Zentient Framework.</Description>
+    <Description>Attribute-based metadata for Zentient Framework. See README.md and CHANGELOG.md for details.</Description>
     <Company>Zentient Framework Team</Company>
     <Authors>Zentient Framework Team</Authors>
     <Copyright>Copyright © 2025 Zentient Framework Team. All rights reserved.</Copyright>
