@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0</Version>
+    <Authors>Example</Authors>
+    <PackageId>Net8Project</PackageId>
+    <Description>Sample .NET 8.0 and 9.0 project</Description>
+  </PropertyGroup>
+</Project>
